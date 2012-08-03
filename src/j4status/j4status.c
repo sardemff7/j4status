@@ -208,7 +208,7 @@ main(int argc, char *argv[])
 #endif /* G_OS_UNIX */
 
     g_timeout_add_seconds(interval, _j4status_timeout_function, NULL);
-    output_func(sections);
+    _j4status_timeout_function(NULL);
 
     loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(loop);
