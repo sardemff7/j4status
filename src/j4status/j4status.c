@@ -134,7 +134,7 @@ main(int argc, char *argv[])
     g_type_init();
 
 #if DEBUG
-    const gchar *debug_log_filename =  g_getenv("EVENTD_DEBUG_LOG_FILENAME");
+    const gchar *debug_log_filename =  g_getenv("J4STATUS_DEBUG_LOG_FILENAME");
     GDataOutputStream *debug_stream = NULL;
 
     if ( debug_log_filename != NULL )
