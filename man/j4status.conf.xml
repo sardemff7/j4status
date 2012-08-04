@@ -1,0 +1,79 @@
+<?xml version='1.0' ?>
+<!DOCTYPE config SYSTEM "config.dtd">
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status.conf</refname>
+        <refpurpose>j4status main configuration file</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>The config files are searched in following order (first found with the relevant section is used):</para>
+        <orderedlist>
+            <listitem><para><filename><varname>$J4STATUS_CONFIG_FILE</varname></filename> (see <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</para></listitem>
+            <listitem><para><filename><varname>$XDG_CONFIG_HOME</varname>/&PACKAGE_NAME;/config</filename> (fallback to <filename>~/.config/&PACKAGE_NAME;/config</filename>)</para></listitem>
+            <listitem><para><filename>&sysconfdir;/&PACKAGE_NAME;/config</filename></para></listitem>
+            <listitem><para><filename>&datadir;/&PACKAGE_NAME;/config</filename></para></listitem>
+        </orderedlist>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            This is the configuration file for <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>.
+            The syntax of this file is described in the <ulink url="http://standards.freedesktop.org/desktop-entry-spec/latest/">XDG Desktop Entry Specification</ulink>.
+        </para>
+        <para>
+            Plugins may parse their own section(s) in this file for their configuration.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>

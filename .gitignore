@@ -1,2 +1,5 @@
 /include/config.h*
 /j4status
+/man/config.dtd
+/man/j4status.1
+/man/j4status.conf.5

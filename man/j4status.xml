@@ -1,0 +1,202 @@
+<?xml version='1.0' ?>
+<!DOCTYPE config SYSTEM "config.dtd">
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status</refentrytitle>
+        <manvolnum>1</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status</refname>
+        <refpurpose>status line generator</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <cmdsynopsis>
+            <command>j4status</command>
+            <arg choice="opt">-o <replaceable class="parameter">plugin</replaceable></arg>
+            <arg choice="opt" rep="repeat">-i <replaceable class="parameter">plugin</replaceable></arg>
+        </cmdsynopsis>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            j4status is a status line generator to track remote or local events and do actions the user wants to.
+        </para>
+        <para>
+            j4status is composed by a core, the application itself, and various plugins.
+            Plugins may be output plugins or input plugins.
+        </para>
+        <para>Two official output plugins are distributed with j4status:</para>
+        <variablelist>
+            <varlistentry>
+                <term><command>flat</command> (see <citerefentry><refentrytitle>j4status-flat</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</term>
+                <listitem><para>which displays flat text</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</term>
+                <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
+            </varlistentry>
+        </variablelist>
+        <para>Four official input plugins are distributed with j4status:</para>
+        <variablelist>
+            <varlistentry>
+                <term><command>time</command> (see <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                <listitem><para>a plugin to display date and time</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                <listitem><para>a plugin to monitor files and dispaly their content</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><command>upower</command> (see <citerefentry><refentrytitle>j4status-upower.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                <listitem><para>a UPower client plugin, to display battery status</para></listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Options</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><option>-o</option></term>
+                <term><option>--output=<replaceable class="parameter">plugin</replaceable></option></term>
+                <listitem>
+                    <para>Specify the output plugin</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-i</option></term>
+                <term><option>--input=<replaceable class="parameter">plugin</replaceable></option></term>
+                <listitem>
+                    <para>Specify an input plugin</para>
+                    <para>May be specified multiple times.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-V</option></term>
+                <term><option>--version</option></term>
+                <listitem>
+                    <para>Print version</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-h</option></term>
+                <term><option>--help</option></term>
+                <listitem>
+                    <para>Show help options</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Drop-in replacement for a notification daemon</title>
+
+            <para>
+                With its <command>dbus</command> and <command>nd</command> plugins, eventd can be a drop-in replacement for a notification daemon.
+            </para>
+
+            <para>
+                To use this feature, just add the following line to your <filename>~/.xsession</filename> or equivalent file:
+            </para>
+            <programlisting>eventdctl --auto-spawn notification-daemon ${DISPLAY}</programlisting>
+            <para>
+                See <citerefentry><refentrytitle>eventdctl</refentrytitle><manvolnum>1</manvolnum></citerefentry> for <command>eventdctl</command> call precisions.
+            </para>
+        </example>
+    </refsect1>
+
+    <refsect1>
+        <title>Environment</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><varname>$J4STATUS_PLUGINS_DIR</varname></term>
+                <listitem>
+                    <para>Additional directory to browse for plugins.</para>
+                    <para>This directory is browsed first, before standard directories.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><varname>$J4STATUS_CONFIG_FILE</varname></term>
+                <listitem>
+                    <para>Additional configuration file to check.</para>
+                    <para>This file is checked first, before standard files, to override them.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Sockets</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><filename><varname>$XDG_RUNTIME_DIR</varname>/&PACKAGE_NAME;/private</filename></term>
+                <listitem>
+                    <para>Used internally by <citerefentry><refentrytitle>eventdctl</refentrytitle><manvolnum>1</manvolnum></citerefentry> to communicate with eventd. This location can be overridden by the <option>--private-socket</option> option.</para>
+                    <para>If <varname>$XDG_RUNTIME_DIR</varname> is not set, we use <varname>$XDG_CACHE_HOME</varname>, with a fallback to <filename>~/.cache</filename>.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>

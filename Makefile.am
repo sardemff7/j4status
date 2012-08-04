@@ -40,6 +40,7 @@ endif
 if ENABLE_UPOWER_INPUT
 include src/input/upower/upower.mk
 endif
+include man/man.mk
 
 
 #
