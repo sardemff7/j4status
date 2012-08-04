@@ -1,0 +1,105 @@
+<?xml version='1.0' ?>
+<!DOCTYPE config SYSTEM "config.dtd">
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status-file-monitor.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status-file-monitor.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status-file-monitor.conf</refname>
+        <refpurpose>j4status file-monitor plugin configuration file</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>
+            Configuration for the file-monitor plugin
+        </para>
+    </refsynopsisdiv>
+
+    <refsect1>
+        <title>Description</title>
+
+        <para>
+            It controls the file-monitor plugin behavior.
+        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Sections</title>
+
+        <refsect2>
+            <title>Section <varname>[FileMonitor]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Files=</varname>
+                        (<type>list of file names</type>)
+                    </term>
+                    <listitem>
+                        <para>Files to monitor in the plugin runtime directory.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+    </refsect1>
+
+    <refsect1>
+        <title>Directory</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><filename><varname>$XDG_RUNTIME_DIR</varname>/&PACKAGE_NAME;/file-monitor</filename></term>
+                <listitem>
+                    <para>The directory in which the plugin will search files.</para>
+                    <para>If <varname>$XDG_RUNTIME_DIR</varname> is not set, we use <varname>$XDG_CACHE_HOME</varname>, with a fallback to <filename>~/.cache</filename>.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>

@@ -1,6 +1,9 @@
 plugins_LTLIBRARIES += \
 	time.la
 
+man5_MANS += \
+	man/j4status-time.conf.5
+
 time_la_SOURCES = \
 	src/input/time/time.c
 

@@ -22,7 +22,7 @@
   along with j4status. If not, see <http://www.gnu.org/licenses/>.
 -->
 
-<refentry id="j4status.conf">
+<refentry id="j4status-time.conf">
     <refentryinfo>
         <title>&PACKAGE_NAME; Manual</title>
         <productname>&PACKAGE_NAME;</productname>
@@ -39,41 +39,53 @@
     </refentryinfo>
 
     <refmeta>
-        <refentrytitle>j4status.conf</refentrytitle>
+        <refentrytitle>j4status-time.conf</refentrytitle>
         <manvolnum>5</manvolnum>
     </refmeta>
 
     <refnamediv>
-        <refname>j4status.conf</refname>
-        <refpurpose>j4status configuration file</refpurpose>
+        <refname>j4status-time.conf</refname>
+        <refpurpose>j4status time plugin configuration file</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
-        <para>The config files are searched in following order (first found with the relevant section is used):</para>
-        <orderedlist>
-            <listitem><para><filename><varname>$J4STATUS_CONFIG_FILE</varname></filename> (see <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</para></listitem>
-            <listitem><para><filename><varname>$XDG_CONFIG_HOME</varname>/&PACKAGE_NAME;/config</filename> (fallback to <filename>~/.config/&PACKAGE_NAME;/config</filename>)</para></listitem>
-            <listitem><para><filename>&sysconfdir;/&PACKAGE_NAME;/config</filename></para></listitem>
-            <listitem><para><filename>&datadir;/&PACKAGE_NAME;/config</filename></para></listitem>
-        </orderedlist>
+        <para>
+            Configuration for the time plugin
+        </para>
     </refsynopsisdiv>
 
     <refsect1>
         <title>Description</title>
 
         <para>
-            This is the configuration file for <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>.
-            The syntax of this file is described in the <ulink url="http://standards.freedesktop.org/desktop-entry-spec/latest/">XDG Desktop Entry Specification</ulink>.
+            It controls the time plugin behavior.
         </para>
-        <para>
-            Plugins may parse their own section(s) in this file for their configuration.
-        </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Sections</title>
+
+        <refsect2>
+            <title>Section <varname>[Time]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Format=</varname>
+                        (<type>format string</type>, defaults to <literal>"%F %T"</literal>, see <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>)
+                    </term>
+                    <listitem>
+                        <para>Format string used to display date and time.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
     </refsect1>
 
     <refsect1>
         <title>See Also</title>
         <para>
-            <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
         </para>
     </refsect1>
 </refentry>

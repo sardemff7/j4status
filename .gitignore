@@ -3,3 +3,6 @@
 /man/config.dtd
 /man/j4status.1
 /man/j4status.conf.5
+/man/j4status-file-monitor.conf.5
+/man/j4status-time.conf.5
+/man/j4status-nm.conf.5
