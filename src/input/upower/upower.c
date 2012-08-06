@@ -33,9 +33,8 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
 {
     J4statusSection *section = user_data;
 
-    g_debug("CHANGE");
-
     gdouble percentage = -1;
+    gint64 time = -1;
     const gchar *state = "Bat";
 
     section->state = J4STATUS_STATE_UNKNOWN;
@@ -81,12 +80,22 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
             section->state = J4STATUS_STATE_BAD;
         else
             section->state = J4STATUS_STATE_AVERAGE;
+
+        g_value_init(&value, G_TYPE_INT64);
+        g_object_get_property(G_OBJECT(device), "time-to-empty", &value);
+        time = g_value_get_int64(&value);
+        g_value_unset(&value);
     break;
     case 'E':
         section->state = J4STATUS_STATE_URGENT;
     break;
     case 'C':
         section->state = J4STATUS_STATE_AVERAGE;
+
+        g_value_init(&value, G_TYPE_INT64);
+        g_object_get_property(G_OBJECT(device), "time-to-full", &value);
+        time = g_value_get_int64(&value);
+        g_value_unset(&value);
     break;
     case 'F':
         section->state = J4STATUS_STATE_GOOD;
@@ -95,8 +104,26 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
 
     if ( percentage < 0 )
         section->value = g_strdup_printf("%s", state);
-    else
+    else if ( time < 1 )
         section->value = g_strdup_printf("%s %.02f%%", state, percentage);
+    else
+    {
+        guint64 h = 0;
+        guint64 m = 0;
+
+        if ( time > 3600 )
+        {
+            h = time / 3600;
+            time %= 3600;
+        }
+        if ( time > 60 )
+        {
+            m = time / 60;
+            time %= 60;
+        }
+
+        section->value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", state, percentage, h, m, time);
+    }
     section->dirty = TRUE;
 }
 
