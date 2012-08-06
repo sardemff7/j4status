@@ -35,8 +35,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
 
     g_debug("CHANGE");
 
-    gdouble full_design = -1;
-    gdouble remaining = -1;
+    gdouble percentage = -1;
     const gchar *state = "Bat";
 
     section->state = J4STATUS_STATE_UNKNOWN;
@@ -69,17 +68,9 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     g_value_unset(&value);
 
     g_value_init(&value, G_TYPE_DOUBLE);
-    g_object_get_property(G_OBJECT(device), "energy-full-design", &value);
-    full_design = g_value_get_double(&value);
+    g_object_get_property(G_OBJECT(device), "percentage", &value);
+    percentage = g_value_get_double(&value);
     g_value_unset(&value);
-
-    g_value_init(&value, G_TYPE_DOUBLE);
-    g_object_get_property(G_OBJECT(device), "energy", &value);
-    remaining = g_value_get_double(&value);
-    g_value_unset(&value);
-
-    gdouble percentage;
-    percentage = ( ( remaining / full_design ) * 100 );
 
     switch ( state[0] )
     {
@@ -90,15 +81,22 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
             section->state = J4STATUS_STATE_BAD;
         else
             section->state = J4STATUS_STATE_AVERAGE;
+    break;
     case 'E':
         section->state = J4STATUS_STATE_URGENT;
+    break;
     case 'C':
         section->state = J4STATUS_STATE_AVERAGE;
+    break;
     case 'F':
         section->state = J4STATUS_STATE_GOOD;
+    break;
     }
 
-    section->value = g_strdup_printf("%s %.02f%%", state, percentage);
+    if ( percentage < 0 )
+        section->value = g_strdup_printf("%s", state);
+    else
+        section->value = g_strdup_printf("%s %.02f%%", state, percentage);
     section->dirty = TRUE;
 }
 
