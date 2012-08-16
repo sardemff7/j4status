@@ -42,11 +42,11 @@ _j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
     break;
     case NM_DEVICE_STATE_UNMANAGED:
         section->value = g_strdup("Unmanaged");
-        section->state = J4STATUS_STATE_UNAVAILABLE;
+        section->state = J4STATUS_STATE_UNKNOWN;
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
         section->value = g_strdup("Unavailable");
-        section->state = J4STATUS_STATE_BAD;
+        section->state = J4STATUS_STATE_UNAVAILABLE;
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
         section->value = g_strdup("Down");
