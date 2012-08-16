@@ -139,10 +139,11 @@ _j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
                 section->state = J4STATUS_STATE_AVERAGE;
             section->value = g_strdup_printf("(%03u%% at %s, %uMb/s)%s", strenght, ssid, bitrate/1000, addresses->str);
             g_free(ssid);
+            g_string_free(addresses, TRUE);
         }
         break;
         default:
-            section->value = g_strdup(addresses->str);
+            section->value = g_string_free(addresses, FALSE);
         break;
         }
     }
