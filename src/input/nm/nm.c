@@ -248,6 +248,12 @@ j4status_input()
                         section->name = "nm-vlan";
                         section->label = g_strdup("V");
                     break;
+#if NM_CHECK_VERSION(0,9,5)
+                    case NM_DEVICE_TYPE_ADSL:
+                        section->name = "nm-adsl";
+                        section->label = g_strdup("A");
+                    break;
+#endif /* NM_CHECK_VERSION(0.9.5) */
                     }
                     section->instance = g_strdup(*interface);
                     _j4status_nm_device_changed(device, section);
