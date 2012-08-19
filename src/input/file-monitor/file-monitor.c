@@ -27,6 +27,10 @@
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
+static struct {
+    GList *sections;
+} context;
+
 static void
 _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data)
 {
@@ -46,10 +50,10 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
     }
 }
 
-GList *
+GList **
 j4status_input()
 {
-    GList *sections = NULL;
+    context.sections = NULL;
 
     gchar *dir;
     dir = g_build_filename(g_get_user_runtime_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "file-monitor", NULL);
@@ -92,7 +96,7 @@ j4status_input()
                     section->label = *file;
                     section->dirty = TRUE;
                     g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
-                    sections = g_list_prepend(sections, section);
+                    context.sections = g_list_prepend(context.sections, section);
                 }
                 g_free(files);
             }
@@ -100,5 +104,6 @@ j4status_input()
         }
     }
     g_free(dir);
-    return g_list_reverse(sections);
+    context.sections = g_list_reverse(context.sections);
+    return &context.sections;
 }

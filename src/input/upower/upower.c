@@ -26,7 +26,10 @@
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
-static UpClient *up_client = NULL;
+static struct {
+    UpClient *up_client;
+    GList *sections;
+} context;
 
 static void
 _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
@@ -127,16 +130,16 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     section->dirty = TRUE;
 }
 
-GList *
+GList **
 j4status_input()
 {
-    GList *sections = NULL;
+    context.sections = NULL;
 
-    up_client = up_client_new();
+    context.up_client = up_client_new();
 
-    if ( ! up_client_enumerate_devices_sync(up_client, NULL, NULL) )
+    if ( ! up_client_enumerate_devices_sync(context.up_client, NULL, NULL) )
     {
-        g_object_unref(up_client);
+        g_object_unref(context.up_client);
         return NULL;
     }
 
@@ -151,7 +154,7 @@ j4status_input()
     UpDevice *device;
     guint i;
 
-    devices = up_client_get_devices(up_client);
+    devices = up_client_get_devices(context.up_client);
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
@@ -176,9 +179,10 @@ j4status_input()
             continue;
         }
 
-        sections = g_list_prepend(sections, section);
+        context.sections = g_list_prepend(context.sections, section);
     }
     g_ptr_array_unref(devices);
 
-    return g_list_reverse(sections);
+    context.sections = g_list_reverse(context.sections);
+    return &context.sections;
 }

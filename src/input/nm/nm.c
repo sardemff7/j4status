@@ -28,7 +28,11 @@
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
-static NMClient *nm_client = NULL;
+static struct {
+    NMClient *nm_client;
+    gchar **interfaces;
+    GList *sections;
+} context;
 
 static void
 _j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
@@ -172,98 +176,99 @@ _j4status_nm_device_state_changed(NMDevice *device, guint state, guint arg2, gui
     _j4status_nm_device_changed(device, user_data);
 }
 
-GList *
+GList **
 j4status_input()
 {
-    GList *sections = NULL;
+    context.sections = NULL;
 
-    nm_client = nm_client_new();
-    const GPtrArray *devices;
-    devices = nm_client_get_devices(nm_client);
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("NetworkManager");
-    if ( key_file != NULL )
+    if ( key_file == NULL )
+        return NULL;
+
+    context.interfaces = g_key_file_get_string_list(key_file, "NetworkManager", "Interfaces", NULL, NULL);
+    g_key_file_unref(key_file);
+    if ( context.interfaces == NULL )
+        return NULL;
+
+    context.nm_client = nm_client_new();
+
+    const GPtrArray *devices;
+    devices = nm_client_get_devices(context.nm_client);
+    gchar **interface;
+    for ( interface = context.interfaces ; *interface != NULL ; ++interface )
     {
-        gchar **interfaces;
-        interfaces = g_key_file_get_string_list(key_file, "NetworkManager", "Interfaces", NULL, NULL);
-        if ( interfaces != NULL )
+        NMDevice *device;
+        guint i;
+        for ( i = 0 ; i < devices->len ; ++i )
         {
-            gchar **interface;
-            for ( interface = interfaces ; *interface != NULL ; ++interface )
+            device = g_ptr_array_index(devices, i);
+            if ( ! g_str_equal(*interface, nm_device_get_iface(device)) )
+                continue;
+            J4statusSection *section;
+            section = g_new0(J4statusSection, 1);
+            switch ( nm_device_get_device_type(device) )
             {
-                NMDevice *device;
-                guint i;
-                for ( i = 0 ; i < devices->len ; ++i )
-                {
-                    device = g_ptr_array_index(devices, i);
-                    if ( ! g_str_equal(*interface, nm_device_get_iface(device)) )
-                        continue;
-                    J4statusSection *section;
-                    section = g_new0(J4statusSection, 1);
-                    switch ( nm_device_get_device_type(device) )
-                    {
-                    case NM_DEVICE_TYPE_UNKNOWN:
-                    case NM_DEVICE_TYPE_UNUSED1:
-                    case NM_DEVICE_TYPE_UNUSED2:
-                        section->name = "nm-unknown";
-                        section->label = g_strdup("Unknownw");
-                    break;
-                    case NM_DEVICE_TYPE_ETHERNET:
-                        section->name = "nm-ethernet";
-                        section->label = g_strdup("E");
-                    break;
-                    case NM_DEVICE_TYPE_WIFI:
-                    {
-                        section->name = "nm-wifi";
-                        section->label = g_strdup("W");
-                        g_signal_connect(device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
-                        g_signal_connect(device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
-                    }
-                    break;
-                    case NM_DEVICE_TYPE_BT:
-                        section->name = "nm-bluetooth";
-                        section->label = g_strdup("B");
-                    break;
-                    case NM_DEVICE_TYPE_OLPC_MESH:
-                        section->name = "nm-olpc-mesh";
-                        section->label = g_strdup("OM");
-                    break;
-                    case NM_DEVICE_TYPE_WIMAX:
-                        section->name = "nm-wimax";
-                        section->label = g_strdup("Wx");
-                    break;
-                    case NM_DEVICE_TYPE_MODEM:
-                        section->name = "nm-modem";
-                        section->label = g_strdup("M");
-                    break;
-                    case NM_DEVICE_TYPE_INFINIBAND:
-                        section->name = "nm-infiniband";
-                        section->label = g_strdup("I");
-                    break;
-                    case NM_DEVICE_TYPE_BOND:
-                        section->name = "nm-bond";
-                        section->label = g_strdup("Bo");
-                    break;
-                    case NM_DEVICE_TYPE_VLAN:
-                        section->name = "nm-vlan";
-                        section->label = g_strdup("V");
-                    break;
-#if NM_CHECK_VERSION(0,9,5)
-                    case NM_DEVICE_TYPE_ADSL:
-                        section->name = "nm-adsl";
-                        section->label = g_strdup("A");
-                    break;
-#endif /* NM_CHECK_VERSION(0.9.5) */
-                    }
-                    section->instance = g_strdup(*interface);
-                    _j4status_nm_device_changed(device, section);
-                    g_signal_connect(device, "state-changed", G_CALLBACK(_j4status_nm_device_state_changed), section);
-                    sections = g_list_prepend(sections, section);
-                }
+            case NM_DEVICE_TYPE_UNKNOWN:
+            case NM_DEVICE_TYPE_UNUSED1:
+            case NM_DEVICE_TYPE_UNUSED2:
+                section->name = "nm-unknown";
+                section->label = g_strdup("Unknownw");
+            break;
+            case NM_DEVICE_TYPE_ETHERNET:
+                section->name = "nm-ethernet";
+                section->label = g_strdup("E");
+            break;
+            case NM_DEVICE_TYPE_WIFI:
+            {
+                section->name = "nm-wifi";
+                section->label = g_strdup("W");
+                g_signal_connect(device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
+                g_signal_connect(device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
             }
-            g_strfreev(interfaces);
+            break;
+            case NM_DEVICE_TYPE_BT:
+                section->name = "nm-bluetooth";
+                section->label = g_strdup("B");
+            break;
+            case NM_DEVICE_TYPE_OLPC_MESH:
+                section->name = "nm-olpc-mesh";
+                section->label = g_strdup("OM");
+            break;
+            case NM_DEVICE_TYPE_WIMAX:
+                section->name = "nm-wimax";
+                section->label = g_strdup("Wx");
+            break;
+            case NM_DEVICE_TYPE_MODEM:
+                section->name = "nm-modem";
+                section->label = g_strdup("M");
+            break;
+            case NM_DEVICE_TYPE_INFINIBAND:
+                section->name = "nm-infiniband";
+                section->label = g_strdup("I");
+            break;
+            case NM_DEVICE_TYPE_BOND:
+                section->name = "nm-bond";
+                section->label = g_strdup("Bo");
+            break;
+            case NM_DEVICE_TYPE_VLAN:
+                section->name = "nm-vlan";
+                section->label = g_strdup("V");
+            break;
+#if NM_CHECK_VERSION(0,9,5)
+            case NM_DEVICE_TYPE_ADSL:
+                section->name = "nm-adsl";
+                section->label = g_strdup("A");
+            break;
+#endif /* NM_CHECK_VERSION(0.9.5) */
+            }
+            section->instance = g_strdup(*interface);
+            _j4status_nm_device_changed(device, section);
+            g_signal_connect(device, "state-changed", G_CALLBACK(_j4status_nm_device_state_changed), section);
+            context.sections = g_list_prepend(context.sections, section);
         }
-        g_key_file_unref(key_file);
     }
-    return g_list_reverse(sections);
+
+    context.sections = g_list_reverse(context.sections);
+    return &context.sections;
 }

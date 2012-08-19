@@ -128,7 +128,7 @@ j4status_plugins_get_output_func(const gchar *name)
     return func;
 }
 
-typedef GList *(*J4statusInputFunc)();
+typedef GList **(*J4statusInputFunc)();
 
 static J4statusInputFunc
 j4status_plugins_get_input_func(const gchar *name)
@@ -170,8 +170,13 @@ j4status_plugins_get_sections(gchar **names)
     {
         func = j4status_plugins_get_input_func(*name);
         if ( func != NULL )
-            sections = g_list_concat(sections, func());
+        {
+            GList **ret;
+            ret = func();
+            if ( ret != NULL )
+                sections = g_list_prepend(sections, ret);
+        }
     }
 
-    return sections;
+    return g_list_reverse(sections);
 }

@@ -29,36 +29,32 @@
 
 #define TIME_SIZE 4095
 
-typedef struct {
+static struct {
+    GList *sections;
     gchar *format;
     J4statusSection *section;
-} J4statusTimeContext;
+} context;
 
 static gboolean
 _j4status_time_update(gpointer user_data)
 {
-    J4statusTimeContext *context = user_data;
-
     GDateTime *date_time;
     date_time = g_date_time_new_now_local();
 
-    g_free(context->section->value);
-    context->section->value = g_date_time_format(date_time, context->format);
-    context->section->dirty = TRUE;
+    g_free(context.section->value);
+    context.section->value = g_date_time_format(date_time, context.format);
+    context.section->dirty = TRUE;
 
     g_date_time_unref(date_time);
 
     return TRUE;
 }
 
-GList *
+GList **
 j4status_input()
 {
-    GList *sections = NULL;
-
-    J4statusTimeContext *context;
-    context = g_new0(J4statusTimeContext, 1);
-    context->format = g_strdup("%F %T");
+    context.sections = NULL;
+    context.format = g_strdup("%F %T");
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Time");
@@ -68,21 +64,21 @@ j4status_input()
         format = g_key_file_get_string(key_file, "Time", "Format", NULL);
         if ( format != NULL )
         {
-            g_free(context->format);
-            context->format = format;
+            g_free(context.format);
+            context.format = format;
         }
         g_key_file_unref(key_file);
     }
 
-    context->section = g_new0(J4statusSection, 1);
-    context->section->name = "time";
-    context->section->state = J4STATUS_STATE_UNAVAILABLE;
-    context->section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1) );
+    context.section = g_new0(J4statusSection, 1);
+    context.section->name = "time";
+    context.section->state = J4STATUS_STATE_UNAVAILABLE;
+    context.section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1) );
 
-    _j4status_time_update(context);
+    _j4status_time_update(NULL);
 
-    sections = g_list_prepend(sections, context->section);
-    g_timeout_add_seconds(1, _j4status_time_update, context);
+    context.sections = g_list_prepend(context.sections, context.section);
+    g_timeout_add_seconds(1, _j4status_time_update, NULL);
 
-    return g_list_reverse(sections);
+    return &context.sections;
 }

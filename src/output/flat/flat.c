@@ -26,31 +26,39 @@
 #include <j4status-plugin.h>
 
 void
-j4status_output(GList *section_)
+j4status_output(GList *sections_)
 {
     J4statusSection *section;
-    for ( ; section_ != NULL ; section_ = g_list_next(section_) )
+    gboolean first = TRUE;
+    for ( ; sections_ != NULL ; sections_ = g_list_next(sections_) )
     {
-        section = section_->data;
-        if ( section->dirty )
+        GList **section__ = sections_->data;
+        GList *section_ = *section__;
+        for ( ; section_ != NULL ; section_ = g_list_next(section_) )
         {
-            g_free(section->line_cache);
-            section->dirty = FALSE;
-            if ( section->value == NULL )
+            section = section_->data;
+            if ( section->dirty )
             {
-                section->line_cache = NULL;
-                continue;
+                g_free(section->line_cache);
+                section->dirty = FALSE;
+                if ( section->value == NULL )
+                {
+                    section->line_cache = NULL;
+                    continue;
+                }
+                if ( section->label != NULL )
+                    section->line_cache = g_strdup_printf("%s: %s", section->label, section->value);
+                else
+                    section->line_cache = g_strdup(section->value);
             }
-            if ( section->label != NULL )
-                section->line_cache = g_strdup_printf("%s: %s", section->label, section->value);
+            if ( section->line_cache == NULL )
+                continue;
+            if ( first )
+                first = FALSE;
             else
-                section->line_cache = g_strdup(section->value);
+                g_printf(" | ");
+            g_printf("%s", section->line_cache);
         }
-        if ( section->line_cache == NULL )
-            continue;
-        g_printf("%s", section->line_cache);
-        if ( g_list_next(section_) != NULL )
-            g_printf(" | ");
     }
     g_printf("\n");
 }
