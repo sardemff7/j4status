@@ -66,8 +66,41 @@
             The syntax of this file is described in the <ulink url="http://standards.freedesktop.org/desktop-entry-spec/latest/">XDG Desktop Entry Specification</ulink>.
         </para>
         <para>
+            This file settings can be overridden by passing arguments to <command>j4status</command> invocation directly.
+        </para>
+        <para>
             Plugins may parse their own section(s) in this file for their configuration.
         </para>
+    </refsect1>
+
+    <refsect1>
+        <title>Sections</title>
+
+        <refsect2>
+            <title>Section <varname>[Plugins]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Output=</varname>
+                        (<type>plugin name</type>, defaults to <literal>flat</literal>)
+                    </term>
+                    <listitem>
+                        <para>Output plugin to use.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Input=</varname>
+                        (<type>list of plugin names</type>)
+                    </term>
+                    <listitem>
+                        <para>List of input plugins to use.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
     </refsect1>
 
     <refsect1>

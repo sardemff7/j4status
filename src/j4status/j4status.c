@@ -30,6 +30,8 @@
 
 #include <j4status-plugin.h>
 
+#include <libj4status-config.h>
+
 #include "plugins.h"
 
 static GMainLoop *loop = NULL;
@@ -189,6 +191,19 @@ main(int argc, char *argv[])
     {
         g_fprintf(stdout, PACKAGE_NAME " " PACKAGE_VERSION "\n");
         goto end;
+    }
+
+    GKeyFile *key_file;
+    key_file = libj4status_config_get_key_file("Plugins");
+    if ( key_file != NULL )
+    {
+        if ( output_plugin == NULL )
+            output_plugin = g_key_file_get_string(key_file, "Plugins", "Output", NULL);
+
+        if ( input_plugins == NULL )
+            input_plugins = g_key_file_get_string_list(key_file, "Plugins", "Input", NULL, NULL);
+
+        g_key_file_unref(key_file);
     }
 
     J4statusOutputInitFunc output_init_func;

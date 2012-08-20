@@ -22,6 +22,7 @@ j4status_CFLAGS = \
 	$(GLIB_CFLAGS)
 
 j4status_LDADD = \
+	libj4status.la \
 	$(GTHREAD_LIBS) \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \
