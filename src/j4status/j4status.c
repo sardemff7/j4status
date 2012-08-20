@@ -39,6 +39,7 @@ struct _J4statusCoreContext {
     GList *input_plugins;
     GList *sections;
     J4statusOutputPlugin *output_plugin;
+    gulong display_handle;
 };
 
 static void
@@ -105,12 +106,25 @@ _j4status_core_signal_quit(gpointer user_data)
 #endif /* G_OS_UNIX */
 
 static gboolean
-_j4status_timeout_function(gpointer user_data)
+_j4status_core_display(gpointer user_data)
 {
     J4statusCoreContext *context = user_data;
+
+    context->display_handle = 0;
+
     context->output_plugin->print(context->output_plugin->context, context->sections);
     fflush(stdout);
-    return TRUE;
+
+    return FALSE;
+}
+
+static void
+_j4status_core_trigger_display(J4statusCoreContext *context)
+{
+    if ( context->display_handle > 0 )
+        return;
+
+    context->display_handle = g_idle_add(_j4status_core_display, context);
 }
 
 int
@@ -119,7 +133,6 @@ main(int argc, char *argv[])
     gboolean print_version = FALSE;
     gchar **input_plugins = NULL;
     gchar *output_plugin = NULL;
-    guint interval = 1;
 
     int retval = 0;
     GError *error = NULL;
@@ -171,7 +184,6 @@ main(int argc, char *argv[])
 
     GOptionEntry entries[] =
     {
-        { "interval", 'I', 0, G_OPTION_ARG_INT,          &interval,      "Interval between each output", "<seconds>" },
         { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
         { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
         { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
@@ -213,6 +225,7 @@ main(int argc, char *argv[])
     context = g_new0(J4statusCoreContext, 1);
 
     J4statusCoreInterface interface = {
+        .trigger_display = _j4status_core_trigger_display
     };
 
     context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
@@ -249,8 +262,7 @@ main(int argc, char *argv[])
             input_plugin->start(input_plugin->context);
     }
 
-    g_timeout_add_seconds(interval, _j4status_timeout_function, context);
-    _j4status_timeout_function(context);
+    _j4status_core_trigger_display(context);
 
     context->loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(context->loop);

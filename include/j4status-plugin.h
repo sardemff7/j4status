@@ -50,7 +50,10 @@ typedef struct {
 
 typedef struct _J4statusCoreContext J4statusCoreContext;
 
+typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
+
 typedef struct {
+    J4statusCoreFunc trigger_display;
 } J4statusCoreInterface;
 
 typedef struct _J4statusPluginContext J4statusPluginContext;
