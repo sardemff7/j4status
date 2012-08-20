@@ -69,11 +69,11 @@
         <para>Two official output plugins are distributed with j4status:</para>
         <variablelist>
             <varlistentry>
-                <term><command>flat</command> (see <citerefentry><refentrytitle>j4status-flat</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</term>
+                <term><command>flat</command></term>
                 <listitem><para>which displays flat text</para></listitem>
             </varlistentry>
             <varlistentry>
-                <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</term>
+                <term><command>i3bar</command></term>
                 <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
             </varlistentry>
         </variablelist>
@@ -92,7 +92,7 @@
                 <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
             </varlistentry>
             <varlistentry>
-                <term><command>upower</command> (see <citerefentry><refentrytitle>j4status-upower.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                <term><command>upower</command></term>
                 <listitem><para>a UPower client plugin, to display battery status</para></listitem>
             </varlistentry>
         </variablelist>
