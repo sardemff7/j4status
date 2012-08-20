@@ -34,12 +34,12 @@
 
 #include "plugins.h"
 
-typedef struct {
+struct _J4statusCoreContext {
     GMainLoop *loop;
     GList *input_plugins;
     GList *sections;
     J4statusOutputPlugin *output_plugin;
-} J4statusCoreContext;
+};
 
 static void
 _j4status_core_quit(J4statusCoreContext *context)
@@ -212,6 +212,9 @@ main(int argc, char *argv[])
     J4statusCoreContext *context;
     context = g_new0(J4statusCoreContext, 1);
 
+    J4statusCoreInterface interface = {
+    };
+
     context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
     if ( context->output_plugin == NULL )
         g_error("No usable output plugin, tried '%s'", output_plugin);
@@ -220,7 +223,7 @@ main(int argc, char *argv[])
 
     if ( context->output_plugin->init != NULL )
     {
-        context->output_plugin->context = context->output_plugin->init();
+        context->output_plugin->context = context->output_plugin->init(context, &interface);
         fflush(stdout);
     }
 
@@ -229,7 +232,7 @@ main(int argc, char *argv[])
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        input_plugin->context = input_plugin->init();
+        input_plugin->context = input_plugin->init(context, &interface);
         context->sections = g_list_prepend(context->sections, input_plugin->get_sections(input_plugin->context));
     }
     context->sections = g_list_reverse(context->sections);

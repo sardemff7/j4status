@@ -53,7 +53,7 @@ _j4status_time_update(gpointer user_data)
 }
 
 static J4statusPluginContext *
-_j4status_time_init()
+_j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
     J4statusPluginContext *context;
 

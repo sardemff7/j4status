@@ -320,7 +320,7 @@ _j4status_nm_client_device_removed(NMClient *client, NMDevice *device, gpointer 
 }
 
 J4statusPluginContext *
-_j4status_nm_init()
+_j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("NetworkManager");

@@ -51,7 +51,7 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
 }
 
 static J4statusPluginContext *
-_j4status_file_monitor_init()
+_j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);

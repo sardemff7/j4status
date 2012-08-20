@@ -131,7 +131,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
 }
 
 static J4statusPluginContext *
-_j4status_upower_init()
+_j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
