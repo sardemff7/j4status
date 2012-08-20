@@ -40,6 +40,7 @@ struct _J4statusPluginContext {
 typedef struct {
     J4statusPluginContext *context;
     NMDevice *device;
+    guint access_point_handler_id;
 } J4statusNmSectionContext;
 
 static void
@@ -173,10 +174,23 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
 }
 
 static void
+_j4status_nm_access_point_property_changed(NMAccessPoint *device, guint state, guint arg2, guint arg3, gpointer user_data)
+{
+    J4statusSection *section = user_data;
+    J4statusNmSectionContext *section_context = section->user_data;
+    _j4status_nm_device_update(section_context->context, section, section_context->device);
+}
+
+static void
 _j4status_nm_device_property_changed(NMDevice *device, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
     J4statusNmSectionContext *section_context = section->user_data;
+    if ( g_str_equal("active-access-point", pspec->name) )
+    {
+        g_source_remove(section_context->access_point_handler_id);
+        section_context->access_point_handler_id = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
+    }
     _j4status_nm_device_update(section_context->context, section, device);
 }
 
@@ -217,6 +231,7 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
         section->label = g_strdup("W");
         g_signal_connect(device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
         g_signal_connect(device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
+        section_context->access_point_handler_id = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
     }
     break;
     case NM_DEVICE_TYPE_BT:
