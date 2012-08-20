@@ -83,9 +83,9 @@ j4status_output(GList *sections_)
 
             switch ( section->state )
             {
-            case J4STATUS_STATE_UNAVAILABLE:
+            case J4STATUS_STATE_NO_STATE:
             break;
-            case J4STATUS_STATE_UNKNOWN:
+            case J4STATUS_STATE_UNAVAILABLE:
                 yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
                 yajl_gen_string(json_gen, (const unsigned char *)"#0000FF", 7);
             break;

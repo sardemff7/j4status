@@ -72,7 +72,7 @@ j4status_input()
 
     context.section = g_new0(J4statusSection, 1);
     context.section->name = "time";
-    context.section->state = J4STATUS_STATE_UNAVAILABLE;
+    context.section->state = J4STATUS_STATE_NO_STATE;
     context.section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1) );
 
     _j4status_time_update(NULL);

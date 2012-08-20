@@ -40,7 +40,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     gint64 time = -1;
     const gchar *state = "Bat";
 
-    section->state = J4STATUS_STATE_UNKNOWN;
+    section->state = J4STATUS_STATE_NO_STATE;
 
     GValue value = G_VALUE_INIT;
 
