@@ -88,9 +88,26 @@ j4status_output_init(GList *section_)
         g_key_file_unref(key_file);
     }
 
+    yajl_gen json_gen;
+    json_gen = yajl_gen_alloc(NULL);
+
+    yajl_gen_map_open(json_gen);
+    yajl_gen_string(json_gen, (const unsigned char *)"version", strlen("version"));
+    yajl_gen_integer(json_gen, 1);
+    yajl_gen_string(json_gen, (const unsigned char *)"stop_with_usr1", strlen("stop_with_usr1"));
+    yajl_gen_bool(json_gen, TRUE);
+    yajl_gen_map_close(json_gen);
+
+    const unsigned char *buffer;
+    size_t length;
+    yajl_gen_get_buf(json_gen, &buffer, &length);
+    g_printf("%s\n", buffer);
+    yajl_gen_free(json_gen);
+
     context.json_gen = yajl_gen_alloc(NULL);
-    g_printf("{\"version\":1}\n[\n");
     yajl_gen_array_open(context.json_gen);
+    yajl_gen_get_buf(json_gen, &buffer, &length);
+    g_printf("%s\n", buffer);
     yajl_gen_clear(context.json_gen);
 }
 
