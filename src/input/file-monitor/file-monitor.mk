@@ -1,9 +1,6 @@
 plugins_LTLIBRARIES += \
 	file-monitor.la
 
-man5_MANS += \
-	man/j4status-file-monitor.conf.5
-
 file_monitor_la_SOURCES = \
 	src/input/file-monitor/file-monitor.c
 
@@ -20,3 +17,6 @@ file_monitor_la_LIBADD = \
 	libj4status.la \
 	$(GIO_LIBS) \
 	$(GLIB_LIBS)
+
+man5_MANS += \
+	man/j4status-file-monitor.conf.5

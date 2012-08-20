@@ -1,9 +1,6 @@
 plugins_LTLIBRARIES += \
 	nm.la
 
-man5_MANS += \
-	man/j4status-nm.conf.5
-
 nm_la_SOURCES = \
 	src/input/nm/nm.c
 
@@ -20,3 +17,6 @@ nm_la_LIBADD = \
 	libj4status.la \
 	$(LIBNM_LIBS) \
 	$(GLIB_LIBS)
+
+man5_MANS += \
+	man/j4status-nm.conf.5

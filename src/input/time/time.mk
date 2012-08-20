@@ -1,9 +1,6 @@
 plugins_LTLIBRARIES += \
 	time.la
 
-man5_MANS += \
-	man/j4status-time.conf.5
-
 time_la_SOURCES = \
 	src/input/time/time.c
 
@@ -18,3 +15,6 @@ time_la_LDFLAGS = \
 time_la_LIBADD = \
 	libj4status.la \
 	$(GLIB_LIBS)
+
+man5_MANS += \
+	man/j4status-time.conf.5

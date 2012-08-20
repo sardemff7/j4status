@@ -5,12 +5,6 @@ bin_PROGRAMS += \
 pkginclude_HEADERS += \
 	include/j4status-plugin.h
 
-man1_MANS += \
-	man/j4status.1
-
-man5_MANS += \
-	man/j4status.conf.5
-
 j4status_SOURCES = \
 	src/j4status/plugins.c \
 	src/j4status/plugins.h \
@@ -33,3 +27,9 @@ j4status_LDADD = \
 	$(GOBJECT_LIBS) \
 	$(GMODULE_LIBS) \
 	$(GLIB_LIBS)
+
+man1_MANS += \
+	man/j4status.1
+
+man5_MANS += \
+	man/j4status.conf.5
