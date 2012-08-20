@@ -29,6 +29,8 @@
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
+    J4statusCoreContext *core;
+    J4statusCoreInterface *core_interface;
     NMClient *nm_client;
     gchar **interfaces;
     gboolean show_unknown;
@@ -171,6 +173,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
     break;
     }
     section->dirty = TRUE;
+    context->core_interface->trigger_display(context->core);
 }
 
 static void
@@ -337,6 +340,8 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
 
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
+    context->core = core;
+    context->core_interface = core_interface;
 
     context->interfaces = interfaces;
 

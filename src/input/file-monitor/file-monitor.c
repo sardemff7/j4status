@@ -28,6 +28,8 @@
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
+    J4statusCoreContext *core;
+    J4statusCoreInterface *core_interface;
     GList *sections;
 };
 
@@ -35,6 +37,7 @@ static void
 _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data)
 {
     J4statusSection *section = user_data;
+    J4statusPluginContext *context = section->user_data;
 
     GFileInputStream *stream;
     stream = g_file_read(file, NULL, NULL);
@@ -47,6 +50,7 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         g_free(section->value);
         section->value = g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL);
         section->dirty = TRUE;
+        context->core_interface->trigger_display(context->core);
     }
 }
 
@@ -55,6 +59,8 @@ _j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *co
 {
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
+    context->core = core;
+    context->core_interface = core_interface;
 
     gchar *dir;
     dir = g_build_filename(g_get_user_runtime_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "file-monitor", NULL);
@@ -101,6 +107,7 @@ _j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *co
                     section->instance = *file;
                     section->label = *file;
                     section->dirty = TRUE;
+                    section->user_data = context;
                     g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
                     context->sections = g_list_prepend(context->sections, section);
                 }
