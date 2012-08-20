@@ -78,6 +78,36 @@
                         <para>The list of interfaces the plugin will monitor.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>ShowUnknown=</varname>
+                        (<type>boolean</type>, defaults to <literal>false</literal>)
+                    </term>
+                    <listitem>
+                        <para>Whether to show or not interfaces with unknown state.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>ShowUnmanaged=</varname>
+                        (<type>boolean</type>, defaults to <literal>false</literal>)
+                    </term>
+                    <listitem>
+                        <para>Whether to show or not interfaces with unmanaged state.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>HideUnavailable=</varname>
+                        (<type>boolean</type>, defaults to <literal>false</literal>)
+                    </term>
+                    <listitem>
+                        <para>Whether to hide or not interfaces with unvailable state.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>

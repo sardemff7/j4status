@@ -31,6 +31,9 @@
 static struct {
     NMClient *nm_client;
     gchar **interfaces;
+    gboolean show_unknown;
+    gboolean show_unmanaged;
+    gboolean hide_unavailable;
     GList *sections;
 } context;
 
@@ -41,15 +44,15 @@ _j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
     switch ( nm_device_get_state(device) )
     {
     case NM_DEVICE_STATE_UNKNOWN:
-        section->value = g_strdup("Unknown");
+        section->value = context.show_unknown ? g_strdup("Unknown") : NULL;
         section->state = J4STATUS_STATE_NO_STATE;
     break;
     case NM_DEVICE_STATE_UNMANAGED:
-        section->value = g_strdup("Unmanaged");
+        section->value = context.show_unmanaged ? g_strdup("Unmanaged") : NULL;
         section->state = J4STATUS_STATE_NO_STATE;
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
-        section->value = g_strdup("Unavailable");
+        section->value = context.hide_unavailable ? NULL : g_strdup("Unavailable");
         section->state = J4STATUS_STATE_UNAVAILABLE;
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
@@ -298,6 +301,10 @@ j4status_input()
     g_key_file_unref(key_file);
     if ( context.interfaces == NULL )
         return NULL;
+
+    context.show_unknown = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnknown", NULL);
+    context.show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
+    context.hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
 
     context.nm_client = nm_client_new();
 
