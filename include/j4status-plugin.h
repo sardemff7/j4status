@@ -38,6 +38,7 @@ typedef struct {
     gchar *label;
     gchar *value;
     J4statusState state;
+    gpointer user_data;
 
     gboolean dirty;
     /*
