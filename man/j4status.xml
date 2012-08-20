@@ -73,7 +73,7 @@
                 <listitem><para>which displays flat text</para></listitem>
             </varlistentry>
             <varlistentry>
-                <term><command>i3bar</command></term>
+                <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                 <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
             </varlistentry>
         </variablelist>

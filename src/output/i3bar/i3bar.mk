@@ -14,5 +14,9 @@ i3bar_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_output
 
 i3bar_la_LIBADD = \
+	libj4status.la \
 	$(YAJL_LIBS) \
 	$(GLIB_LIBS)
+
+man5_MANS += \
+	man/j4status-i3bar.conf.5
