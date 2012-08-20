@@ -1,8 +1,5 @@
 /include/config.h*
 /j4status
 /man/config.dtd
-/man/j4status.1
-/man/j4status.conf.5
-/man/j4status-file-monitor.conf.5
-/man/j4status-time.conf.5
-/man/j4status-nm.conf.5
+/man/*.1
+/man/*.5
