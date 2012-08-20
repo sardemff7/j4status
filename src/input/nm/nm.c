@@ -177,7 +177,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
 }
 
 static void
-_j4status_nm_access_point_property_changed(NMAccessPoint *device, guint state, guint arg2, guint arg3, gpointer user_data)
+_j4status_nm_access_point_property_changed(NMAccessPoint *device, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
     J4statusNmSectionContext *section_context = section->user_data;
@@ -215,6 +215,8 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
     section_context = g_new(J4statusNmSectionContext, 1);
     section_context->context = context;
     section_context->device = g_object_ref(device);
+
+    section->user_data = section_context;
 
     switch ( nm_device_get_device_type(device) )
     {
