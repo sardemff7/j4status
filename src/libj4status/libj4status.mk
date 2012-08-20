@@ -3,6 +3,7 @@ noinst_LTLIBRARIES += \
 	libj4status.la
 
 libj4status_la_SOURCES = \
+	include/libj4status-config.h \
 	src/libj4status/config.c
 
 libj4status_la_CFLAGS = \
