@@ -35,19 +35,14 @@
 #include "plugins.h"
 
 struct _J4statusCoreContext {
+    guint interval;
     GMainLoop *loop;
     GList *input_plugins;
     GList *sections;
     J4statusOutputPlugin *output_plugin;
     gulong display_handle;
+    gboolean started;
 };
-
-static void
-_j4status_core_quit(J4statusCoreContext *context)
-{
-    if ( context->loop != NULL )
-        g_main_loop_quit(context->loop);
-}
 
 #if DEBUG
 static void
@@ -96,15 +91,6 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
 
 #endif /* ! DEBUG */
 
-#ifdef G_OS_UNIX
-static gboolean
-_j4status_core_signal_quit(gpointer user_data)
-{
-    _j4status_core_quit(user_data);
-    return FALSE;
-}
-#endif /* G_OS_UNIX */
-
 static gboolean
 _j4status_core_display(gpointer user_data)
 {
@@ -126,6 +112,68 @@ _j4status_core_trigger_display(J4statusCoreContext *context)
 
     context->display_handle = g_idle_add(_j4status_core_display, context);
 }
+
+static void
+_j4status_core_start(J4statusCoreContext *context)
+{
+    context->started = TRUE;
+
+    GList *input_plugin_;
+    J4statusInputPlugin *input_plugin;
+    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
+    {
+        input_plugin = input_plugin_->data;
+        if ( input_plugin->start != NULL )
+            input_plugin->start(input_plugin->context);
+    }
+
+    _j4status_core_trigger_display(context);
+}
+
+static void
+_j4status_core_stop(J4statusCoreContext *context)
+{
+    GList *input_plugin_;
+    J4statusInputPlugin *input_plugin;
+    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
+    {
+        input_plugin = input_plugin_->data;
+        if ( input_plugin->stop != NULL )
+            input_plugin->stop(input_plugin->context);
+    }
+
+    context->started = FALSE;
+}
+
+static void
+_j4status_core_quit(J4statusCoreContext *context)
+{
+    if ( context->started )
+        _j4status_core_stop(context);
+
+    if ( context->loop != NULL )
+        g_main_loop_quit(context->loop);
+}
+
+#ifdef G_OS_UNIX
+static gboolean
+_j4status_core_signal_quit(gpointer user_data)
+{
+    _j4status_core_quit(user_data);
+    return FALSE;
+}
+
+static gboolean
+_j4status_core_signal_hup(gpointer user_data)
+{
+    J4statusCoreContext *context = user_data;
+    if ( context->started )
+        _j4status_core_stop(context);
+    else
+        _j4status_core_start(context);
+    return TRUE;
+}
+#endif /* G_OS_UNIX */
 
 int
 main(int argc, char *argv[])
@@ -228,6 +276,13 @@ main(int argc, char *argv[])
         .trigger_display = _j4status_core_trigger_display
     };
 
+#ifdef G_OS_UNIX
+    g_unix_signal_add(SIGTERM, _j4status_core_signal_quit, context);
+    g_unix_signal_add(SIGINT, _j4status_core_signal_quit, context);
+
+    g_unix_signal_add(SIGHUP, _j4status_core_signal_hup, context);
+#endif /* G_OS_UNIX */
+
     context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
     if ( context->output_plugin == NULL )
         g_error("No usable output plugin, tried '%s'", output_plugin);
@@ -253,19 +308,7 @@ main(int argc, char *argv[])
     }
     context->sections = g_list_reverse(context->sections);
 
-#ifdef G_OS_UNIX
-    g_unix_signal_add(SIGTERM, _j4status_core_signal_quit, context);
-    g_unix_signal_add(SIGINT, _j4status_core_signal_quit, context);
-#endif /* G_OS_UNIX */
-
-    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
-    {
-        input_plugin = input_plugin_->data;
-        if ( input_plugin->start != NULL )
-            input_plugin->start(input_plugin->context);
-    }
-
-    _j4status_core_trigger_display(context);
+    _j4status_core_start(context);
 
     context->loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(context->loop);
@@ -274,8 +317,6 @@ main(int argc, char *argv[])
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        if ( input_plugin->stop != NULL )
-            input_plugin->stop(input_plugin->context);
         input_plugin->uninit(input_plugin->context);
     }
 
