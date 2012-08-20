@@ -72,10 +72,11 @@
                 <varlistentry>
                     <term>
                         <varname>Files=</varname>
-                        (<type>list of file names</type>)
+                        (<type>list of file names or paths</type>)
                     </term>
                     <listitem>
                         <para>Files to monitor in the plugin runtime directory.</para>
+                        <para>You can specify absolute paths too.</para>
                     </listitem>
                 </varlistentry>
             </variablelist>

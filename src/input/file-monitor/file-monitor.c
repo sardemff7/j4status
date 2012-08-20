@@ -76,13 +76,18 @@ j4status_input()
                     GFile *g_file;
                     GFileMonitor *monitor;
 
-                    gchar *filename;
-                    filename = g_build_filename(dir, *file, NULL);
+                    if ( g_path_is_absolute(*file) )
+                        g_file = g_file_new_for_path(*file);
+                    else
+                    {
+                        gchar *filename;
+                        filename = g_build_filename(dir, *file, NULL);
 
-                    g_file = g_file_new_for_path(filename);
+                        g_file = g_file_new_for_path(filename);
+                        g_free(filename);
+                    }
                     monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, NULL);
                     g_object_unref(g_file);
-                    g_free(filename);
                     if ( monitor == NULL )
                     {
                         g_free(*file);
