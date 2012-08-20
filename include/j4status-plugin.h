@@ -47,4 +47,21 @@ typedef struct {
     gchar *line_cache;
 } J4statusSection;
 
+typedef struct _J4statusPluginContext J4statusPluginContext;
+
+typedef J4statusPluginContext *(*J4statusPluginInitFunc)();
+typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
+typedef void(*J4statusPluginFunc)(J4statusPluginContext *context);
+
+typedef struct {
+    J4statusPluginInitFunc init;
+    J4statusPluginFunc     uninit;
+
+    J4statusPluginPrintFunc print;
+
+    /* Private stuff */
+    gpointer module;
+    J4statusPluginContext *context;
+} J4statusOutputPlugin;
+
 #endif /* __J4STATUS_J4STATUS_PLUGIN_H__ */

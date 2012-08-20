@@ -29,7 +29,7 @@
 
 #include <libj4status-config.h>
 
-static struct {
+struct _J4statusPluginContext {
     struct {
         gchar *no_state;
         gchar *unavailable;
@@ -38,7 +38,7 @@ static struct {
         gchar *good;
     } colours;
     yajl_gen json_gen;
-} context;
+};
 
 static void
 _j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
@@ -67,24 +67,28 @@ _j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
     g_free(config);
 }
 
-void
-j4status_output_init(GList *section_)
+static J4statusPluginContext *
+_j4status_i3bar_init()
 {
-    context.colours.no_state    = NULL;
-    context.colours.unavailable = g_strdup("#0000FF");
-    context.colours.bad         = g_strdup("#FF0000");
-    context.colours.average     = g_strdup("#FFFF00");
-    context.colours.good        = g_strdup("#00FF00");
+    J4statusPluginContext *context;
+
+    context = g_new0(J4statusPluginContext, 1);
+
+    context->colours.no_state    = NULL;
+    context->colours.unavailable = g_strdup("#0000FF");
+    context->colours.bad         = g_strdup("#FF0000");
+    context->colours.average     = g_strdup("#FFFF00");
+    context->colours.good        = g_strdup("#00FF00");
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("i3bar");
     if ( key_file != NULL )
     {
-        _j4status_i3bar_update_colour(&context.colours.no_state, key_file, "NoStateColour");
-        _j4status_i3bar_update_colour(&context.colours.unavailable, key_file, "UnavailableColour");
-        _j4status_i3bar_update_colour(&context.colours.bad, key_file, "BadColour");
-        _j4status_i3bar_update_colour(&context.colours.average, key_file, "AverageColour");
-        _j4status_i3bar_update_colour(&context.colours.good, key_file, "GoodColour");
+        _j4status_i3bar_update_colour(&context->colours.no_state, key_file, "NoStateColour");
+        _j4status_i3bar_update_colour(&context->colours.unavailable, key_file, "UnavailableColour");
+        _j4status_i3bar_update_colour(&context->colours.bad, key_file, "BadColour");
+        _j4status_i3bar_update_colour(&context->colours.average, key_file, "AverageColour");
+        _j4status_i3bar_update_colour(&context->colours.good, key_file, "GoodColour");
         g_key_file_unref(key_file);
     }
 
@@ -104,23 +108,34 @@ j4status_output_init(GList *section_)
     g_printf("%s\n", buffer);
     yajl_gen_free(json_gen);
 
-    context.json_gen = yajl_gen_alloc(NULL);
-    yajl_gen_array_open(context.json_gen);
+    context->json_gen = yajl_gen_alloc(NULL);
+    yajl_gen_array_open(context->json_gen);
     yajl_gen_get_buf(json_gen, &buffer, &length);
     g_printf("%s\n", buffer);
-    yajl_gen_clear(context.json_gen);
+    yajl_gen_clear(context->json_gen);
+
+
+    return context;
 }
 
-void
-j4status_output(GList *sections_)
+static void
+_j4status_i3bar_uninit(J4statusPluginContext *context)
 {
-    yajl_gen_array_open(context.json_gen);
+    yajl_gen_free(context->json_gen);
+
+    g_free(context);
+}
+
+static void
+_j4status_i3bar_print(J4statusPluginContext *context, GList *sections_)
+{
+    yajl_gen_array_open(context->json_gen);
     J4statusSection *section;
     for ( ; sections_ != NULL ; sections_ = g_list_next(sections_) )
     {
         GList **section__ = sections_->data;
-        GList *section_ = *section__;
-        for ( ; section_ != NULL ; section_ = g_list_next(section_) )
+        GList *section_;
+        for ( section_ = *section__ ; section_ != NULL ; section_ = g_list_next(section_) )
         {
             section = section_->data;
             if ( section->dirty )
@@ -140,61 +155,70 @@ j4status_output(GList *sections_)
             if ( section->line_cache == NULL )
                 continue;
 
-            yajl_gen_map_open(context.json_gen);
+            yajl_gen_map_open(context->json_gen);
 
             if ( section->name != NULL )
             {
-                yajl_gen_string(context.json_gen, (const unsigned char *)"name", strlen("name"));
-                yajl_gen_string(context.json_gen, (const unsigned char *)section->name, strlen(section->name));
+                yajl_gen_string(context->json_gen, (const unsigned char *)"name", strlen("name"));
+                yajl_gen_string(context->json_gen, (const unsigned char *)section->name, strlen(section->name));
             }
 
             if ( section->instance != NULL )
             {
-                yajl_gen_string(context.json_gen, (const unsigned char *)"instance", strlen("instance"));
-                yajl_gen_string(context.json_gen, (const unsigned char *)section->instance, strlen(section->instance));
+                yajl_gen_string(context->json_gen, (const unsigned char *)"instance", strlen("instance"));
+                yajl_gen_string(context->json_gen, (const unsigned char *)section->instance, strlen(section->instance));
             }
 
             const gchar *colour = NULL;
             switch ( section->state )
             {
             case J4STATUS_STATE_NO_STATE:
-                colour = context.colours.no_state;
+                colour = context->colours.no_state;
             break;
             case J4STATUS_STATE_UNAVAILABLE:
-                colour = context.colours.unavailable;
+                colour = context->colours.unavailable;
             break;
             case J4STATUS_STATE_BAD:
-                colour = context.colours.bad;
+                colour = context->colours.bad;
             break;
             case J4STATUS_STATE_AVERAGE:
-                colour = context.colours.average;
+                colour = context->colours.average;
             break;
             case J4STATUS_STATE_GOOD:
-                colour = context.colours.good;
+                colour = context->colours.good;
             break;
             case J4STATUS_STATE_URGENT:
-                colour = context.colours.bad;
-                yajl_gen_string(context.json_gen, (const unsigned char *)"urgent", strlen("urgent"));
-                yajl_gen_bool(context.json_gen, TRUE);
+                colour = context->colours.bad;
+                yajl_gen_string(context->json_gen, (const unsigned char *)"urgent", strlen("urgent"));
+                yajl_gen_bool(context->json_gen, TRUE);
             break;
             }
             if ( colour != NULL )
             {
-                yajl_gen_string(context.json_gen, (const unsigned char *)"color", strlen("color"));
-                yajl_gen_string(context.json_gen, (const unsigned char *)colour, strlen("#000000"));
+                yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
+                yajl_gen_string(context->json_gen, (const unsigned char *)colour, strlen("#000000"));
             }
 
-            yajl_gen_string(context.json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-            yajl_gen_string(context.json_gen, (const unsigned char *)section->line_cache, strlen(section->line_cache));
+            yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)section->line_cache, strlen(section->line_cache));
 
-            yajl_gen_map_close(context.json_gen);
+            yajl_gen_map_close(context->json_gen);
         }
     }
-    yajl_gen_array_close(context.json_gen);
+    yajl_gen_array_close(context->json_gen);
 
     const unsigned char *buffer;
     size_t length;
-    yajl_gen_get_buf(context.json_gen, &buffer, &length);
+    yajl_gen_get_buf(context->json_gen, &buffer, &length);
     g_printf("%s\n", buffer);
-    yajl_gen_clear(context.json_gen);
+    yajl_gen_clear(context->json_gen);
+}
+
+void
+j4status_output_plugin(J4statusOutputPlugin *plugin)
+{
+    plugin->init   = _j4status_i3bar_init;
+    plugin->uninit = _j4status_i3bar_uninit;
+
+    plugin->print = _j4status_i3bar_print;
 }

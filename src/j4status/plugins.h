@@ -23,11 +23,7 @@
 #ifndef __J4STATUS_PLUGINS_H__
 #define __J4STATUS_PLUGINS_H__
 
-typedef void (*J4statusOutputInitFunc)(void);
-typedef void (*J4statusOutputFunc)(GList *sections);
-
-J4statusOutputInitFunc j4status_plugins_get_output_init_func(const gchar *name);
-J4statusOutputFunc j4status_plugins_get_output_func(const gchar *name);
+J4statusOutputPlugin *j4status_plugins_get_output_plugin(const gchar *name);
 
 GList *j4status_plugins_get_sections(gchar **names);
 

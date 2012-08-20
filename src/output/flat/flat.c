@@ -25,16 +25,16 @@
 
 #include <j4status-plugin.h>
 
-void
-j4status_output(GList *sections_)
+static void
+_j4status_flat_print(J4statusPluginContext *context, GList *sections_)
 {
     J4statusSection *section;
     gboolean first = TRUE;
     for ( ; sections_ != NULL ; sections_ = g_list_next(sections_) )
     {
         GList **section__ = sections_->data;
-        GList *section_ = *section__;
-        for ( ; section_ != NULL ; section_ = g_list_next(section_) )
+        GList *section_;
+        for ( section_ = *section__ ; section_ != NULL ; section_ = g_list_next(section_) )
         {
             section = section_->data;
             if ( section->dirty )
@@ -61,4 +61,10 @@ j4status_output(GList *sections_)
         }
     }
     g_printf("\n");
+}
+
+void
+j4status_output_plugin(J4statusOutputPlugin *plugin)
+{
+    plugin->print = _j4status_flat_print;
 }

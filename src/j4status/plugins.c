@@ -79,11 +79,13 @@ _j4status_plugins_get_module(const gchar *file)
     return NULL;
 }
 
-J4statusOutputInitFunc
-j4status_plugins_get_output_init_func(const gchar *name)
+typedef void(*J4statusOutputPluginGetInfoFunc)(J4statusOutputPlugin *plugin);
+
+J4statusOutputPlugin *
+j4status_plugins_get_output_plugin(const gchar *name)
 {
     if ( name == NULL )
-        return j4status_plugins_get_output_init_func("flat");
+        return j4status_plugins_get_output_plugin("flat");
     GModule *module;
 
     gchar *file;
@@ -92,40 +94,26 @@ j4status_plugins_get_output_init_func(const gchar *name)
     g_free(file);
 
     if ( ( module == NULL ) && ( ! g_str_equal(name, "flat") ) )
-        return j4status_plugins_get_output_init_func("flat");
+        return j4status_plugins_get_output_plugin("flat");
 
-    J4statusOutputInitFunc func;
+    J4statusOutputPluginGetInfoFunc func;
 
-    if ( ! g_module_symbol(module, "j4status_output_init", (void **)&func) )
-        return NULL;
-
-    return func;
-}
-
-J4statusOutputFunc
-j4status_plugins_get_output_func(const gchar *name)
-{
-    if ( name == NULL )
-        return j4status_plugins_get_output_func("flat");
-    GModule *module;
-
-    gchar *file;
-    file = g_strconcat(name, "." G_MODULE_SUFFIX, NULL);
-    module = _j4status_plugins_get_module(file);
-    g_free(file);
-
-    if ( ( module == NULL ) && ( ! g_str_equal(name, "flat") ) )
-        return j4status_plugins_get_output_func("flat");
-
-    J4statusOutputFunc func;
-
-    if ( ! g_module_symbol(module, "j4status_output", (void **)&func) )
+    if ( ! g_module_symbol(module, "j4status_output_plugin", (gpointer *)&func) )
         return NULL;
 
     if ( func == NULL )
-        g_warning("Plugin '%s' must define j4status_output", name);
+    {
+        g_warning("Plugin '%s' must define j4status_output_plugin", name);
+        return NULL;
+    }
 
-    return func;
+    J4statusOutputPlugin *plugin;
+    plugin = g_new0(J4statusOutputPlugin, 1);
+    plugin->module = module;
+
+    func(plugin);
+
+    return plugin;
 }
 
 typedef GList **(*J4statusInputFunc)();

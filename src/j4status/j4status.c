@@ -37,7 +37,7 @@
 typedef struct {
     GMainLoop *loop;
     GList *sections;
-    J4statusOutputFunc output_func;
+    J4statusOutputPlugin *output_plugin;
 } J4statusCoreContext;
 
 static void
@@ -107,7 +107,7 @@ static gboolean
 _j4status_timeout_function(gpointer user_data)
 {
     J4statusCoreContext *context = user_data;
-    context->output_func(context->sections);
+    context->output_plugin->print(context->output_plugin->context, context->sections);
     fflush(stdout);
     return TRUE;
 }
@@ -211,14 +211,14 @@ main(int argc, char *argv[])
     J4statusCoreContext *context;
     context = g_new0(J4statusCoreContext, 1);
 
-    J4statusOutputInitFunc output_init_func;
-    output_init_func = j4status_plugins_get_output_init_func(output_plugin);
-    context->output_func = j4status_plugins_get_output_func(output_plugin);
+    context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
+    if ( context->output_plugin == NULL )
+        g_error("No usable output plugin, tried '%s'", output_plugin);
     context->sections = j4status_plugins_get_sections(input_plugins);
 
-    if ( output_init_func != NULL )
+    if ( context->output_plugin->init != NULL )
     {
-        output_init_func();
+        context->output_plugin->context = context->output_plugin->init();
         fflush(stdout);
     }
 
@@ -234,6 +234,11 @@ main(int argc, char *argv[])
     g_main_loop_run(context->loop);
     g_main_loop_unref(context->loop);
 
+    if ( context->output_plugin->uninit != NULL )
+    {
+        context->output_plugin->uninit(context->output_plugin->context);
+        fflush(stdout);
+    }
 
 end:
 #if DEBUG
