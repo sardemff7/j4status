@@ -25,6 +25,6 @@
 
 J4statusOutputPlugin *j4status_plugins_get_output_plugin(const gchar *name);
 
-GList *j4status_plugins_get_sections(gchar **names);
+GList *j4status_plugins_get_input_plugins(gchar **names);
 
 #endif /* __J4STATUS_PLUGINS_H__ */

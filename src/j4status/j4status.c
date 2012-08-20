@@ -36,6 +36,7 @@
 
 typedef struct {
     GMainLoop *loop;
+    GList *input_plugins;
     GList *sections;
     J4statusOutputPlugin *output_plugin;
 } J4statusCoreContext;
@@ -214,7 +215,8 @@ main(int argc, char *argv[])
     context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
     if ( context->output_plugin == NULL )
         g_error("No usable output plugin, tried '%s'", output_plugin);
-    context->sections = j4status_plugins_get_sections(input_plugins);
+
+    context->input_plugins = j4status_plugins_get_input_plugins(input_plugins);
 
     if ( context->output_plugin->init != NULL )
     {
@@ -222,10 +224,27 @@ main(int argc, char *argv[])
         fflush(stdout);
     }
 
+    GList *input_plugin_;
+    J4statusInputPlugin *input_plugin;
+    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
+    {
+        input_plugin = input_plugin_->data;
+        input_plugin->context = input_plugin->init();
+        context->sections = g_list_prepend(context->sections, input_plugin->get_sections(input_plugin->context));
+    }
+    context->sections = g_list_reverse(context->sections);
+
 #ifdef G_OS_UNIX
     g_unix_signal_add(SIGTERM, _j4status_core_signal_quit, context);
     g_unix_signal_add(SIGINT, _j4status_core_signal_quit, context);
 #endif /* G_OS_UNIX */
+
+    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
+    {
+        input_plugin = input_plugin_->data;
+        if ( input_plugin->start != NULL )
+            input_plugin->start(input_plugin->context);
+    }
 
     g_timeout_add_seconds(interval, _j4status_timeout_function, context);
     _j4status_timeout_function(context);
@@ -233,6 +252,14 @@ main(int argc, char *argv[])
     context->loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(context->loop);
     g_main_loop_unref(context->loop);
+
+    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
+    {
+        input_plugin = input_plugin_->data;
+        if ( input_plugin->stop != NULL )
+            input_plugin->stop(input_plugin->context);
+        input_plugin->uninit(input_plugin->context);
+    }
 
     if ( context->output_plugin->uninit != NULL )
     {

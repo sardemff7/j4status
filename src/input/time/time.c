@@ -29,32 +29,37 @@
 
 #define TIME_SIZE 4095
 
-static struct {
+struct _J4statusPluginContext {
     GList *sections;
     gchar *format;
+    guint timeout_id;
     J4statusSection *section;
-} context;
+};
 
 static gboolean
 _j4status_time_update(gpointer user_data)
 {
+    J4statusPluginContext *context = user_data;
     GDateTime *date_time;
     date_time = g_date_time_new_now_local();
 
-    g_free(context.section->value);
-    context.section->value = g_date_time_format(date_time, context.format);
-    context.section->dirty = TRUE;
+    g_free(context->section->value);
+    context->section->value = g_date_time_format(date_time, context->format);
+    context->section->dirty = TRUE;
 
     g_date_time_unref(date_time);
 
     return TRUE;
 }
 
-GList **
-j4status_input()
+static J4statusPluginContext *
+_j4status_time_init()
 {
-    context.sections = NULL;
-    context.format = g_strdup("%F %T");
+    J4statusPluginContext *context;
+
+    context = g_new0(J4statusPluginContext, 1);
+
+    context->format = g_strdup("%F %T");
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Time");
@@ -64,21 +69,59 @@ j4status_input()
         format = g_key_file_get_string(key_file, "Time", "Format", NULL);
         if ( format != NULL )
         {
-            g_free(context.format);
-            context.format = format;
+            g_free(context->format);
+            context->format = format;
         }
         g_key_file_unref(key_file);
     }
 
-    context.section = g_new0(J4statusSection, 1);
-    context.section->name = "time";
-    context.section->state = J4STATUS_STATE_NO_STATE;
-    context.section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1) );
+    context->section = g_new0(J4statusSection, 1);
+    context->section->name = "time";
+    context->section->state = J4STATUS_STATE_NO_STATE;
+    context->section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1));
 
-    _j4status_time_update(NULL);
+    context->sections = g_list_prepend(context->sections, context->section);
 
-    context.sections = g_list_prepend(context.sections, context.section);
-    g_timeout_add_seconds(1, _j4status_time_update, NULL);
+    return context;
+}
 
-    return &context.sections;
+static void
+_j4status_time_uninit(J4statusPluginContext *context)
+{
+    g_free(context->section->value);
+    g_free(context->section);
+
+    g_free(context);
+}
+
+static GList **
+_j4status_time_get_sections(J4statusPluginContext *context)
+{
+    return &context->sections;
+}
+
+static void
+_j4status_time_start(J4statusPluginContext *context)
+{
+    _j4status_time_update(context);
+    context->timeout_id = g_timeout_add_seconds(1, _j4status_time_update, context);
+}
+
+static void
+_j4status_time_stop(J4statusPluginContext *context)
+{
+    g_source_remove(context->timeout_id);
+    context->timeout_id = 0;
+}
+
+void
+j4status_input_plugin(J4statusInputPlugin *plugin)
+{
+    plugin->init   = _j4status_time_init;
+    plugin->uninit = _j4status_time_uninit;
+
+    plugin->get_sections = _j4status_time_get_sections;
+
+    plugin->start = _j4status_time_start;
+    plugin->stop  = _j4status_time_stop;
 }

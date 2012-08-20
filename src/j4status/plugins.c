@@ -116,10 +116,10 @@ j4status_plugins_get_output_plugin(const gchar *name)
     return plugin;
 }
 
-typedef GList **(*J4statusInputFunc)();
+typedef void(*J4statusInputPluginGetInfoFunc)(J4statusInputPlugin *plugin);
 
-static J4statusInputFunc
-j4status_plugins_get_input_func(const gchar *name)
+static J4statusInputPlugin *
+j4status_plugins_get_input_plugin(const gchar *name)
 {
     if ( name == NULL )
         return NULL;
@@ -133,38 +133,42 @@ j4status_plugins_get_input_func(const gchar *name)
     if ( module == NULL )
         return NULL;
 
-    J4statusInputFunc func;
+    J4statusInputPluginGetInfoFunc func;
 
-    if ( ! g_module_symbol(module, "j4status_input", (void **)&func) )
+    if ( ! g_module_symbol(module, "j4status_input_plugin", (gpointer *)&func) )
         return NULL;
 
     if ( func == NULL )
-        g_warning("Plugin '%s' must define j4status_input", name);
+    {
+        g_warning("Plugin '%s' must define j4status_input_plugin", name);
+        return NULL;
+    }
 
-    return func;
+    J4statusInputPlugin *plugin;
+    plugin = g_new0(J4statusInputPlugin, 1);
+    plugin->module = module;
+
+    func(plugin);
+
+    return plugin;
 }
 
 GList *
-j4status_plugins_get_sections(gchar **names)
+j4status_plugins_get_input_plugins(gchar **names)
 {
     if ( names == NULL )
         return NULL;
 
-    GList *sections = NULL;
+    GList *input_plugins = NULL;
 
     gchar **name;
-    J4statusInputFunc func;
+    J4statusInputPlugin *plugin;
     for ( name = names ; *name != NULL ; ++name )
     {
-        func = j4status_plugins_get_input_func(*name);
-        if ( func != NULL )
-        {
-            GList **ret;
-            ret = func();
-            if ( ret != NULL )
-                sections = g_list_prepend(sections, ret);
-        }
+        plugin = j4status_plugins_get_input_plugin(*name);
+        if ( plugin != NULL )
+            input_plugins = g_list_prepend(input_plugins, plugin);
     }
 
-    return g_list_reverse(sections);
+    return g_list_reverse(input_plugins);
 }

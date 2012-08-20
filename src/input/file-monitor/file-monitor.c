@@ -27,9 +27,9 @@
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
-static struct {
+struct _J4statusPluginContext {
     GList *sections;
-} context;
+};
 
 static void
 _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data)
@@ -50,10 +50,11 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
     }
 }
 
-GList **
-j4status_input()
+static J4statusPluginContext *
+_j4status_file_monitor_init()
 {
-    context.sections = NULL;
+    J4statusPluginContext *context;
+    context = g_new0(J4statusPluginContext, 1);
 
     gchar *dir;
     dir = g_build_filename(g_get_user_runtime_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "file-monitor", NULL);
@@ -101,7 +102,7 @@ j4status_input()
                     section->label = *file;
                     section->dirty = TRUE;
                     g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
-                    context.sections = g_list_prepend(context.sections, section);
+                    context->sections = g_list_prepend(context->sections, section);
                 }
                 g_free(files);
             }
@@ -109,6 +110,29 @@ j4status_input()
         }
     }
     g_free(dir);
-    context.sections = g_list_reverse(context.sections);
-    return &context.sections;
+    context->sections = g_list_reverse(context->sections);
+    return context;
+}
+
+static void
+_j4status_file_monitor_uninit(J4statusPluginContext *context)
+{
+    g_list_free_full(context->sections, g_free);
+
+    g_free(context);
+}
+
+static GList **
+_j4status_file_monitor_get_sections(J4statusPluginContext *context)
+{
+    return &context->sections;
+}
+
+void
+j4status_input_plugin(J4statusInputPlugin *plugin)
+{
+    plugin->init   = _j4status_file_monitor_init;
+    plugin->uninit = _j4status_file_monitor_uninit;
+
+    plugin->get_sections = _j4status_file_monitor_get_sections;
 }

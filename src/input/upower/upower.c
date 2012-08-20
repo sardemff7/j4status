@@ -26,10 +26,10 @@
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
-static struct {
+struct _J4statusPluginContext {
     UpClient *up_client;
     GList *sections;
-} context;
+};
 
 static void
 _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
@@ -130,16 +130,17 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     section->dirty = TRUE;
 }
 
-GList **
-j4status_input()
+static J4statusPluginContext *
+_j4status_upower_init()
 {
-    context.sections = NULL;
+    J4statusPluginContext *context;
+    context = g_new0(J4statusPluginContext, 1);
 
-    context.up_client = up_client_new();
+    context->up_client = up_client_new();
 
-    if ( ! up_client_enumerate_devices_sync(context.up_client, NULL, NULL) )
+    if ( ! up_client_enumerate_devices_sync(context->up_client, NULL, NULL) )
     {
-        g_object_unref(context.up_client);
+        g_object_unref(context->up_client);
         return NULL;
     }
 
@@ -154,7 +155,7 @@ j4status_input()
     UpDevice *device;
     guint i;
 
-    devices = up_client_get_devices(context.up_client);
+    devices = up_client_get_devices(context->up_client);
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
@@ -179,10 +180,33 @@ j4status_input()
             continue;
         }
 
-        context.sections = g_list_prepend(context.sections, section);
+        context->sections = g_list_prepend(context->sections, section);
     }
     g_ptr_array_unref(devices);
 
-    context.sections = g_list_reverse(context.sections);
-    return &context.sections;
+    context->sections = g_list_reverse(context->sections);
+    return context;
+}
+
+static void
+_j4status_upower_uninit(J4statusPluginContext *context)
+{
+    g_list_free_full(context->sections, g_free);
+
+    g_free(context);
+}
+
+static GList **
+_j4status_upower_get_sections(J4statusPluginContext *context)
+{
+    return &context->sections;
+}
+
+void
+j4status_input_plugin(J4statusInputPlugin *plugin)
+{
+    plugin->init   = _j4status_upower_init;
+    plugin->uninit = _j4status_upower_uninit;
+
+    plugin->get_sections = _j4status_upower_get_sections;
 }
