@@ -37,22 +37,27 @@ struct _J4statusPluginContext {
     GList *sections;
 };
 
+typedef struct {
+    J4statusPluginContext *context;
+    NMDevice *device;
+} J4statusNmSectionContext;
+
 static void
-_j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
+_j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *section, NMDevice *device)
 {
     g_free(section->value);
     switch ( nm_device_get_state(device) )
     {
     case NM_DEVICE_STATE_UNKNOWN:
-        section->value = /* context->show_unknown */ FALSE ? g_strdup("Unknown") : NULL;
+        section->value = context->show_unknown ? g_strdup("Unknown") : NULL;
         section->state = J4STATUS_STATE_NO_STATE;
     break;
     case NM_DEVICE_STATE_UNMANAGED:
-        section->value = /* context->show_unmanaged */ FALSE ? g_strdup("Unmanaged") : NULL;
+        section->value = context->show_unmanaged ? g_strdup("Unmanaged") : NULL;
         section->state = J4STATUS_STATE_NO_STATE;
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
-        section->value = /* context->hide_unavailable */ FALSE ? NULL : g_strdup("Unavailable");
+        section->value = context->hide_unavailable ? NULL : g_strdup("Unavailable");
         section->state = J4STATUS_STATE_UNAVAILABLE;
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
@@ -170,13 +175,17 @@ _j4status_nm_device_changed(NMDevice *device, J4statusSection *section)
 static void
 _j4status_nm_device_property_changed(NMDevice *device, GParamSpec *pspec, gpointer user_data)
 {
-    _j4status_nm_device_changed(device, user_data);
+    J4statusSection *section = user_data;
+    J4statusNmSectionContext *section_context = section->user_data;
+    _j4status_nm_device_update(section_context->context, section, device);
 }
 
 static void
 _j4status_nm_device_state_changed(NMDevice *device, guint state, guint arg2, guint arg3, gpointer user_data)
 {
-    _j4status_nm_device_changed(device, user_data);
+    J4statusSection *section = user_data;
+    J4statusNmSectionContext *section_context = section->user_data;
+    _j4status_nm_device_update(section_context->context, section, device);
 }
 
 static void
@@ -184,6 +193,12 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
 {
     J4statusSection *section;
     section = g_new0(J4statusSection, 1);
+
+    J4statusNmSectionContext *section_context;
+    section_context = g_new(J4statusNmSectionContext, 1);
+    section_context->context = context;
+    section_context->device = g_object_ref(device);
+
     switch ( nm_device_get_device_type(device) )
     {
     case NM_DEVICE_TYPE_UNKNOWN:
@@ -240,7 +255,7 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
 #endif /* NM_CHECK_VERSION(0.9.5) */
     }
     section->instance = instance;
-    _j4status_nm_device_changed(device, section);
+    _j4status_nm_device_update(context, section, device);
     g_signal_connect(device, "state-changed", G_CALLBACK(_j4status_nm_device_state_changed), section);
     context->sections = g_list_insert_before(context->sections, sibling, section);
 }
@@ -342,9 +357,25 @@ _j4status_nm_init()
 }
 
 static void
+_j4status_nm_section_context_free(gpointer data)
+{
+    J4statusSection *section = data;
+    J4statusNmSectionContext *section_context = section->user_data;
+
+    g_object_unref(section_context->device);
+
+    g_free(section_context);
+
+    g_free(section->value);
+    g_free(section->label);
+
+    g_free(section);
+}
+
+static void
 _j4status_nm_uninit(J4statusPluginContext *context)
 {
-    g_list_free_full(context->sections, g_free);
+    g_list_free_full(context->sections, _j4status_nm_section_context_free);
 
     g_free(context);
 }
