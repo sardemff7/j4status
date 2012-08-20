@@ -34,13 +34,17 @@
 
 #include "plugins.h"
 
-static GMainLoop *loop = NULL;
+typedef struct {
+    GMainLoop *loop;
+    GList *sections;
+    J4statusOutputFunc output_func;
+} J4statusCoreContext;
 
-void
-j4status_core_quit()
+static void
+_j4status_core_quit(J4statusCoreContext *context)
 {
-    if ( loop != NULL )
-        g_main_loop_quit(loop);
+    if ( context->loop != NULL )
+        g_main_loop_quit(context->loop);
 }
 
 #if DEBUG
@@ -92,20 +96,18 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
 
 #ifdef G_OS_UNIX
 static gboolean
-_j4status_core_quit(gpointer user_data)
+_j4status_core_signal_quit(gpointer user_data)
 {
-    j4status_core_quit();
+    _j4status_core_quit(user_data);
     return FALSE;
 }
 #endif /* G_OS_UNIX */
 
-static GList *sections = NULL;
-static J4statusOutputFunc output_func = NULL;
-
 static gboolean
 _j4status_timeout_function(gpointer user_data)
 {
-    output_func(sections);
+    J4statusCoreContext *context = user_data;
+    context->output_func(context->sections);
     fflush(stdout);
     return TRUE;
 }
@@ -206,10 +208,13 @@ main(int argc, char *argv[])
         g_key_file_unref(key_file);
     }
 
+    J4statusCoreContext *context;
+    context = g_new0(J4statusCoreContext, 1);
+
     J4statusOutputInitFunc output_init_func;
     output_init_func = j4status_plugins_get_output_init_func(output_plugin);
-    output_func = j4status_plugins_get_output_func(output_plugin);
-    sections = j4status_plugins_get_sections(input_plugins);
+    context->output_func = j4status_plugins_get_output_func(output_plugin);
+    context->sections = j4status_plugins_get_sections(input_plugins);
 
     if ( output_init_func != NULL )
     {
@@ -218,16 +223,17 @@ main(int argc, char *argv[])
     }
 
 #ifdef G_OS_UNIX
-    g_unix_signal_add(SIGTERM, _j4status_core_quit, NULL);
-    g_unix_signal_add(SIGINT, _j4status_core_quit, NULL);
+    g_unix_signal_add(SIGTERM, _j4status_core_signal_quit, context);
+    g_unix_signal_add(SIGINT, _j4status_core_signal_quit, context);
 #endif /* G_OS_UNIX */
 
-    g_timeout_add_seconds(interval, _j4status_timeout_function, NULL);
-    _j4status_timeout_function(NULL);
+    g_timeout_add_seconds(interval, _j4status_timeout_function, context);
+    _j4status_timeout_function(context);
 
-    loop = g_main_loop_new(NULL, FALSE);
-    g_main_loop_run(loop);
-    g_main_loop_unref(loop);
+    context->loop = g_main_loop_new(NULL, FALSE);
+    g_main_loop_run(context->loop);
+    g_main_loop_unref(context->loop);
+
 
 end:
 #if DEBUG
