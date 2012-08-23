@@ -82,6 +82,21 @@ if test x$enable_upower_input = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_UPOWER_INPUT, test x$enable_upower_input = xyes)
 
+AC_ARG_ENABLE(sensors-input, AS_HELP_STRING([--disable-sensors-input], [Disable libsensors support]), [], enable_sensors_input=yes)
+if test x$enable_sensors_input = xyes; then
+    LIBSENSORS_CFLAGS="-I/usr/include"
+    LIBSENSORS_LIBS="-lsensors"
+    AC_SEARCH_LIBS([sensors_init], [sensors],
+        [
+            AC_SUBST(LIBSENSORS_CFLAGS)
+            AC_SUBST(LIBSENSORS_LIBS)
+        ],
+        [
+            AC_MSG_ERROR([*** libsensors support requested but library is missing])
+        ])
+fi
+AM_CONDITIONAL(ENABLE_SENSORS_INPUT, test x$enable_sensors_input = xyes)
+
 
 #
 # Tests

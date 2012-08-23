@@ -40,6 +40,9 @@ endif
 if ENABLE_UPOWER_INPUT
 include src/input/upower/upower.mk
 endif
+if ENABLE_SENSORS_INPUT
+include src/input/sensors/sensors.mk
+endif
 include man/man.mk
 
 
