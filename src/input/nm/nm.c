@@ -31,18 +31,20 @@
 struct _J4statusPluginContext {
     J4statusCoreContext *core;
     J4statusCoreInterface *core_interface;
-    NMClient *nm_client;
+    GList *sections;
     gchar **interfaces;
     gboolean show_unknown;
     gboolean show_unmanaged;
     gboolean hide_unavailable;
-    GList *sections;
+    NMClient *nm_client;
 };
 
 typedef struct {
     J4statusPluginContext *context;
     NMDevice *device;
-    guint access_point_handler_id;
+
+    /* For WiFi devices */
+    gulong strength_handler;
 } J4statusNmSectionContext;
 
 static void
@@ -191,8 +193,8 @@ _j4status_nm_device_property_changed(NMDevice *device, GParamSpec *pspec, gpoint
     J4statusNmSectionContext *section_context = section->user_data;
     if ( g_str_equal("active-access-point", pspec->name) )
     {
-        g_source_remove(section_context->access_point_handler_id);
-        section_context->access_point_handler_id = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
+        g_source_remove(section_context->strength_handler);
+        section_context->strength_handler = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
     }
     _j4status_nm_device_update(section_context->context, section, device);
 }
@@ -231,13 +233,11 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
         section->label = g_strdup("E");
     break;
     case NM_DEVICE_TYPE_WIFI:
-    {
         section->name = "nm-wifi";
         section->label = g_strdup("W");
         g_signal_connect(device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
         g_signal_connect(device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
-        section_context->access_point_handler_id = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
-    }
+        section_context->strength_handler = g_signal_connect(nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device)), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
     break;
     case NM_DEVICE_TYPE_BT:
         section->name = "nm-bluetooth";
@@ -336,7 +336,7 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
     interfaces = g_key_file_get_string_list(key_file, "NetworkManager", "Interfaces", NULL, NULL);
     if ( interfaces == NULL )
     {
-        g_key_file_unref(key_file);
+        g_key_file_free(key_file);
         return NULL;
     }
 
@@ -351,7 +351,7 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
     context->hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
 
-    g_key_file_unref(key_file);
+    g_key_file_free(key_file);
 
     context->nm_client = nm_client_new();
 
@@ -379,7 +379,7 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
 }
 
 static void
-_j4status_nm_section_context_free(gpointer data)
+_j4status_nm_section_free(gpointer data)
 {
     J4statusSection *section = data;
     J4statusNmSectionContext *section_context = section->user_data;
@@ -397,7 +397,13 @@ _j4status_nm_section_context_free(gpointer data)
 static void
 _j4status_nm_uninit(J4statusPluginContext *context)
 {
-    g_list_free_full(context->sections, _j4status_nm_section_context_free);
+    if ( context == NULL )
+        return;
+
+    g_list_free_full(context->sections, _j4status_nm_section_free);
+
+    g_object_unref(context->nm_client);
+    g_strfreev(context->interfaces);
 
     g_free(context);
 }
@@ -405,6 +411,9 @@ _j4status_nm_uninit(J4statusPluginContext *context)
 static GList **
 _j4status_nm_get_sections(J4statusPluginContext *context)
 {
+    if ( context == NULL )
+        return NULL;
+
     return &context->sections;
 }
 

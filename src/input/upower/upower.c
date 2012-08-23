@@ -29,8 +29,8 @@
 struct _J4statusPluginContext {
     J4statusCoreContext *core;
     J4statusCoreInterface *core_interface;
-    UpClient *up_client;
     GList *sections;
+    UpClient *up_client;
 };
 
 static void
@@ -154,7 +154,7 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
     key_file = libj4status_config_get_key_file("Battery");
     if ( key_file != NULL )
     {
-        g_key_file_unref(key_file);
+        g_key_file_free(key_file);
     }
 
     GPtrArray *devices;
@@ -196,9 +196,23 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
 }
 
 static void
+_j4status_upower_section_free(gpointer data)
+{
+    J4statusSection *section = data;
+
+    g_free(section->value);
+    g_free(section->label);
+
+    g_free(section);
+}
+
+static void
 _j4status_upower_uninit(J4statusPluginContext *context)
 {
-    g_list_free_full(context->sections, g_free);
+    if ( context == NULL )
+        return;
+
+    g_list_free_full(context->sections, _j4status_upower_section_free);
 
     g_free(context);
 }
@@ -206,6 +220,9 @@ _j4status_upower_uninit(J4statusPluginContext *context)
 static GList **
 _j4status_upower_get_sections(J4statusPluginContext *context)
 {
+    if ( context == NULL )
+        return NULL;
+
     return &context->sections;
 }
 

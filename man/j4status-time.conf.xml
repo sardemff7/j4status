@@ -72,10 +72,11 @@
                 <varlistentry>
                     <term>
                         <varname>Format=</varname>
-                        (<type>format string</type>, defaults to <literal>"%F %T"</literal>, see <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>)
+                        (<type>format string</type>, defaults to <literal>"%F %T"</literal>)
                     </term>
                     <listitem>
                         <para>Format string used to display date and time.</para>
+                        <para>See <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>.</para>
                     </listitem>
                 </varlistentry>
             </variablelist>

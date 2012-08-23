@@ -89,7 +89,7 @@ _j4status_i3bar_init(J4statusCoreContext *core, J4statusCoreInterface *core_inte
         _j4status_i3bar_update_colour(&context->colours.bad, key_file, "BadColour");
         _j4status_i3bar_update_colour(&context->colours.average, key_file, "AverageColour");
         _j4status_i3bar_update_colour(&context->colours.good, key_file, "GoodColour");
-        g_key_file_unref(key_file);
+        g_key_file_free(key_file);
     }
 
     yajl_gen json_gen;

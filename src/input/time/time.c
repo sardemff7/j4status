@@ -78,7 +78,7 @@ _j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_inter
             g_free(context->format);
             context->format = format;
         }
-        g_key_file_unref(key_file);
+        g_key_file_free(key_file);
     }
 
     context->section = g_new0(J4statusSection, 1);
@@ -96,6 +96,8 @@ _j4status_time_uninit(J4statusPluginContext *context)
 {
     g_free(context->section->value);
     g_free(context->section);
+
+    g_list_free(context->sections);
 
     g_free(context);
 }

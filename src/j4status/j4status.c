@@ -218,7 +218,7 @@ main(int argc, char *argv[])
         if ( input_plugins == NULL )
             input_plugins = g_key_file_get_string_list(key_file, "Plugins", "Input", NULL, NULL);
 
-        g_key_file_unref(key_file);
+        g_key_file_free(key_file);
     }
 
     J4statusCoreContext *context;
@@ -241,12 +241,15 @@ main(int argc, char *argv[])
     }
 
     GList *input_plugin_;
+    GList **sections;
     J4statusInputPlugin *input_plugin;
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
         input_plugin->context = input_plugin->init(context, &interface);
-        context->sections = g_list_prepend(context->sections, input_plugin->get_sections(input_plugin->context));
+        sections = input_plugin->get_sections(input_plugin->context);
+        if ( sections != NULL )
+            context->sections = g_list_prepend(context->sections, sections);
     }
     context->sections = g_list_reverse(context->sections);
 
