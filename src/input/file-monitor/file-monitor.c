@@ -57,68 +57,76 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
 static J4statusPluginContext *
 _j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
+    GKeyFile *key_file = NULL;
+
+    gchar *dir;
+    dir = g_build_filename(g_get_user_runtime_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "file-monitor", NULL);
+    if ( ( ! g_file_test(dir, G_FILE_TEST_IS_DIR) ) && ( g_mkdir_with_parents(dir, 0755) < 0 ) )
+    {
+        g_warning("Couldn't create the directory to monitor '%s': %s", dir, g_strerror(errno));
+        goto fail;
+    }
+    key_file = libj4status_config_get_key_file("FileMonitor");
+    if ( key_file == NULL )
+        goto fail;
+
+    gchar **files;
+    files = g_key_file_get_string_list(key_file, "FileMonitor", "Files", NULL, NULL);
+    if ( files == NULL )
+        goto fail;
+
+    g_key_file_free(key_file);
+
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
     context->core_interface = core_interface;
 
-    gchar *dir;
-    dir = g_build_filename(g_get_user_runtime_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "file-monitor", NULL);
-    if ( ( ! g_file_test(dir, G_FILE_TEST_IS_DIR) ) && ( g_mkdir_with_parents(dir, 0755) < 0 ) )
-        g_warning("Couldn't create the directory to monitor '%s': %s", dir, g_strerror(errno));
-    else
+    gchar **file;
+    for ( file = files ; *file != NULL ; ++file )
     {
+        GFile *g_file;
+        GFileMonitor *monitor;
 
-        GKeyFile *key_file;
-        key_file = libj4status_config_get_key_file("FileMonitor");
-        if ( key_file != NULL )
+        if ( g_path_is_absolute(*file) )
+            g_file = g_file_new_for_path(*file);
+        else
         {
-            gchar **files;
-            files = g_key_file_get_string_list(key_file, "FileMonitor", "Files", NULL, NULL);
-            if ( files != NULL )
-            {
-                gchar **file;
-                for ( file = files ; *file != NULL ; ++file )
-                {
-                    GFile *g_file;
-                    GFileMonitor *monitor;
+            gchar *filename;
+            filename = g_build_filename(dir, *file, NULL);
 
-                    if ( g_path_is_absolute(*file) )
-                        g_file = g_file_new_for_path(*file);
-                    else
-                    {
-                        gchar *filename;
-                        filename = g_build_filename(dir, *file, NULL);
-
-                        g_file = g_file_new_for_path(filename);
-                        g_free(filename);
-                    }
-                    monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, NULL);
-                    g_object_unref(g_file);
-                    if ( monitor == NULL )
-                    {
-                        g_free(*file);
-                        continue;
-                    }
-
-                    J4statusSection *section;
-                    section = g_new0(J4statusSection, 1);
-                    section->name = "file-monitor";
-                    section->instance = *file;
-                    section->label = *file;
-                    section->dirty = TRUE;
-                    section->user_data = context;
-                    g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
-                    context->sections = g_list_prepend(context->sections, section);
-                }
-                g_free(files);
-            }
-            g_key_file_unref(key_file);
+            g_file = g_file_new_for_path(filename);
+            g_free(filename);
         }
+        monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, NULL);
+        g_object_unref(g_file);
+        if ( monitor == NULL )
+        {
+            g_free(*file);
+            continue;
+        }
+
+        J4statusSection *section;
+        section = g_new0(J4statusSection, 1);
+        section->user_data = context;
+        section->name = "file-monitor";
+        section->instance = *file;
+        section->label = *file;
+        section->dirty = TRUE;
+        g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
+        context->sections = g_list_prepend(context->sections, section);
     }
+    g_free(files);
     g_free(dir);
+
     context->sections = g_list_reverse(context->sections);
     return context;
+
+fail:
+    if ( key_file != NULL )
+        g_key_file_free(key_file);
+    g_free(dir);
+    return NULL;
 }
 
 static void
