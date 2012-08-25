@@ -13,6 +13,7 @@ pkginclude_HEADERS =
 man1_MANS =
 man5_MANS =
 
+BUILT_SOURCES =
 EXTRA_DIST =
 CLEANFILES =
 
@@ -42,6 +43,9 @@ include src/input/upower/upower.mk
 endif
 if ENABLE_SENSORS_INPUT
 include src/input/sensors/sensors.mk
+endif
+if ENABLE_SYSTEMD_INPUT
+include src/input/systemd/systemd.mk
 endif
 include man/man.mk
 
