@@ -77,7 +77,7 @@ fi
 AM_CONDITIONAL(ENABLE_NM_INPUT, test x$enable_nm_input = xyes)
 
 AC_ARG_ENABLE(upower-input, AS_HELP_STRING([--disable-upower-input], [Disable UPower support]), [], enable_upower_input=yes)
-if test x$enable_nm_input = xyes; then
+if test x$enable_upower_input = xyes; then
     PKG_CHECK_MODULES(UPOWER, [upower-glib])
 fi
 AM_CONDITIONAL(ENABLE_UPOWER_INPUT, test x$enable_upower_input = xyes)
