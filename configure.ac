@@ -110,7 +110,7 @@ if test x$enable_sensors_input = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_SENSORS_INPUT, test x$enable_sensors_input = xyes)
 
-AC_ARG_ENABLE(systemd-input, AS_HELP_STRING([--disable-systemd-input], [Disable systemd support]), [], enable_systemd_input=no)
+AC_ARG_ENABLE(systemd-input, AS_HELP_STRING([--enable-systemd-input], [Enable systemd support]), [], enable_systemd_input=no)
 if test x$enable_systemd_input = xyes; then
     PKG_CHECK_MODULES(SYSTEMD, [systemd])
     PKG_CHECK_MODULES(GLIB2_32, [glib-2.0 >= 2.32.0])
