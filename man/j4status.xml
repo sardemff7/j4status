@@ -66,40 +66,58 @@
             j4status is composed by a core, the application itself, and various plugins.
             Plugins may be output plugins or input plugins.
         </para>
-        <para>Two official output plugins are distributed with j4status:</para>
-        <variablelist>
-            <varlistentry>
-                <term><command>flat</command></term>
-                <listitem><para>which displays flat text</para></listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
-            </varlistentry>
-        </variablelist>
-        <para>Five official input plugins are distributed with j4status:</para>
-        <variablelist>
-            <varlistentry>
-                <term><command>time</command> (see <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                <listitem><para>a plugin to display date and time</para></listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                <listitem><para>a plugin to monitor files and dispaly their content</para></listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><command>upower</command></term>
-                <listitem><para>a UPower client plugin, to display battery status</para></listitem>
-            </varlistentry>
-            <varlistentry>
-                <term><command>sensors</command></term>
-                <listitem><para>a sensors watching plugin, to display temperatures frow your motherboard sensors</para></listitem>
-            </varlistentry>
-        </variablelist>
+    </refsect1>
+
+    <refsect1>
+        <title>Official plugins</title>
+
+        <refsect2>
+            <title>Output plugins</title>
+
+            <para>Two output plugins are distributed with j4status:</para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>flat</command></term>
+                    <listitem><para>which displays flat text</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+
+        <refsect2>
+            <title>Input plugins</title>
+
+            <para>Six input plugins are distributed with j4status:</para>
+            <variablelist>
+                <varlistentry>
+                    <term><command>time</command> (see <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a plugin to display date and time</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a plugin to monitor files and dispaly their content</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>upower</command></term>
+                    <listitem><para>a UPower client plugin, to display battery status</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>sensors</command> (see <citerefentry><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a sensors watching plugin, to display temperatures frow your motherboard sensors</para></listitem>
+                </varlistentry>
+                <varlistentry>
+                    <term><command>systemd</command> (see <citerefentry><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a systemd unit monitoring plugin, which displays the status of systemd units</para></listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
     </refsect1>
 
     <refsect1>
