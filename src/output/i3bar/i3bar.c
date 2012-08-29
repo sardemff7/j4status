@@ -110,7 +110,7 @@ _j4status_i3bar_init(J4statusCoreContext *core, J4statusCoreInterface *core_inte
 
     context->json_gen = yajl_gen_alloc(NULL);
     yajl_gen_array_open(context->json_gen);
-    yajl_gen_get_buf(json_gen, &buffer, &length);
+    yajl_gen_get_buf(context->json_gen, &buffer, &length);
     g_printf("%s\n", buffer);
     yajl_gen_clear(context->json_gen);
 
