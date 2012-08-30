@@ -160,26 +160,6 @@
     </refsect1>
 
     <refsect1>
-        <title>Examples</title>
-
-        <example>
-            <title>Drop-in replacement for a notification daemon</title>
-
-            <para>
-                With its <command>dbus</command> and <command>nd</command> plugins, eventd can be a drop-in replacement for a notification daemon.
-            </para>
-
-            <para>
-                To use this feature, just add the following line to your <filename>~/.xsession</filename> or equivalent file:
-            </para>
-            <programlisting>eventdctl --auto-spawn notification-daemon ${DISPLAY}</programlisting>
-            <para>
-                See <citerefentry><refentrytitle>eventdctl</refentrytitle><manvolnum>1</manvolnum></citerefentry> for <command>eventdctl</command> call precisions.
-            </para>
-        </example>
-    </refsect1>
-
-    <refsect1>
         <title>Environment</title>
 
         <variablelist>
