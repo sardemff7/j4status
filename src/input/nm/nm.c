@@ -34,9 +34,17 @@ struct _J4statusPluginContext {
     J4statusCoreInterface *core_interface;
     GList *sections;
     gchar **interfaces;
+
+    /* Generic configuration */
     gboolean show_unknown;
     gboolean show_unmanaged;
     gboolean hide_unavailable;
+
+    /* WiFi devices configuration */
+    struct {
+        gboolean show_available_aps_number;
+    } wifi;
+
     NMClient *nm_client;
     gboolean started;
 };
@@ -76,8 +84,27 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         section->state = J4STATUS_STATE_UNAVAILABLE;
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
-        section->value = g_strdup("Down");
         section->state = J4STATUS_STATE_BAD;
+        switch ( nm_device_get_device_type(device) )
+        {
+        case NM_DEVICE_TYPE_WIFI:
+        {
+            gchar *aps_number = NULL;
+            if ( context->wifi.show_available_aps_number )
+            {
+                const GPtrArray *aps;
+                aps = nm_device_wifi_get_access_points(NM_DEVICE_WIFI(device));
+                if ( aps != NULL )
+                    aps_number = g_strdup_printf(" (%u APs)", aps->len);
+            }
+            section->value = g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : "");
+            g_free(aps_number);
+        }
+        break;
+        default:
+            section->value = g_strdup("Down");
+        break;
+        }
     break;
     case NM_DEVICE_STATE_PREPARE:
         section->value = g_strdup("Prepare");
@@ -422,6 +449,8 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
     context->show_unknown = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnknown", NULL);
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
     context->hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
+
+    context->wifi.show_available_aps_number = g_key_file_get_boolean(key_file, "NetworkManager", "WiFi-ShowAvailableAPsNumber", NULL);
 
     g_key_file_free(key_file);
 
