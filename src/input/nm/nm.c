@@ -112,7 +112,6 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         ip4_config = nm_device_get_ip4_config(device);
         if ( ip4_config != NULL )
         {
-            g_string_append(addresses, " ");
             const GSList *address_;
             for ( address_ = nm_ip4_config_get_addresses(ip4_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
             {
@@ -124,12 +123,12 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 if (g_slist_next(address_) != NULL )
                     g_string_append(addresses, ", ");
             }
+            g_string_append(addresses, " ");
         }
         ip6_config = nm_device_get_ip6_config(device);
         if ( ip6_config != NULL )
         {
             /* TODO: print the IPv6 address
-            g_string_append(addresses, " ");
             GSList address_;
             for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
             {
@@ -141,6 +140,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 if (g_slist_next(address_) != NULL )
                     g_string_append(addresses, ", ");
             }
+            g_string_append(addresses, " ");
             */
         }
         switch ( nm_device_get_device_type(device) )
@@ -167,7 +167,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             guint32 bitrate;
             bitrate = nm_device_wifi_get_bitrate(NM_DEVICE_WIFI(device));
 
-            section->value = g_strdup_printf("(%s%uMb/s)%s", ( ap_text != NULL ) ? ap_text : "", bitrate/1000, addresses->str);
+            section->value = g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000);
             g_free(ap_text);
             g_string_free(addresses, TRUE);
         }
