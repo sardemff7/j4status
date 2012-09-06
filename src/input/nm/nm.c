@@ -20,6 +20,7 @@
  *
  */
 
+#include <netdb.h>
 #include <glib.h>
 #include <libnm-glib/nm-client.h>
 #include <libnm-glib/nm-device.h>
@@ -154,18 +155,42 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         ip6_config = nm_device_get_ip6_config(device);
         if ( ip6_config != NULL )
         {
-            /* TODO: print the IPv6 address
-            GSList address_;
+            const GSList *address_;
             for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
             {
-                const struct in6_addr address;
-                address = nm_ip6_address_get_address(address_);
-                g_string_append_printf(addresses, );
+                const struct in6_addr *address;
+                address = nm_ip6_address_get_address(address_->data);
+
+                guint b = 0;
+                gboolean shortened = FALSE;
+                gboolean was_shortened = FALSE;
+                guint fragment;
+                for (;;)
+                {
+                    fragment = ( address->s6_addr[b] << 8 ) + address->s6_addr[b+1];
+                    if ( ( fragment == 0 ) && ( ! was_shortened ) )
+                        shortened = TRUE;
+                    else
+                    {
+                        if ( shortened )
+                        {
+                            g_string_append_c(addresses, ':');
+                            shortened = FALSE;
+                            was_shortened = TRUE;
+                        }
+                        g_string_append_printf(addresses, "%x", fragment);
+                    }
+                    b += 2;
+                    if ( b >= 16 )
+                        break;
+                    if ( ( ! shortened ) || ( b == 0 ) )
+                        g_string_append_c(addresses, ':');
+                }
+
                 if (g_slist_next(address_) != NULL )
                     g_string_append(addresses, ", ");
             }
             g_string_append(addresses, " ");
-            */
         }
         switch ( nm_device_get_device_type(device) )
         {
