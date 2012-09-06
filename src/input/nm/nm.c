@@ -144,10 +144,8 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             for ( address_ = nm_ip4_config_get_addresses(ip4_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
             {
                 guint32 address;
-                gchar *address_s;
                 address = nm_ip4_address_get_address(address_->data);
-                address_s = g_strdup_printf("%u.%u.%u.%u", (address >> 0) & 255, (address >> 8) & 255, (address >> 16) & 255, (address >> 24) & 255);
-                g_string_append(addresses, address_s);
+                g_string_append_printf(addresses, "%u.%u.%u.%u", (address >> 0) & 255, (address >> 8) & 255, (address >> 16) & 255, (address >> 24) & 255);
                 if (g_slist_next(address_) != NULL )
                     g_string_append(addresses, ", ");
             }
@@ -161,10 +159,8 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
             {
                 const struct in6_addr address;
-                gchar *address_s;
                 address = nm_ip6_address_get_address(address_);
-                address_s =
-                g_string_append(addresses, address_s);
+                g_string_append_printf(addresses, );
                 if (g_slist_next(address_) != NULL )
                     g_string_append(addresses, ", ");
             }
