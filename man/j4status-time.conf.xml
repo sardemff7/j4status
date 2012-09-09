@@ -79,6 +79,29 @@
                         <para>See <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Zones=</varname>
+                        (<type>list of timezone names</type>, defaults to <literal>local</literal>)
+                    </term>
+                    <listitem>
+                        <para>Timezones to print the time for.</para>
+                        <para>See <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Formats=</varname>
+                        (<type>list of format string</type>, defaults to <literal>empty</literal>)
+                    </term>
+                    <listitem>
+                        <para>Each timezone may have its own format string. You must have exactly the same number of format strings as timezones for the <varname>Zones</varname> key.</para>
+                        <para>An empty format string tells the plugin to use the <varname>Format</varname> key format.</para>
+                        <para>See <citerefentry><refentrytitle>strftime</refentrytitle><manvolnum>3</manvolnum></citerefentry>.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>

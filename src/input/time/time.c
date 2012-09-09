@@ -35,25 +35,58 @@ struct _J4statusPluginContext {
     GList *sections;
     gchar *format;
     guint timeout_id;
-    J4statusSection *section;
 };
+
+typedef struct {
+    GTimeZone *tz;
+    gchar *format;
+} J4statusTimeSectionContext;
 
 static gboolean
 _j4status_time_update(gpointer user_data)
 {
     J4statusPluginContext *context = user_data;
     GDateTime *date_time;
-    date_time = g_date_time_new_now_local();
+    GDateTime *zone_date_time;
+    date_time = g_date_time_new_now_utc();
 
-    g_free(context->section->value);
-    context->section->value = g_date_time_format(date_time, context->format);
-    context->section->dirty = TRUE;
+    GList *section_;
+    for ( section_ = context->sections ; section_ != NULL ; section_ = g_list_next(section_) )
+    {
+        J4statusSection *section = section_->data;
+        J4statusTimeSectionContext *section_context = section->user_data;
+        g_free(section->value);
+        zone_date_time = g_date_time_to_timezone(date_time, section_context->tz);
+        section->value = g_date_time_format(zone_date_time, ( section_context->format != NULL ) ? section_context->format : context->format);
+        section->dirty = TRUE;
+        g_date_time_unref(zone_date_time);
+    }
 
     g_date_time_unref(date_time);
 
     context->core_interface->trigger_display(context->core);
 
     return TRUE;
+}
+
+static void
+_j4status_time_add_section(J4statusPluginContext *context, gchar *timezone, gchar *format)
+{
+    J4statusSection *section;
+    J4statusTimeSectionContext *section_context;
+
+    section = g_new0(J4statusSection, 1);
+    section->name = "time";
+    section->instance = ( timezone != NULL ) ? timezone : g_strdup("local");
+    section->state = J4STATUS_STATE_NO_STATE;
+    section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1));
+
+    section_context = g_new0(J4statusTimeSectionContext, 1);
+    section->user_data = section_context;
+    section_context->tz = ( timezone != NULL ) ? g_time_zone_new(timezone) : g_time_zone_new_local();
+    section_context->format = format;
+
+    context->sections = g_list_prepend(context->sections, section);
 }
 
 static J4statusPluginContext *
@@ -66,6 +99,8 @@ _j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_inter
     context->core_interface = core_interface;
 
     context->format = g_strdup("%F %T");
+    gchar **timezones = NULL;
+    gchar **formats = NULL;
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Time");
@@ -78,26 +113,73 @@ _j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_inter
             g_free(context->format);
             context->format = format;
         }
+
+        gsize timezones_length;
+        gsize formats_length;
+
+        timezones = g_key_file_get_string_list(key_file, "Time", "Zones", &timezones_length, NULL);
+        formats = g_key_file_get_string_list(key_file, "Time", "Formats", &formats_length, NULL);
+        if ( ( formats != NULL ) && ( formats_length != timezones_length ) )
+        {
+            g_warning("You should specify one format per timezone");
+            g_strfreev(formats);
+            formats = NULL;
+        }
+
         g_key_file_free(key_file);
     }
 
-    context->section = g_new0(J4statusSection, 1);
-    context->section->name = "time";
-    context->section->state = J4STATUS_STATE_NO_STATE;
-    context->section->value = g_malloc0(sizeof(char) * (TIME_SIZE + 1));
-
-    context->sections = g_list_prepend(context->sections, context->section);
+    if ( timezones == NULL )
+        _j4status_time_add_section(context, NULL, NULL);
+    else
+    {
+        gchar **timezone;
+        if ( formats != NULL )
+        {
+            gchar **format;
+            for ( timezone = timezones, format = formats ; *timezone != NULL ; ++timezone, ++format )
+            {
+                if ( **format == '\0' )
+                {
+                    g_free(*format);
+                    *format = NULL;
+                }
+                _j4status_time_add_section(context, *timezone, *format);
+            }
+            g_free(formats);
+        }
+        else
+        {
+            for ( timezone = timezones ; *timezone != NULL ; ++timezone )
+                _j4status_time_add_section(context, *timezone, NULL);
+        }
+        g_free(timezones);
+    }
+    context->sections = g_list_reverse(context->sections);
 
     return context;
 }
 
 static void
+_j4status_time_free_section(gpointer data)
+{
+    J4statusSection *section = data;
+    J4statusTimeSectionContext *section_context = section->user_data;
+
+    g_free(section_context->format);
+    g_time_zone_unref(section_context->tz);
+
+    g_free(section_context);
+
+    g_free(section->value);
+
+    g_free(section);
+}
+
+static void
 _j4status_time_uninit(J4statusPluginContext *context)
 {
-    g_free(context->section->value);
-    g_free(context->section);
-
-    g_list_free(context->sections);
+    g_list_free_full(context->sections, _j4status_time_free_section);
 
     g_free(context);
 }
