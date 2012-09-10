@@ -21,6 +21,9 @@ AC_DISABLE_STATIC
 LT_INIT
 PKG_PROG_PKG_CONFIG
 AC_PATH_PROG([GDBUS_CODEGEN], [gdbus-codegen])
+if test -z "$GDBUS_CODEGEN"; then
+    AC_MSG_ERROR([gdbus-codegen not found])
+fi
 AC_PATH_PROG([XSLTPROC], [xsltproc])
 if test -z "$XSLTPROC"; then
     AC_MSG_ERROR([xsltproc not found])
