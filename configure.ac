@@ -10,6 +10,7 @@ AM_INIT_AUTOMAKE([1.11 subdir-objects dist-xz no-dist-gzip tar-ustar foreign])
 
 AM_SILENT_RULES([yes])
 
+AC_ARG_VAR([GDBUS_CODEGEN], [The gdbus-codegen executable])
 AC_ARG_VAR([XSLTPROC], [The xsltproc executable])
 
 AC_PROG_CC
@@ -19,6 +20,7 @@ AC_PROG_SED
 AC_DISABLE_STATIC
 LT_INIT
 PKG_PROG_PKG_CONFIG
+AC_PATH_PROG([GDBUS_CODEGEN], [gdbus-codegen])
 AC_PATH_PROG([XSLTPROC], [xsltproc])
 
 GETTEXT_PACKAGE=$PACKAGE_NAME

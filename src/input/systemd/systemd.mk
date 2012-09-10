@@ -31,4 +31,4 @@ CLEANFILES += \
 	src/input/systemd/dbus.c
 
 src/input/systemd/dbus.h src/input/systemd/dbus.c: $(dbusinterfacesdir)/org.freedesktop.systemd1.Manager.xml $(dbusinterfacesdir)/org.freedesktop.systemd1.Unit.xml
-	$(AM_V_GEN)cd $(builddir)/$(dir $*) && gdbus-codegen --interface-prefix=org.freedesktop.systemd1 --generate-c-code=$(notdir $(basename $*)) --c-namespace=J4statusSystemd $^
+	$(AM_V_GEN)cd $(builddir)/$(dir $*) && $(GDBUS_CODEGEN) --interface-prefix=org.freedesktop.systemd1 --generate-c-code=$(notdir $(basename $*)) --c-namespace=J4statusSystemd $^
