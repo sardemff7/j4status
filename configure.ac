@@ -10,6 +10,8 @@ AM_INIT_AUTOMAKE([1.11 subdir-objects dist-xz no-dist-gzip tar-ustar foreign])
 
 AM_SILENT_RULES([yes])
 
+AC_ARG_VAR([XSLTPROC], [The xsltproc executable])
+
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
