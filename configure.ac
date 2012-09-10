@@ -22,6 +22,9 @@ LT_INIT
 PKG_PROG_PKG_CONFIG
 AC_PATH_PROG([GDBUS_CODEGEN], [gdbus-codegen])
 AC_PATH_PROG([XSLTPROC], [xsltproc])
+if test -z "$XSLTPROC"; then
+    AC_MSG_ERROR([xsltproc not found])
+fi
 
 GETTEXT_PACKAGE=$PACKAGE_NAME
 AC_DEFINE_UNQUOTED([GETTEXT_PACKAGE], ["$GETTEXT_PACKAGE"], [Gettext Package])
