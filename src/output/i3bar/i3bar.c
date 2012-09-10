@@ -98,8 +98,6 @@ _j4status_i3bar_init(J4statusCoreContext *core, J4statusCoreInterface *core_inte
     yajl_gen_map_open(json_gen);
     yajl_gen_string(json_gen, (const unsigned char *)"version", strlen("version"));
     yajl_gen_integer(json_gen, 1);
-    yajl_gen_string(json_gen, (const unsigned char *)"stop_with_usr1", strlen("stop_with_usr1"));
-    yajl_gen_bool(json_gen, TRUE);
     yajl_gen_map_close(json_gen);
 
     const unsigned char *buffer;
