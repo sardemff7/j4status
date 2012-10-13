@@ -57,7 +57,7 @@
         </para>
     </refsynopsisdiv>
 
-    <refsect1>
+    <refsect1 id="description">
         <title>Description</title>
 
         <para>
@@ -65,10 +65,10 @@
         </para>
     </refsect1>
 
-    <refsect1>
+    <refsect1 id="sections">
         <title>Sections</title>
 
-        <refsect2>
+        <refsect2 id="section-sensors">
             <title>Section <varname>[Sensors]</varname></title>
 
             <variablelist>
@@ -87,7 +87,7 @@
         </refsect2>
     </refsect1>
 
-    <refsect1>
+    <refsect1 id="see-also">
         <title>See Also</title>
         <para>
             <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>

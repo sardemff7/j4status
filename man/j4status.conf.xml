@@ -58,7 +58,7 @@
         </orderedlist>
     </refsynopsisdiv>
 
-    <refsect1>
+    <refsect1 id="description">
         <title>Description</title>
 
         <para>
@@ -73,10 +73,10 @@
         </para>
     </refsect1>
 
-    <refsect1>
+    <refsect1 id="esctions">
         <title>Sections</title>
 
-        <refsect2>
+        <refsect2 id="section-plugins">
             <title>Section <varname>[Plugins]</varname></title>
 
             <variablelist>
@@ -103,7 +103,7 @@
         </refsect2>
     </refsect1>
 
-    <refsect1>
+    <refsect1 id="see-also">
         <title>See Also</title>
         <para>
             <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>
