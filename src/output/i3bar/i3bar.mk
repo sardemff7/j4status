@@ -18,5 +18,7 @@ i3bar_la_LIBADD = \
 	$(YAJL_LIBS) \
 	$(GLIB_LIBS)
 
+XSLTPROC_CONDITIONS += enable_i3bar_output
+
 man5_MANS += \
 	man/j4status-i3bar.conf.5

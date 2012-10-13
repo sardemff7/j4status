@@ -18,5 +18,7 @@ nm_la_LIBADD = \
 	$(LIBNM_LIBS) \
 	$(GLIB_LIBS)
 
+XSLTPROC_CONDITIONS += enable_nm_input
+
 man5_MANS += \
 	man/j4status-nm.conf.5

@@ -1,4 +1,8 @@
-AM_DISTCHECK_CONFIGURE_FLAGS = \
+ comma := ,
+ empty :=
+ space := $(empty) $(empty)
+
+ AM_DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-debug
 
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
@@ -17,6 +21,9 @@ BUILT_SOURCES =
 EXTRA_DIST =
 CLEANFILES =
 
+XSLTPROC_CONDITIONS = \
+	installation
+
 AM_CFLAGS += \
 	-D LOCALEDIR=\"$(localedir)\" \
 	--include config.h \
@@ -25,7 +32,8 @@ AM_CFLAGS += \
 
 AM_XSLTPROCFLAGS += \
 	--path "$(srcdir)/man/" \
-	--path "$(builddir)/man/"
+	--path "$(builddir)/man/" \
+	--stringparam profile.condition '$(subst $(space),;,$(XSLTPROC_CONDITIONS))'
 
 include src/j4status/j4status.mk
 include src/libj4status/libj4status.mk

@@ -18,5 +18,7 @@ sensors_la_LIBADD = \
 	$(LIBSENSORS_LIBS) \
 	$(GLIB_LIBS)
 
+XSLTPROC_CONDITIONS += enable_sensors_input
+
 man5_MANS += \
 	man/j4status-sensors.conf.5

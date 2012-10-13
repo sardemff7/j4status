@@ -13,7 +13,7 @@ man/%.1 man/%.5: man/%.xml man/config.dtd
 		$(XSLTPROC) \
 		-o $(dir $@) \
 		$(AM_XSLTPROCFLAGS) \
-		http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl \
+		http://docbook.sourceforge.net/release/xsl/current/manpages/profile-docbook.xsl \
 		$<
 
 man/config.dtd: man/config.dtd.in Makefile

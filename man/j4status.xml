@@ -74,13 +74,13 @@
         <refsect2>
             <title>Output plugins</title>
 
-            <para>Two output plugins are distributed with j4status:</para>
+            <para>The following output plugins are <phrase condition="website">distributed</phrase><phrase condition="installation">installed</phrase> with j4status:</para>
             <variablelist>
                 <varlistentry>
                     <term><command>flat</command></term>
                     <listitem><para>which displays flat text</para></listitem>
                 </varlistentry>
-                <varlistentry>
+                <varlistentry condition="website;enable_i3bar_output">
                     <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
                 </varlistentry>
@@ -90,7 +90,7 @@
         <refsect2>
             <title>Input plugins</title>
 
-            <para>Six input plugins are distributed with j4status:</para>
+            <para>The following input plugins are <phrase condition="website">distributed</phrase><phrase condition="installation">installed</phrase> with j4status:</para>
             <variablelist>
                 <varlistentry>
                     <term><command>time</command> (see <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
@@ -100,19 +100,19 @@
                     <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a plugin to monitor files and dispaly their content</para></listitem>
                 </varlistentry>
-                <varlistentry>
+                <varlistentry condition="website;enable_nm_input">
                     <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
                 </varlistentry>
-                <varlistentry>
+                <varlistentry condition="website;enable_upower_input">
                     <term><command>upower</command></term>
                     <listitem><para>a UPower client plugin, to display battery status</para></listitem>
                 </varlistentry>
-                <varlistentry>
+                <varlistentry condition="website;enable_sensors_input">
                     <term><command>sensors</command> (see <citerefentry><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a sensors watching plugin, to display temperatures frow your motherboard sensors</para></listitem>
                 </varlistentry>
-                <varlistentry>
+                <varlistentry condition="website;enable_systemd_input">
                     <term><command>systemd</command> (see <citerefentry><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a systemd unit monitoring plugin, which displays the status of systemd units</para></listitem>
                 </varlistentry>
@@ -182,23 +182,14 @@
     </refsect1>
 
     <refsect1>
-        <title>Sockets</title>
-
-        <variablelist>
-            <varlistentry>
-                <term><filename><varname>$XDG_RUNTIME_DIR</varname>/&PACKAGE_NAME;/private</filename></term>
-                <listitem>
-                    <para>Used internally by <citerefentry><refentrytitle>eventdctl</refentrytitle><manvolnum>1</manvolnum></citerefentry> to communicate with eventd. This location can be overridden by the <option>--private-socket</option> option.</para>
-                    <para>If <varname>$XDG_RUNTIME_DIR</varname> is not set, we use <varname>$XDG_CACHE_HOME</varname>, with a fallback to <filename>~/.cache</filename>.</para>
-                </listitem>
-            </varlistentry>
-        </variablelist>
-    </refsect1>
-
-    <refsect1>
         <title>See Also</title>
         <para>
             <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_nm_input"><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_sensors_input"><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_systemd_input"><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
         </para>
     </refsect1>
 </refentry>

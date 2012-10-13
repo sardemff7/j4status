@@ -17,3 +17,5 @@ upower_la_LIBADD = \
 	libj4status.la \
 	$(UPOWER_LIBS) \
 	$(GLIB_LIBS)
+
+XSLTPROC_CONDITIONS += enable_upower_input
