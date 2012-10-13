@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>j4status.conf</title>
+<meta name="generator" content="DocBook XSL Stylesheets V1.77.1">
+<link rel="stylesheet" href="http://www.j4tools.org/style.css">
+</head>
+<body>
+<header><hgroup><h1>j4status.conf<small>(5)</small>
+</h1>
+<h2>j4status configuration file</h2></hgroup></header><div id="content"><div class="refentry">
+<a name="j4status.conf"></a><div class="titlepage"></div>
+<div class="refnamediv">
+<h2>Name</h2>
+<p>j4status.conf — j4status configuration file</p>
+</div>
+<div class="refsynopsisdiv">
+<h2>Synopsis</h2>
+<p>The config files are searched in following order (first found with the relevant section is used):</p>
+<div class="orderedlist"><ol class="orderedlist" type="1">
+<li class="listitem"><p><code class="filename"><code class="varname">$J4STATUS_CONFIG_FILE</code></code> (see <a class="citerefentry" href="j4status.html">j4status(1)</a>)</p></li>
+<li class="listitem"><p><code class="filename"><code class="varname">$XDG_CONFIG_HOME</code>/j4status/config</code> (fallback to <code class="filename">~/.config/j4status/config</code>)</p></li>
+<li class="listitem"><p><code class="filename">/etc/j4status/config</code></p></li>
+<li class="listitem"><p><code class="filename">/usr/share/j4status/config</code></p></li>
+</ol></div>
+</div>
+<div class="refsect1">
+<a name="description"></a><h2>Description</h2>
+<p>
+            This is the configuration file for <a class="citerefentry" href="j4status.html">j4status(1)</a>.
+            The syntax of this file is described in the <a class="ulink" href="http://standards.freedesktop.org/desktop-entry-spec/latest/" target="_top">XDG Desktop Entry Specification</a>.
+        </p>
+<p>
+            This file settings can be overridden by passing arguments to <span class="command"><strong>j4status</strong></span> invocation directly.
+        </p>
+<p>
+            Plugins may parse their own section(s) in this file for their configuration.
+        </p>
+</div>
+<div class="refsect1">
+<a name="esctions"></a><h2>Sections</h2>
+<div class="refsect2">
+<a name="section-plugins"></a><h3>Section <code class="varname">[Plugins]</code>
+</h3>
+<div class="variablelist"><dl class="variablelist">
+<dt><span class="term">
+                        <code class="varname">Output=</code>
+                        (<span class="type">plugin name</span>, defaults to <code class="literal">flat</code>)
+                    </span></dt>
+<dd><p>Output plugin to use.</p></dd>
+<dt><span class="term">
+                        <code class="varname">Input=</code>
+                        (<span class="type">list of plugin names</span>)
+                    </span></dt>
+<dd><p>List of input plugins to use.</p></dd>
+</dl></div>
+</div>
+</div>
+<div class="refsect1">
+<a name="see-also"></a><h2>See Also</h2>
+<p>
+            <a class="citerefentry" href="j4status.html">j4status(1)</a>
+        </p>
+</div>
+</div></div>
+<footer><p>Copyright © 2012 Quentin “Sardem FF7” Glidic</p>
+<p class="licence">j4status is licenced under the terms of the <a rel="license" href="https://www.gnu.org/licenses/gpl.html">GNU General Public License version 3</a></p></footer>
+</body>
+</html>
