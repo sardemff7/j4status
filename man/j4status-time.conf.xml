@@ -45,12 +45,15 @@
 
     <refnamediv>
         <refname>j4status-time.conf</refname>
-        <refpurpose>j4status time plugin configuration file</refpurpose>
+        <refpurpose>j4status time plugin configuration</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <para>
             Configuration for the time plugin
+        </para>
+        <para>
+            The time plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
         </para>
     </refsynopsisdiv>
 

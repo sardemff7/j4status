@@ -45,12 +45,15 @@
 
     <refnamediv>
         <refname>j4status-i3bar.conf</refname>
-        <refpurpose>j4status i3bar plugin configuration file</refpurpose>
+        <refpurpose>j4status i3bar plugin configuration</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <para>
             Configuration for the i3bar plugin
+        </para>
+        <para>
+            The i3bar plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
         </para>
     </refsynopsisdiv>
 

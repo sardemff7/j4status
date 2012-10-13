@@ -45,12 +45,15 @@
 
     <refnamediv>
         <refname>j4status-nm.conf</refname>
-        <refpurpose>j4status NetworkManager plugin configuration file</refpurpose>
+        <refpurpose>j4status NetworkManager plugin configuration</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <para>
             Configuration for the NetworkManager plugin
+        </para>
+        <para>
+            The NetworkManager plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
         </para>
     </refsynopsisdiv>
 

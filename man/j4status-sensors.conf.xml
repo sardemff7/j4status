@@ -45,12 +45,15 @@
 
     <refnamediv>
         <refname>j4status-sensors.conf</refname>
-        <refpurpose>j4status sensors plugin configuration file</refpurpose>
+        <refpurpose>j4status sensors plugin configuration</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <para>
             Configuration for the sensors plugin
+        </para>
+        <para>
+            The sensors plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
         </para>
     </refsynopsisdiv>
 

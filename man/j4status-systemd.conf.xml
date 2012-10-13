@@ -45,12 +45,15 @@
 
     <refnamediv>
         <refname>j4status-systemd.conf</refname>
-        <refpurpose>j4status systemd plugin configuration file</refpurpose>
+        <refpurpose>j4status systemd plugin configuration</refpurpose>
     </refnamediv>
 
     <refsynopsisdiv>
         <para>
             Configuration for the systemd plugin
+        </para>
+        <para>
+            The systemd plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
         </para>
     </refsynopsisdiv>
 
