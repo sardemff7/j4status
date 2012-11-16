@@ -549,6 +549,9 @@ _j4status_nm_get_sections(J4statusPluginContext *context)
 static void
 _j4status_nm_start(J4statusPluginContext *context)
 {
+    if ( context == NULL )
+        return;
+
     g_list_foreach(context->sections, _j4status_nm_device_monitor, NULL);
     context->started = TRUE;
 }
@@ -556,6 +559,9 @@ _j4status_nm_start(J4statusPluginContext *context)
 static void
 _j4status_nm_stop(J4statusPluginContext *context)
 {
+    if ( context == NULL )
+        return;
+
     context->started = FALSE;
     g_list_foreach(context->sections, _j4status_nm_device_unmonitor, NULL);
 }
