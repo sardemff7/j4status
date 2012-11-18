@@ -229,7 +229,10 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             guint32 speed;
             speed = nm_device_ethernet_get_speed(NM_DEVICE_ETHERNET(device));
 
-            section->value = g_strdup_printf("%s(%uMb/s)", addresses->str, speed/1000);
+            if ( ( speed % 1000 ) == 0 )
+                section->value = g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000);
+            else
+                section->value = g_strdup_printf("%s(%uMb/s)", addresses->str, speed);
 
             g_string_free(addresses, TRUE);
         }
