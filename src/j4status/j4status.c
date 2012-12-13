@@ -155,14 +155,14 @@ _j4status_core_quit(J4statusCoreContext *context)
         g_main_loop_quit(context->loop);
 }
 
-#ifdef G_OS_UNIX
 static gboolean
-_j4status_core_signal_quit(gpointer user_data)
+_j4status_core_source_quit(gpointer user_data)
 {
     _j4status_core_quit(user_data);
     return FALSE;
 }
 
+#ifdef G_OS_UNIX
 static gboolean
 _j4status_core_signal_hup(gpointer user_data)
 {
@@ -179,6 +179,7 @@ int
 main(int argc, char *argv[])
 {
     gboolean print_version = FALSE;
+    gboolean one_shot = FALSE;
     gchar **input_plugins = NULL;
     gchar *output_plugin = NULL;
 
@@ -236,6 +237,7 @@ main(int argc, char *argv[])
     {
         { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
         { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
+        { "one-shot", '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
         { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
         { NULL }
     };
@@ -279,8 +281,8 @@ main(int argc, char *argv[])
     };
 
 #ifdef G_OS_UNIX
-    g_unix_signal_add(SIGTERM, _j4status_core_signal_quit, context);
-    g_unix_signal_add(SIGINT, _j4status_core_signal_quit, context);
+    g_unix_signal_add(SIGTERM, _j4status_core_source_quit, context);
+    g_unix_signal_add(SIGINT, _j4status_core_source_quit, context);
 
     g_unix_signal_add(SIGHUP, _j4status_core_signal_hup, context);
 #endif /* G_OS_UNIX */
@@ -311,6 +313,9 @@ main(int argc, char *argv[])
     context->sections = g_list_reverse(context->sections);
 
     _j4status_core_start(context);
+
+    if ( one_shot )
+        g_idle_add(_j4status_core_source_quit, context);
 
     context->loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(context->loop);
