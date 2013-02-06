@@ -116,7 +116,6 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     section->user_data = sensor_feature;
 
-    _j4status_sensors_feature_temp_update(section);
     g_timeout_add_seconds(2, _j4status_sensors_feature_temp_update, section);
 
     context->sections = g_list_prepend(context->sections, section);
@@ -236,6 +235,10 @@ _j4status_sensors_start(J4statusPluginContext *context)
         return;
 
     context->started = TRUE;
+
+    GList *section;
+    for ( section = context->sections ; section != NULL ; section = g_list_next(section) )
+        _j4status_sensors_feature_temp_update(section->data);
 }
 
 static void
