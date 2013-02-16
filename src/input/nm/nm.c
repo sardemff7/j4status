@@ -344,70 +344,72 @@ _j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
 static J4statusSection *
 _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevice *device, GList *sibling)
 {
-    J4statusSection *section;
-    section = g_new0(J4statusSection, 1);
-
     J4statusNmSectionContext *section_context;
     section_context = g_new0(J4statusNmSectionContext, 1);
     section_context->context = context;
     section_context->device = g_object_ref(device);
 
-    section->user_data = section_context;
-
+    const gchar *name;
+    const gchar *label;
     switch ( nm_device_get_device_type(device) )
     {
     case NM_DEVICE_TYPE_UNKNOWN:
     case NM_DEVICE_TYPE_UNUSED1:
     case NM_DEVICE_TYPE_UNUSED2:
-        section->name = "nm-unknown";
-        section->label = g_strdup("Unknownw");
+        name = "nm-unknown";
+        label = "Unknownw";
     break;
     case NM_DEVICE_TYPE_ETHERNET:
-        section->name = "nm-ethernet";
-        section->label = g_strdup("E");
+        name = "nm-ethernet";
+        label = "E";
     break;
     case NM_DEVICE_TYPE_WIFI:
-        section->name = "nm-wifi";
-        section->label = g_strdup("W");
+        name = "nm-wifi";
+        label = "W";
         section_context->ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device));
         if ( section_context->ap != NULL )
             g_object_ref(section_context->ap);
     break;
     case NM_DEVICE_TYPE_BT:
-        section->name = "nm-bluetooth";
-        section->label = g_strdup("B");
+        name = "nm-bluetooth";
+        label = "B";
     break;
     case NM_DEVICE_TYPE_OLPC_MESH:
-        section->name = "nm-olpc-mesh";
-        section->label = g_strdup("OM");
+        name = "nm-olpc-mesh";
+        label = "OM";
     break;
     case NM_DEVICE_TYPE_WIMAX:
-        section->name = "nm-wimax";
-        section->label = g_strdup("Wx");
+        name = "nm-wimax";
+        label = "Wx";
     break;
     case NM_DEVICE_TYPE_MODEM:
-        section->name = "nm-modem";
-        section->label = g_strdup("M");
+        name = "nm-modem";
+        label = "M";
     break;
     case NM_DEVICE_TYPE_INFINIBAND:
-        section->name = "nm-infiniband";
-        section->label = g_strdup("I");
+        name = "nm-infiniband";
+        label = "I";
     break;
     case NM_DEVICE_TYPE_BOND:
-        section->name = "nm-bond";
-        section->label = g_strdup("Bo");
+        name = "nm-bond";
+        label = "Bo";
     break;
     case NM_DEVICE_TYPE_VLAN:
-        section->name = "nm-vlan";
-        section->label = g_strdup("V");
+        name = "nm-vlan";
+        label = "V";
     break;
 #if NM_CHECK_VERSION(0,9,5)
     case NM_DEVICE_TYPE_ADSL:
-        section->name = "nm-adsl";
-        section->label = g_strdup("A");
+        name = "nm-adsl";
+        label = "A";
     break;
 #endif /* NM_CHECK_VERSION(0.9.5) */
     }
+    J4statusSection *section;
+    section = g_new0(J4statusSection, 1)
+    section->user_data = section_context;
+    section->name = name;
+    section->label = g_strdup(label);
     section->instance = instance;
     context->sections = g_list_insert_before(context->sections, sibling, section);
 
