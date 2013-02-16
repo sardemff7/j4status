@@ -409,7 +409,6 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
 #endif /* NM_CHECK_VERSION(0.9.5) */
     }
     section->instance = instance;
-    _j4status_nm_device_update(context, section, device);
     context->sections = g_list_insert_before(context->sections, sibling, section);
 
     return section;
@@ -514,7 +513,6 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
     g_signal_connect(context->nm_client, "device-added", G_CALLBACK(_j4status_nm_client_device_added), context);
     g_signal_connect(context->nm_client, "device-removed", G_CALLBACK(_j4status_nm_client_device_removed), context);
 
-    context->sections = g_list_reverse(context->sections);
     return context;
 }
 
