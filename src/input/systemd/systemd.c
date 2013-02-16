@@ -81,7 +81,7 @@ _j4status_systemd_unit_state_changed(J4statusSystemdUnit *gobject, GParamSpec *p
 
     section->dirty = TRUE;
 
-    section_context->context->core_interface->trigger_display(section_context->context->core);
+    libj4status_core_trigger_display(section_context->context->core, section_context->context->core_interface);
 }
 
 static void
@@ -249,11 +249,11 @@ _j4status_systemd_stop(J4statusPluginContext *context)
 void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    interface->init   = _j4status_systemd_init;
-    interface->uninit = _j4status_systemd_uninit;
+    libj4status_input_plugin_interface_add_init_callback(interface, _j4status_systemd_init);
+    libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_systemd_uninit);
 
-    interface->get_sections = _j4status_systemd_get_sections;
+    libj4status_input_plugin_interface_add_get_sections_callback(interface, _j4status_systemd_get_sections);
 
-    interface->start = _j4status_systemd_start;
-    interface->stop  = _j4status_systemd_stop;
+    libj4status_input_plugin_interface_add_start_callback(interface, _j4status_systemd_start);
+    libj4status_input_plugin_interface_add_stop_callback(interface, _j4status_systemd_stop);
 }

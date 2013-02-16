@@ -50,7 +50,7 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         g_free(section->value);
         section->value = g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL);
         section->dirty = TRUE;
-        context->core_interface->trigger_display(context->core);
+        libj4status_core_trigger_display(context->core, context->core_interface);
     }
 }
 
@@ -163,8 +163,8 @@ _j4status_file_monitor_get_sections(J4statusPluginContext *context)
 void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    interface->init   = _j4status_file_monitor_init;
-    interface->uninit = _j4status_file_monitor_uninit;
+    libj4status_input_plugin_interface_add_init_callback(interface, _j4status_file_monitor_init);
+    libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_file_monitor_uninit);
 
-    interface->get_sections = _j4status_file_monitor_get_sections;
+    libj4status_input_plugin_interface_add_get_sections_callback(interface, _j4status_file_monitor_get_sections);
 }

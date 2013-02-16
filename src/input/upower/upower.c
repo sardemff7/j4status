@@ -131,7 +131,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
         section->value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", state, percentage, h, m, time);
     }
     section->dirty = TRUE;
-    context->core_interface->trigger_display(context->core);
+    libj4status_core_trigger_display(context->core, context->core_interface);
 }
 
 static J4statusPluginContext *
@@ -229,8 +229,8 @@ _j4status_upower_get_sections(J4statusPluginContext *context)
 void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    interface->init   = _j4status_upower_init;
-    interface->uninit = _j4status_upower_uninit;
+    libj4status_input_plugin_interface_add_init_callback(interface, _j4status_upower_init);
+    libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_upower_uninit);
 
-    interface->get_sections = _j4status_upower_get_sections;
+    libj4status_input_plugin_interface_add_get_sections_callback(interface, _j4status_upower_get_sections);
 }

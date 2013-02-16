@@ -14,6 +14,7 @@ nm_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_input
 
 nm_la_LIBADD = \
+	libj4status-plugin.la \
 	libj4status.la \
 	$(LIBNM_LIBS) \
 	$(GLIB_LIBS)

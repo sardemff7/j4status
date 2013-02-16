@@ -12,10 +12,13 @@ pluginsdir = $(pkglibdir)/plugins
 
 bin_PROGRAMS =
 noinst_LTLIBRARIES =
+lib_LTLIBRARIES =
 plugins_LTLIBRARIES =
 pkginclude_HEADERS =
+
 man1_MANS =
 man5_MANS =
+pkgconfig_DATA =
 
 BUILT_SOURCES =
 EXTRA_DIST =
@@ -37,6 +40,7 @@ AM_XSLTPROCFLAGS += \
 
 include src/j4status/j4status.mk
 include src/libj4status/libj4status.mk
+include src/libj4status-plugin/libj4status-plugin.mk
 include src/output/flat/flat.mk
 if ENABLE_I3BAR_OUTPUT
 include src/output/i3bar/i3bar.mk

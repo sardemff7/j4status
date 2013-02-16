@@ -13,4 +13,5 @@ flat_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_output
 
 flat_la_LIBADD = \
+	libj4status-plugin.la \
 	$(GLIB_LIBS)

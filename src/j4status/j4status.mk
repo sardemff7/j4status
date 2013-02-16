@@ -2,10 +2,8 @@
 bin_PROGRAMS += \
 	j4status
 
-pkginclude_HEADERS += \
-	include/j4status-plugin.h
-
 j4status_SOURCES = \
+	include/j4status-plugin-private.h \
 	src/j4status/plugins.c \
 	src/j4status/plugins.h \
 	src/j4status/j4status.c

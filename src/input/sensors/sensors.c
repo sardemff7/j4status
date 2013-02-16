@@ -96,7 +96,7 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
 
     section->dirty = TRUE;
 
-    context->core_interface->trigger_display(context->core);
+    libj4status_core_trigger_display(context->core, context->core_interface);
 
     return TRUE;
 }
@@ -253,11 +253,11 @@ _j4status_sensors_stop(J4statusPluginContext *context)
 void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    interface->init   = _j4status_sensors_init;
-    interface->uninit = _j4status_sensors_uninit;
+    libj4status_input_plugin_interface_add_init_callback(interface, _j4status_sensors_init);
+    libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_sensors_uninit);
 
-    interface->get_sections = _j4status_sensors_get_sections;
+    libj4status_input_plugin_interface_add_get_sections_callback(interface, _j4status_sensors_get_sections);
 
-    interface->start = _j4status_sensors_start;
-    interface->stop  = _j4status_sensors_stop;
+    libj4status_input_plugin_interface_add_start_callback(interface, _j4status_sensors_start);
+    libj4status_input_plugin_interface_add_stop_callback(interface, _j4status_sensors_stop);
 }

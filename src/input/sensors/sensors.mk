@@ -14,6 +14,7 @@ sensors_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_input
 
 sensors_la_LIBADD = \
+	libj4status-plugin.la \
 	libj4status.la \
 	$(LIBSENSORS_LIBS) \
 	$(GLIB_LIBS)

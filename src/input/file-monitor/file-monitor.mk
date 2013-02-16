@@ -14,6 +14,7 @@ file_monitor_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_input
 
 file_monitor_la_LIBADD = \
+	libj4status-plugin.la \
 	libj4status.la \
 	$(GIO_LIBS) \
 	$(GLIB_LIBS)

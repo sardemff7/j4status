@@ -1,5 +1,5 @@
 /*
- * j4status - Status line generator
+ * libj4status-plugin - Library to implement a j4status plugin
  *
  * Copyright © 2012 Quentin "Sardem FF7" Glidic
  *
@@ -48,36 +48,34 @@ typedef struct {
     gchar *line_cache;
 } J4statusSection;
 
+
 typedef struct _J4statusCoreContext J4statusCoreContext;
+typedef struct _J4statusCoreInterface J4statusCoreInterface;
 
-typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
+void libj4status_core_trigger_display(J4statusCoreContext *context, J4statusCoreInterface *interface);
 
-typedef struct {
-    J4statusCoreFunc trigger_display;
-} J4statusCoreInterface;
 
 typedef struct _J4statusPluginContext J4statusPluginContext;
 
 typedef J4statusPluginContext *(*J4statusPluginInitFunc)(J4statusCoreContext *context, J4statusCoreInterface *interface);
 typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
-typedef void(*J4statusPluginFunc)(J4statusPluginContext *context);
+typedef void(*J4statusPluginSimpleFunc)(J4statusPluginContext *context);
 typedef GList **(*J4statusPluginGetSectionsFunc)(J4statusPluginContext *context);
 
-typedef struct {
-    J4statusPluginInitFunc init;
-    J4statusPluginFunc     uninit;
+typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
-    J4statusPluginPrintFunc print;
-} J4statusOutputPluginInterface;
+typedef struct _J4statusInputPluginInterface J4statusInputPluginInterface;
 
-typedef struct {
-    J4statusPluginInitFunc init;
-    J4statusPluginFunc     uninit;
+#define LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(type, Type, action, Action) void libj4status_##type##_plugin_interface_add_##action##_callback(J4status##Type##PluginInterface *interface, J4statusPlugin##Action##Func callback)
 
-    J4statusPluginGetSectionsFunc get_sections;
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, init, Init);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, uninit, Simple);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, print, Print);
 
-    J4statusPluginFunc start;
-    J4statusPluginFunc stop;
-} J4statusInputPluginInterface;
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, init, Init);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, uninit, Simple);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, get_sections, GetSections);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, start, Simple);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, stop, Simple);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_H__ */

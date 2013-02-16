@@ -63,6 +63,8 @@ if test -d .git; then
     AC_DEFINE_UNQUOTED([PACKAGE_VERSION], ["$PACKAGE_VERSION"], [Full version with git information])
 fi
 
+PKG_INSTALLDIR
+
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= $glib_min_version])
 AC_DEFINE_UNQUOTED([GLIB_VERSION_MIN_REQUIRED], [(G_ENCODE_VERSION(${glib_min_major},${glib_min_minor}))], [The lower GLib version supported])
 
@@ -149,5 +151,6 @@ AC_SUBST(shrext_cmds)
 
 AC_CONFIG_FILES([
     Makefile
+    src/libj4status-plugin/libj4status-plugin.pc
 ])
 AC_OUTPUT

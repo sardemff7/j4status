@@ -13,6 +13,7 @@ time_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_input
 
 time_la_LIBADD = \
+	libj4status-plugin.la \
 	libj4status.la \
 	$(GLIB_LIBS)
 

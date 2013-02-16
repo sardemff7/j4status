@@ -14,6 +14,7 @@ upower_la_LDFLAGS = \
 	-module -avoid-version -export-symbols-regex j4status_input
 
 upower_la_LIBADD = \
+	libj4status-plugin.la \
 	libj4status.la \
 	$(UPOWER_LIBS) \
 	$(GLIB_LIBS)

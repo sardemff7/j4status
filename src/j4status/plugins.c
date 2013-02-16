@@ -24,6 +24,7 @@
 #include <gmodule.h>
 
 #include <j4status-plugin.h>
+#include <j4status-plugin-private.h>
 
 #include "plugins.h"
 

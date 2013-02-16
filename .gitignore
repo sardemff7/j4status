@@ -6,3 +6,4 @@
 /man/config.dtd
 /man/*.1
 /man/*.5
+*.pc
