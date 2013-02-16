@@ -52,34 +52,31 @@ static void
 _j4status_systemd_section_free(gpointer data)
 {
     J4statusSection *section = data;
-    J4statusSystemdSectionContext *section_context = section->user_data;
+    J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
 
     if ( section_context->unit != NULL )
         g_object_unref(section_context->unit);
 
     g_free(section_context);
 
-    g_free(section->value);
-    g_free(section->instance);
-
-    g_free(section);
+    j4status_section_free(section);
 }
 
 static void
 _j4status_systemd_unit_state_changed(J4statusSystemdUnit *gobject, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusSystemdSectionContext *section_context = section->user_data;
+    J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
 
-    section->value = j4status_systemd_unit_dup_active_state(section_context->unit);
-    if ( g_str_equal(section->value, "active") || g_str_equal(section->value, "reloading") )
-        section->state = J4STATUS_STATE_GOOD;
-    else if ( g_str_equal(section->value, "failed") )
-        section->state = J4STATUS_STATE_BAD;
+    gchar *state;
+    state = j4status_systemd_unit_dup_active_state(section_context->unit);
+    j4status_section_set_value(section, state);
+    if ( ( g_strcmp0(state, "active") == 0 ) || ( g_strcmp0(state, "reloading") == 0 ) )
+        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+    else if ( ( g_strcmp0(state, "failed") == 0 ) )
+        j4status_section_set_state(section, J4STATUS_STATE_BAD);
     else
-        section->state = J4STATUS_STATE_NO_STATE;
-
-    section->dirty = TRUE;
+        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
 
     libj4status_core_trigger_display(section_context->context->core, section_context->context->core_interface);
 }
@@ -112,11 +109,9 @@ _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_nam
     section_context->context = context;
     section_context->unit = unit;
 
-    section = g_new0(J4statusSection, 1);
-    section->name = "systemd";
-    section->instance = g_strdup(unit_name);
-    section->label = section->instance;
-    section->user_data = section_context;
+    section = j4status_section_new("systemd", section_context);
+    j4status_section_set_instance(section, unit_name);
+    j4status_section_set_label(section, unit_name);
 
     g_signal_connect(unit, "notify::active-state", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
     _j4status_systemd_unit_state_changed(unit, NULL, section);

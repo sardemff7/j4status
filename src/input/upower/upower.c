@@ -37,13 +37,13 @@ static void
 _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusPluginContext *context = section->user_data;
+    J4statusPluginContext *context = j4status_section_get_user_data(section);
 
     gdouble percentage = -1;
     gint64 time = -1;
     const gchar *state = "Bat";
 
-    section->state = J4STATUS_STATE_NO_STATE;
+    j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
 
     GValue value = G_VALUE_INIT;
 
@@ -52,8 +52,8 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     switch ( g_value_get_int(&value) )
     {
     case UP_DEVICE_STATE_UNKNOWN:
-        section->state = J4STATUS_STATE_UNAVAILABLE;
-        section->value = g_strdup("No battery");
+        j4status_section_set_state(section, J4STATUS_STATE_UNAVAILABLE);
+        j4status_section_set_value(section, g_strdup("No battery"));
         return;
     case UP_DEVICE_STATE_EMPTY:
         state = "Empty";
@@ -81,11 +81,11 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     {
     case 'B':
         if ( percentage < 5 )
-            section->state = J4STATUS_STATE_URGENT;
+            j4status_section_set_state(section, J4STATUS_STATE_URGENT);
         else if ( percentage < 15 )
-            section->state = J4STATUS_STATE_BAD;
+            j4status_section_set_state(section, J4STATUS_STATE_BAD);
         else
-            section->state = J4STATUS_STATE_AVERAGE;
+            j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
 
         g_value_init(&value, G_TYPE_INT64);
         g_object_get_property(G_OBJECT(device), "time-to-empty", &value);
@@ -93,10 +93,10 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
         g_value_unset(&value);
     break;
     case 'E':
-        section->state = J4STATUS_STATE_URGENT;
+        j4status_section_set_state(section, J4STATUS_STATE_URGENT);
     break;
     case 'C':
-        section->state = J4STATUS_STATE_AVERAGE;
+        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
 
         g_value_init(&value, G_TYPE_INT64);
         g_object_get_property(G_OBJECT(device), "time-to-full", &value);
@@ -104,14 +104,14 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
         g_value_unset(&value);
     break;
     case 'F':
-        section->state = J4STATUS_STATE_GOOD;
+        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
     break;
     }
 
     if ( percentage < 0 )
-        section->value = g_strdup_printf("%s", state);
+        j4status_section_set_value(section, g_strdup_printf("%s", state));
     else if ( time < 1 )
-        section->value = g_strdup_printf("%s %.02f%%", state, percentage);
+        j4status_section_set_value(section, g_strdup_printf("%s %.02f%%", state, percentage));
     else
     {
         guint64 h = 0;
@@ -128,9 +128,9 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
             time %= 60;
         }
 
-        section->value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", state, percentage, h, m, time);
+        j4status_section_set_value(section, g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", state, percentage, h, m, time));
     }
-    section->dirty = TRUE;
+
     libj4status_core_trigger_display(context->core, context->core_interface);
 }
 
@@ -167,8 +167,7 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
         device = g_ptr_array_index(devices, i);
         J4statusSection *section;
 
-        section = g_new0(J4statusSection, 1);
-        section->user_data = context;
+        section = j4status_section_new("upower", context);
 
         GValue value = G_VALUE_INIT;
 
@@ -177,13 +176,10 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
         switch ( g_value_get_int(&value) )
         {
         case UP_DEVICE_KIND_BATTERY:
-            section->name = "battery";
-            section->instance = g_strdup_printf("%u", i);
             g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_battery_changed), section);
             _j4status_upower_battery_changed(device, section);
         break;
         default:
-            g_free(section);
             continue;
         }
 
@@ -196,23 +192,12 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
 }
 
 static void
-_j4status_upower_section_free(gpointer data)
-{
-    J4statusSection *section = data;
-
-    g_free(section->value);
-    g_free(section->label);
-
-    g_free(section);
-}
-
-static void
 _j4status_upower_uninit(J4statusPluginContext *context)
 {
     if ( context == NULL )
         return;
 
-    g_list_free_full(context->sections, _j4status_upower_section_free);
+    g_list_free_full(context->sections, (GDestroyNotify) j4status_section_free);
 
     g_free(context);
 }

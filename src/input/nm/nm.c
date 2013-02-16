@@ -67,25 +67,24 @@ typedef struct {
 static void
 _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *section, NMDevice *device)
 {
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
-    g_free(section->value);
     switch ( nm_device_get_state(device) )
     {
     case NM_DEVICE_STATE_UNKNOWN:
-        section->value = context->show_unknown ? g_strdup("Unknown") : NULL;
-        section->state = J4STATUS_STATE_NO_STATE;
+        j4status_section_set_value(section, context->show_unknown ? g_strdup("Unknown") : NULL);
+        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
     break;
     case NM_DEVICE_STATE_UNMANAGED:
-        section->value = context->show_unmanaged ? g_strdup("Unmanaged") : NULL;
-        section->state = J4STATUS_STATE_NO_STATE;
+        j4status_section_set_value(section, context->show_unmanaged ? g_strdup("Unmanaged") : NULL);
+        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
-        section->value = context->hide_unavailable ? NULL : g_strdup("Unavailable");
-        section->state = J4STATUS_STATE_UNAVAILABLE;
+        j4status_section_set_value(section, context->hide_unavailable ? NULL : g_strdup("Unavailable"));
+        j4status_section_set_state(section, J4STATUS_STATE_UNAVAILABLE);
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
-        section->state = J4STATUS_STATE_BAD;
+        j4status_section_set_state(section, J4STATUS_STATE_BAD);
         switch ( nm_device_get_device_type(device) )
         {
         case NM_DEVICE_TYPE_WIFI:
@@ -98,38 +97,38 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 if ( aps != NULL )
                     aps_number = g_strdup_printf(" (%u APs)", aps->len);
             }
-            section->value = g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : "");
+            j4status_section_set_value(section, g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : ""));
             g_free(aps_number);
         }
         break;
         default:
-            section->value = g_strdup("Down");
+            j4status_section_set_value(section, g_strdup("Down"));
         break;
         }
     break;
     case NM_DEVICE_STATE_PREPARE:
-        section->value = g_strdup("Prepare");
-        section->state = J4STATUS_STATE_AVERAGE;
+        j4status_section_set_value(section, g_strdup("Prepare"));
+        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
     break;
     case NM_DEVICE_STATE_CONFIG:
-        section->value = g_strdup("Config");
-        section->state = J4STATUS_STATE_AVERAGE;
+        j4status_section_set_value(section, g_strdup("Config"));
+        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
     break;
     case NM_DEVICE_STATE_NEED_AUTH:
-        section->value = g_strdup("Need auth");
-        section->state = J4STATUS_STATE_AVERAGE;
+        j4status_section_set_value(section, g_strdup("Need auth"));
+        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
     break;
     case NM_DEVICE_STATE_IP_CONFIG:
-        section->value = g_strdup("IP configuration");
-        section->state = J4STATUS_STATE_GOOD;
+        j4status_section_set_value(section, g_strdup("IP configuration"));
+        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
     break;
     case NM_DEVICE_STATE_IP_CHECK:
-        section->value = g_strdup("IP check");
-        section->state = J4STATUS_STATE_GOOD;
+        j4status_section_set_value(section, g_strdup("IP check"));
+        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
     break;
     case NM_DEVICE_STATE_SECONDARIES:
-        section->value = g_strdup("Secondaries");
-        section->state = J4STATUS_STATE_AVERAGE;
+        j4status_section_set_value(section, g_strdup("Secondaries"));
+        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
     break;
     case NM_DEVICE_STATE_ACTIVATED:
     {
@@ -196,7 +195,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         {
         case NM_DEVICE_TYPE_WIFI:
         {
-            section->state = J4STATUS_STATE_AVERAGE;
+            j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
 
             gchar *ap_text = NULL;
             if ( section_context->ap != NULL )
@@ -204,9 +203,9 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 guint8 strength;
                 strength =  nm_access_point_get_strength(section_context->ap);
                 if ( strength > 75 )
-                    section->state = J4STATUS_STATE_GOOD;
+                    j4status_section_set_state(section, J4STATUS_STATE_GOOD);
                 else if ( strength < 25 )
-                    section->state = J4STATUS_STATE_BAD;
+                    j4status_section_set_state(section, J4STATUS_STATE_BAD);
 
                 const GByteArray *raw_ssid;
                 raw_ssid = nm_access_point_get_ssid(section_context->ap);
@@ -216,7 +215,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             guint32 bitrate;
             bitrate = nm_device_wifi_get_bitrate(NM_DEVICE_WIFI(device));
 
-            section->value = g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000);
+            j4status_section_set_value(section, g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000));
 
             g_free(ap_text);
             g_string_free(addresses, TRUE);
@@ -224,7 +223,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         break;
         case NM_DEVICE_TYPE_ETHERNET:
         {
-            section->state = J4STATUS_STATE_GOOD;
+            j4status_section_set_state(section, J4STATUS_STATE_GOOD);
 
             guint32 speed;
             speed = nm_device_ethernet_get_speed(NM_DEVICE_ETHERNET(device));
@@ -232,36 +231,35 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             if ( speed == 0 )
             {
                 g_string_truncate(addresses, addresses->len - 1);
-                section->value = g_string_free(addresses, FALSE);
+                j4status_section_set_value(section, g_string_free(addresses, FALSE));
             }
             else
             {
                     if ( ( speed % 1000 ) == 0 )
-                    section->value = g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000);
+                    j4status_section_set_value(section, g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000));
                 else
-                    section->value = g_strdup_printf("%s(%uMb/s)", addresses->str, speed);
+                    j4status_section_set_value(section, g_strdup_printf("%s(%uMb/s)", addresses->str, speed));
 
                 g_string_free(addresses, TRUE);
             }
         }
         break;
         default:
-            section->state = J4STATUS_STATE_GOOD;
-            section->value = g_string_free(addresses, FALSE);
+            j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+            j4status_section_set_value(section, g_string_free(addresses, FALSE));
         break;
         }
     }
     break;
     case NM_DEVICE_STATE_DEACTIVATING:
-        section->value = g_strdup("Disconnecting");
-        section->state = J4STATUS_STATE_BAD;
+        j4status_section_set_value(section, g_strdup("Disconnecting"));
+        j4status_section_set_state(section, J4STATUS_STATE_BAD);
     break;
     case NM_DEVICE_STATE_FAILED:
-        section->value = g_strdup("Failed");
-        section->state = J4STATUS_STATE_BAD;
+        j4status_section_set_value(section, g_strdup("Failed"));
+        j4status_section_set_state(section, J4STATUS_STATE_BAD);
     break;
     }
-    section->dirty = TRUE;
     libj4status_core_trigger_display(context->core, context->core_interface);
 }
 
@@ -269,7 +267,7 @@ static void
 _j4status_nm_access_point_property_changed(NMAccessPoint *device, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
     _j4status_nm_device_update(section_context->context, section, section_context->device);
 }
 
@@ -277,7 +275,7 @@ static void
 _j4status_nm_device_property_changed(NMDevice *device, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
     if ( g_str_equal("active-access-point", pspec->name) )
     {
         if ( section_context->ap != NULL )
@@ -296,7 +294,7 @@ static void
 _j4status_nm_device_state_changed(NMDevice *device, guint state, guint arg2, guint arg3, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
     _j4status_nm_device_update(section_context->context, section, device);
 }
 
@@ -304,7 +302,7 @@ static void
 _j4status_nm_device_monitor(gpointer data, gpointer user_data)
 {
     J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
     switch ( nm_device_get_device_type(section_context->device) )
     {
@@ -325,7 +323,7 @@ static void
 _j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
 {
     J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
     switch ( nm_device_get_device_type(section_context->device) )
     {
@@ -342,7 +340,7 @@ _j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
 }
 
 static J4statusSection *
-_j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevice *device, GList *sibling)
+_j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, NMDevice *device, GList *sibling)
 {
     J4statusNmSectionContext *section_context;
     section_context = g_new0(J4statusNmSectionContext, 1);
@@ -409,21 +407,18 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
         return NULL;
     }
     J4statusSection *section;
-    section = g_new0(J4statusSection, 1)
-    section->user_data = section_context;
-    section->name = name;
-    section->label = g_strdup(label);
-    section->instance = instance;
+    section = j4status_section_new(name, section_context);
+    j4status_section_set_label(section, label);
+    j4status_section_set_instance(section, instance);
     context->sections = g_list_insert_before(context->sections, sibling, section);
 
     return section;
 }
 
 static gint
-_j4status_nm_find_interface(gconstpointer data, gconstpointer iface)
+_j4status_nm_find_interface(gconstpointer section, gconstpointer iface)
 {
-    const J4statusSection *section = data;
-    return g_strcmp0(section->instance, iface);
+    return g_strcmp0(j4status_section_get_instance(section), iface);
 }
 
 static void
@@ -463,9 +458,7 @@ _j4status_nm_client_device_removed(NMClient *client, NMDevice *device, gpointer 
     section = section_->data;
     context->sections = g_list_delete_link(context->sections, section_);
 
-    g_free(section->value);
-    g_free(section->label);
-    g_free(section);
+    j4status_section_free(section);
 }
 
 J4statusPluginContext *
@@ -527,16 +520,13 @@ static void
 _j4status_nm_section_free(gpointer data)
 {
     J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = section->user_data;
+    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
     g_object_unref(section_context->device);
 
     g_free(section_context);
 
-    g_free(section->value);
-    g_free(section->label);
-
-    g_free(section);
+    j4status_section_free(section);
 }
 
 static void

@@ -140,39 +140,50 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections_)
         for ( section_ = *section__ ; section_ != NULL ; section_ = g_list_next(section_) )
         {
             section = section_->data;
-            if ( section->dirty )
+            const gchar *cache;
+            if ( j4status_section_is_dirty(section) )
             {
-                g_free(section->line_cache);
-                section->dirty = FALSE;
-                if ( section->value == NULL )
+                gchar *new_cache = NULL;
+                const gchar *label;
+                const gchar *value;
+
+                value = j4status_section_get_value(section);
+                if ( value != NULL )
                 {
-                    section->line_cache = NULL;
-                    continue;
+                    label = j4status_section_get_label(section);
+                    if ( label != NULL )
+                        new_cache = g_strdup_printf("%s: %s", label, value);
+                    else
+                        new_cache = g_strdup(value);
                 }
-                if ( section->label != NULL )
-                    section->line_cache = g_strdup_printf("%s: %s", section->label, section->value);
-                else
-                    section->line_cache = g_strdup(section->value);
+                j4status_section_set_cache(section, new_cache);
+                cache = new_cache;
             }
-            if ( section->line_cache == NULL )
+            else
+                cache = j4status_section_get_cache(section);
+            if ( cache == NULL )
                 continue;
 
             yajl_gen_map_open(context->json_gen);
 
-            if ( section->name != NULL )
+            const gchar *name;
+            name = j4status_section_get_name(section);
+            if ( name != NULL )
             {
                 yajl_gen_string(context->json_gen, (const unsigned char *)"name", strlen("name"));
-                yajl_gen_string(context->json_gen, (const unsigned char *)section->name, strlen(section->name));
+                yajl_gen_string(context->json_gen, (const unsigned char *)name, strlen(name));
             }
 
-            if ( section->instance != NULL )
+            const gchar *instance;
+            instance = j4status_section_get_instance(section);
+            if ( instance != NULL )
             {
                 yajl_gen_string(context->json_gen, (const unsigned char *)"instance", strlen("instance"));
-                yajl_gen_string(context->json_gen, (const unsigned char *)section->instance, strlen(section->instance));
+                yajl_gen_string(context->json_gen, (const unsigned char *)instance, strlen(instance));
             }
 
             const gchar *colour = NULL;
-            switch ( section->state )
+            switch ( j4status_section_get_state(section) )
             {
             case J4STATUS_STATE_NO_STATE:
                 colour = context->colours.no_state;
@@ -202,7 +213,7 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections_)
             }
 
             yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-            yajl_gen_string(context->json_gen, (const unsigned char *)section->line_cache, strlen(section->line_cache));
+            yajl_gen_string(context->json_gen, (const unsigned char *)cache, strlen(cache));
 
             yajl_gen_map_close(context->json_gen);
         }

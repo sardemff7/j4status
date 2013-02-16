@@ -23,6 +23,18 @@
 #ifndef __J4STATUS_J4STATUS_PLUGIN_PRIVATE_H__
 #define __J4STATUS_J4STATUS_PLUGIN_PRIVATE_H__
 
+struct _J4statusSection {
+    const gchar *name;
+    gchar *instance;
+    gchar *label;
+    gchar *value;
+    J4statusState state;
+    gpointer user_data;
+    gboolean dirty;
+    gchar *cache;
+};
+
+
 typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
 
 struct _J4statusCoreInterface {

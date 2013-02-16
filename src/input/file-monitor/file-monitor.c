@@ -37,7 +37,7 @@ static void
 _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_file, GFileMonitorEvent event_type, gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusPluginContext *context = section->user_data;
+    J4statusPluginContext *context = j4status_section_get_user_data(section);
 
     GFileInputStream *stream;
     stream = g_file_read(file, NULL, NULL);
@@ -47,9 +47,7 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         data_stream = g_data_input_stream_new(G_INPUT_STREAM(stream));
         g_object_unref(stream);
         gsize length;
-        g_free(section->value);
-        section->value = g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL);
-        section->dirty = TRUE;
+        j4status_section_set_value(section, g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL));
         libj4status_core_trigger_display(context->core, context->core_interface);
     }
 }
@@ -101,22 +99,16 @@ _j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *co
         monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, NULL);
         g_object_unref(g_file);
         if ( monitor == NULL )
-        {
-            g_free(*file);
             continue;
-        }
 
         J4statusSection *section;
-        section = g_new0(J4statusSection, 1);
-        section->user_data = context;
-        section->name = "file-monitor";
-        section->instance = *file;
-        section->label = *file;
-        section->dirty = TRUE;
+        section = j4status_section_new("file-monitor", context);
+        j4status_section_set_instance(section, *file);
+        j4status_section_set_label(section, *file);
         g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
         context->sections = g_list_prepend(context->sections, section);
     }
-    g_free(files);
+    g_strfreev(files);
     g_free(dir);
 
     context->sections = g_list_reverse(context->sections);
@@ -130,23 +122,12 @@ fail:
 }
 
 static void
-_j4status_file_monitor_section_free(gpointer data)
-{
-    J4statusSection *section = data;
-
-    g_free(section->value);
-    g_free(section->label);
-
-    g_free(section);
-}
-
-static void
 _j4status_file_monitor_uninit(J4statusPluginContext *context)
 {
     if ( context == NULL )
         return;
 
-    g_list_free_full(context->sections, _j4status_file_monitor_section_free);
+    g_list_free_full(context->sections, (GDestroyNotify) j4status_section_free);
 
     g_free(context);
 }

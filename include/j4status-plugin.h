@@ -32,21 +32,23 @@ typedef enum {
     J4STATUS_STATE_URGENT
 } J4statusState;
 
-typedef struct {
-    const gchar *name;
-    gchar *instance;
-    gchar *label;
-    gchar *value;
-    J4statusState state;
-    gpointer user_data;
+typedef struct _J4statusSection J4statusSection;
 
-    gboolean dirty;
-    /*
-     * cache for the output plugin
-     * refreshed when dirty is set to TRUE
-     */
-    gchar *line_cache;
-} J4statusSection;
+J4statusSection *j4status_section_new(const gchar *name, gpointer user_data);
+void j4status_section_free(J4statusSection *self);
+const gchar *j4status_section_get_name(const J4statusSection *self);
+gpointer j4status_section_get_user_data(const J4statusSection *self);
+const gchar *j4status_section_get_instance(const J4statusSection *self);
+J4statusState j4status_section_get_state(const J4statusSection *self);
+const gchar *j4status_section_get_label(const J4statusSection *self);
+const gchar *j4status_section_get_value(const J4statusSection *self);
+const gchar *j4status_section_get_cache(const J4statusSection *self);
+gboolean j4status_section_is_dirty(const J4statusSection *self);
+void j4status_section_set_instance(J4statusSection *self, const gchar *instance);
+void j4status_section_set_state(J4statusSection *self, J4statusState state);
+void j4status_section_set_label(J4statusSection *self, const gchar *label);
+void j4status_section_set_value(J4statusSection *self, gchar *value);
+void j4status_section_set_cache(J4statusSection *self, gchar *cache);
 
 
 typedef struct _J4statusCoreContext J4statusCoreContext;

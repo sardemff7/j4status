@@ -20,6 +20,8 @@
  *
  */
 
+#include <stdlib.h>
+
 #include <glib.h>
 #include <sensors/sensors.h>
 
@@ -46,7 +48,7 @@ static gboolean
 _j4status_sensors_feature_temp_update(gpointer user_data)
 {
     J4statusSection *section = user_data;
-    J4statusSensorsFeature *feature = section->user_data;
+    J4statusSensorsFeature *feature = j4status_section_get_user_data(section);
     J4statusPluginContext *context = feature->context;
 
     const sensors_subfeature *sf;
@@ -69,32 +71,30 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
 
     if ( ( crit > 0 ) && ( curr > crit ) )
     {
-        section->state = J4STATUS_STATE_URGENT;
+        j4status_section_set_state(section, J4STATUS_STATE_URGENT);
         update = TRUE;
     }
     else if ( ( high > 0 ) && ( curr > high ) )
-        section->state = J4STATUS_STATE_BAD;
+        j4status_section_set_state(section, J4STATUS_STATE_BAD);
     else
-        section->state = J4STATUS_STATE_GOOD;
+        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
 
     if ( ! update )
         return TRUE;
 
-    g_free(section->value);
-
     if ( ! context->config.show_details )
         high = crit = -1;
 
+    gchar *value;
     if ( ( high > 0 ) && ( crit > 0 ) )
-        section->value = g_strdup_printf("%+.1f°C (high = %+.1f°C, crit = %+.1f°C)", curr, high, crit);
+        value = g_strdup_printf("%+.1f°C (high = %+.1f°C, crit = %+.1f°C)", curr, high, crit);
     else if ( high > 0 )
-        section->value = g_strdup_printf("%+.1f°C (high = %+.1f°C)", curr, high);
+        value = g_strdup_printf("%+.1f°C (high = %+.1f°C)", curr, high);
     else if ( crit > 0 )
-        section->value = g_strdup_printf("%+.1f°C (crit = %+.1f°C)", curr, crit);
+        value = g_strdup_printf("%+.1f°C (crit = %+.1f°C)", curr, crit);
     else
-        section->value = g_strdup_printf("%+.1f°C", curr);
-
-    section->dirty = TRUE;
+        value = g_strdup_printf("%+.1f°C", curr);
+    j4status_section_set_value(section, value);
 
     libj4status_core_trigger_display(context->core, context->core_interface);
 
@@ -104,9 +104,6 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
 static void
 _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors_chip_name *chip, const sensors_feature *feature)
 {
-    J4statusSection *section;
-    section = g_new0(J4statusSection, 1);
-    section->label = sensors_get_label(chip, feature);
 
     J4statusSensorsFeature *sensor_feature;
     sensor_feature = g_new0(J4statusSensorsFeature, 1);
@@ -114,7 +111,13 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
 
-    section->user_data = sensor_feature;
+    J4statusSection *section;
+    section = j4status_section_new("sensors", sensor_feature);
+
+    char *label;
+    label = sensors_get_label(chip, feature);
+    j4status_section_set_label(section, label);
+    free(label);
 
     g_timeout_add_seconds(2, _j4status_sensors_feature_temp_update, section);
 
@@ -196,14 +199,11 @@ static void
 _j4status_sensors_section_free(gpointer data)
 {
     J4statusSection *section = data;
-    J4statusSensorsFeature *feature = section->user_data;
+    J4statusSensorsFeature *feature = j4status_section_get_user_data(section);
 
     g_free(feature);
 
-    g_free(section->value);
-    g_free(section->label);
-
-    g_free(section);
+    j4status_section_free(section);
 }
 
 static void
