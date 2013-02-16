@@ -42,6 +42,9 @@ typedef struct {
     J4statusPluginContext *context;
     const sensors_chip_name *chip;
     const sensors_feature *feature;
+    const sensors_subfeature *input;
+    const sensors_subfeature *max;
+    const sensors_subfeature *crit;
 } J4statusSensorsFeature;
 
 static gboolean
@@ -51,21 +54,16 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
     J4statusSensorsFeature *feature = j4status_section_get_user_data(section);
     J4statusPluginContext *context = feature->context;
 
-    const sensors_subfeature *sf;
-
-    sf = sensors_get_subfeature(feature->chip, feature->feature, SENSORS_SUBFEATURE_TEMP_INPUT);
     double curr;
-    sensors_get_value(feature->chip, sf->number, &curr);
+    sensors_get_value(feature->chip, feature->input->number, &curr);
 
-    sf = sensors_get_subfeature(feature->chip, feature->feature, SENSORS_SUBFEATURE_TEMP_MAX);
     double high = -1;
-    if ( sf != NULL )
-        sensors_get_value(feature->chip, sf->number, &high);
+    if ( feature->max != NULL )
+        sensors_get_value(feature->chip, feature->max->number, &high);
 
-    sf = sensors_get_subfeature(feature->chip, feature->feature, SENSORS_SUBFEATURE_TEMP_CRIT);
     double crit = -1;
-    if ( sf != NULL )
-        sensors_get_value(feature->chip, sf->number, &crit);
+    if ( feature->crit != NULL )
+        sensors_get_value(feature->chip, feature->crit->number, &crit);
 
     gboolean update = context->started;
 
@@ -104,12 +102,25 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
 static void
 _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors_chip_name *chip, const sensors_feature *feature)
 {
+    const sensors_subfeature *input;
+
+    input = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_INPUT);
+    if ( input == NULL )
+    {
+        char n[256];
+        sensors_snprintf_chip_name(n, sizeof(n), chip);
+        g_warning("No temperature input on chip '%s', skipping", n);
+        return;
+    }
 
     J4statusSensorsFeature *sensor_feature;
     sensor_feature = g_new0(J4statusSensorsFeature, 1);
     sensor_feature->context = context;
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
+    sensor_feature->input = input;
+    sensor_feature->max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_MAX);
+    sensor_feature->crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
 
     J4statusSection *section;
     section = j4status_section_new("sensors", sensor_feature);
