@@ -1,7 +1,7 @@
 /*
  * libj4status-plugin - Library to implement a j4status plugin
  *
- * Copyright © 2012 Quentin "Sardem FF7" Glidic
+ * Copyright © 2012-2013 Quentin "Sardem FF7" Glidic
  *
  * This file is part of j4status.
  *
