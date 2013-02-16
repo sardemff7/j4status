@@ -404,6 +404,9 @@ _j4status_nm_add_device(J4statusPluginContext *context, gchar *instance, NMDevic
         label = "A";
     break;
 #endif /* NM_CHECK_VERSION(0.9.5) */
+    default:
+        g_warning("Unsupported device type for interface '%s'", instance);
+        return NULL;
     }
     J4statusSection *section;
     section = g_new0(J4statusSection, 1)
@@ -440,6 +443,8 @@ _j4status_nm_client_device_added(NMClient *client, NMDevice *device, gpointer us
 
         J4statusSection *section;
         section = _j4status_nm_add_device(context, *interface, device, sibling);
+        if ( section == NULL )
+            return;
         if ( context->started )
             _j4status_nm_device_monitor(section, NULL);
     }
