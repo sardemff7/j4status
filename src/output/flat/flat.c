@@ -64,7 +64,7 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections_)
 }
 
 void
-j4status_output_plugin(J4statusOutputPlugin *plugin)
+j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
-    plugin->print = _j4status_flat_print;
+    interface->print = _j4status_flat_print;
 }

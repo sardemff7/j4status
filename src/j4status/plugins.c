@@ -79,7 +79,7 @@ _j4status_plugins_get_module(const gchar *file)
     return NULL;
 }
 
-typedef void(*J4statusOutputPluginGetInfoFunc)(J4statusOutputPlugin *plugin);
+typedef void(*J4statusOutputPluginGetInterfaceFunc)(J4statusOutputPluginInterface *interface);
 
 J4statusOutputPlugin *
 j4status_plugins_get_output_plugin(const gchar *name)
@@ -96,7 +96,7 @@ j4status_plugins_get_output_plugin(const gchar *name)
     if ( ( module == NULL ) && ( ! g_str_equal(name, "flat") ) )
         return j4status_plugins_get_output_plugin("flat");
 
-    J4statusOutputPluginGetInfoFunc func;
+    J4statusOutputPluginGetInterfaceFunc func;
 
     if ( ! g_module_symbol(module, "j4status_output_plugin", (gpointer *)&func) )
         return NULL;
@@ -111,12 +111,12 @@ j4status_plugins_get_output_plugin(const gchar *name)
     plugin = g_new0(J4statusOutputPlugin, 1);
     plugin->module = module;
 
-    func(plugin);
+    func(&plugin->interface);
 
     return plugin;
 }
 
-typedef void(*J4statusInputPluginGetInfoFunc)(J4statusInputPlugin *plugin);
+typedef void(*J4statusInputPluginGetInterfaceFunc)(J4statusInputPluginInterface *interface);
 
 static J4statusInputPlugin *
 j4status_plugins_get_input_plugin(const gchar *name)
@@ -133,7 +133,7 @@ j4status_plugins_get_input_plugin(const gchar *name)
     if ( module == NULL )
         return NULL;
 
-    J4statusInputPluginGetInfoFunc func;
+    J4statusInputPluginGetInterfaceFunc func;
 
     if ( ! g_module_symbol(module, "j4status_input_plugin", (gpointer *)&func) )
         return NULL;
@@ -148,7 +148,7 @@ j4status_plugins_get_input_plugin(const gchar *name)
     plugin = g_new0(J4statusInputPlugin, 1);
     plugin->module = module;
 
-    func(plugin);
+    func(&plugin->interface);
 
     return plugin;
 }

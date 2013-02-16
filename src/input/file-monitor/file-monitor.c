@@ -161,10 +161,10 @@ _j4status_file_monitor_get_sections(J4statusPluginContext *context)
 }
 
 void
-j4status_input_plugin(J4statusInputPlugin *plugin)
+j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    plugin->init   = _j4status_file_monitor_init;
-    plugin->uninit = _j4status_file_monitor_uninit;
+    interface->init   = _j4status_file_monitor_init;
+    interface->uninit = _j4status_file_monitor_uninit;
 
-    plugin->get_sections = _j4status_file_monitor_get_sections;
+    interface->get_sections = _j4status_file_monitor_get_sections;
 }

@@ -23,6 +23,18 @@
 #ifndef __J4STATUS_PLUGINS_H__
 #define __J4STATUS_PLUGINS_H__
 
+typedef struct {
+    gpointer module;
+    J4statusPluginContext *context;
+    J4statusOutputPluginInterface interface;
+} J4statusOutputPlugin;
+
+typedef struct {
+    gpointer module;
+    J4statusPluginContext *context;
+    J4statusInputPluginInterface interface;
+} J4statusInputPlugin;
+
 J4statusOutputPlugin *j4status_plugins_get_output_plugin(const gchar *name);
 
 GList *j4status_plugins_get_input_plugins(gchar **names);

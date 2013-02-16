@@ -227,10 +227,10 @@ _j4status_upower_get_sections(J4statusPluginContext *context)
 }
 
 void
-j4status_input_plugin(J4statusInputPlugin *plugin)
+j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    plugin->init   = _j4status_upower_init;
-    plugin->uninit = _j4status_upower_uninit;
+    interface->init   = _j4status_upower_init;
+    interface->uninit = _j4status_upower_uninit;
 
-    plugin->get_sections = _j4status_upower_get_sections;
+    interface->get_sections = _j4status_upower_get_sections;
 }

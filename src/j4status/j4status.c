@@ -98,7 +98,7 @@ _j4status_core_display(gpointer user_data)
 
     context->display_handle = 0;
 
-    context->output_plugin->print(context->output_plugin->context, context->sections);
+    context->output_plugin->interface.print(context->output_plugin->context, context->sections);
     fflush(stdout);
 
     return FALSE;
@@ -123,8 +123,8 @@ _j4status_core_start(J4statusCoreContext *context)
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        if ( input_plugin->start != NULL )
-            input_plugin->start(input_plugin->context);
+        if ( input_plugin->interface.start != NULL )
+            input_plugin->interface.start(input_plugin->context);
     }
 
     _j4status_core_trigger_display(context);
@@ -138,8 +138,8 @@ _j4status_core_stop(J4statusCoreContext *context)
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        if ( input_plugin->stop != NULL )
-            input_plugin->stop(input_plugin->context);
+        if ( input_plugin->interface.stop != NULL )
+            input_plugin->interface.stop(input_plugin->context);
     }
 
     context->started = FALSE;
@@ -293,9 +293,9 @@ main(int argc, char *argv[])
 
     context->input_plugins = j4status_plugins_get_input_plugins(input_plugins);
 
-    if ( context->output_plugin->init != NULL )
+    if ( context->output_plugin->interface.init != NULL )
     {
-        context->output_plugin->context = context->output_plugin->init(context, &interface);
+        context->output_plugin->context = context->output_plugin->interface.init(context, &interface);
         fflush(stdout);
     }
 
@@ -305,8 +305,8 @@ main(int argc, char *argv[])
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        input_plugin->context = input_plugin->init(context, &interface);
-        sections = input_plugin->get_sections(input_plugin->context);
+        input_plugin->context = input_plugin->interface.init(context, &interface);
+        sections = input_plugin->interface.get_sections(input_plugin->context);
         if ( sections != NULL )
             context->sections = g_list_prepend(context->sections, sections);
     }
@@ -324,12 +324,12 @@ main(int argc, char *argv[])
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        input_plugin->uninit(input_plugin->context);
+        input_plugin->interface.uninit(input_plugin->context);
     }
 
-    if ( context->output_plugin->uninit != NULL )
+    if ( context->output_plugin->interface.uninit != NULL )
     {
-        context->output_plugin->uninit(context->output_plugin->context);
+        context->output_plugin->interface.uninit(context->output_plugin->context);
         fflush(stdout);
     }
 

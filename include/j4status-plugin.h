@@ -68,11 +68,7 @@ typedef struct {
     J4statusPluginFunc     uninit;
 
     J4statusPluginPrintFunc print;
-
-    /* Private stuff */
-    gpointer module;
-    J4statusPluginContext *context;
-} J4statusOutputPlugin;
+} J4statusOutputPluginInterface;
 
 typedef struct {
     J4statusPluginInitFunc init;
@@ -82,10 +78,6 @@ typedef struct {
 
     J4statusPluginFunc start;
     J4statusPluginFunc stop;
-
-    /* Private stuff */
-    gpointer module;
-    J4statusPluginContext *context;
-} J4statusInputPlugin;
+} J4statusInputPluginInterface;
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_H__ */

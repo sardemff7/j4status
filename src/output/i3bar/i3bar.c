@@ -217,10 +217,10 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections_)
 }
 
 void
-j4status_output_plugin(J4statusOutputPlugin *plugin)
+j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
-    plugin->init   = _j4status_i3bar_init;
-    plugin->uninit = _j4status_i3bar_uninit;
+    interface->init   = _j4status_i3bar_init;
+    interface->uninit = _j4status_i3bar_uninit;
 
-    plugin->print = _j4status_i3bar_print;
+    interface->print = _j4status_i3bar_print;
 }

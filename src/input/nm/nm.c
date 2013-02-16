@@ -578,13 +578,13 @@ _j4status_nm_stop(J4statusPluginContext *context)
 }
 
 void
-j4status_input_plugin(J4statusInputPlugin *plugin)
+j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
-    plugin->init   = _j4status_nm_init;
-    plugin->uninit = _j4status_nm_uninit;
+    interface->init   = _j4status_nm_init;
+    interface->uninit = _j4status_nm_uninit;
 
-    plugin->get_sections = _j4status_nm_get_sections;
+    interface->get_sections = _j4status_nm_get_sections;
 
-    plugin->start = _j4status_nm_start;
-    plugin->stop  = _j4status_nm_stop;
+    interface->start = _j4status_nm_start;
+    interface->stop  = _j4status_nm_stop;
 }
