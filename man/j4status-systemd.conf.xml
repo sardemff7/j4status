@@ -85,6 +85,27 @@
         </refsect2>
     </refsect1>
 
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Monitor your Apache HTTPd service</title>
+
+            <programlisting>
+[systemd]
+Units=apache.service;
+            </programlisting>
+            <para>
+                Here is the expected output :
+            </para>
+            <screen>
+apache.service: active      <lineannotation>When the service is active</lineannotation>
+apache.service: reloading   <lineannotation>When currently reloading the configuration</lineannotation>
+apache.service: failed      <lineannotation>When service failed or died</lineannotation>
+            </screen>
+        </example>
+    </refsect1>
+
     <refsect1 id="see-also">
         <title>See Also</title>
         <para>
