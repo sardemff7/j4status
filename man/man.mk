@@ -1,12 +1,14 @@
 EXTRA_DIST += \
 	man/config.dtd.in \
 	$(man1_MANS:.1=.xml) \
-	$(man5_MANS:.5=.xml)
+	$(man5_MANS:.5=.xml) \
+	$(null)
 
 CLEANFILES += \
 	man/config.dtd \
 	$(man1_MANS) \
-	$(man5_MANS)
+	$(man5_MANS) \
+	$(null)
 
 man/%.1 man/%.5: man/%.xml man/config.dtd
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && \

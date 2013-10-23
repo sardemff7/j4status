@@ -1,12 +1,14 @@
 # Server
 bin_PROGRAMS += \
-	j4status
+	j4status \
+	$(null)
 
 j4status_SOURCES = \
 	include/j4status-plugin-private.h \
 	src/j4status/plugins.c \
 	src/j4status/plugins.h \
-	src/j4status/j4status.c
+	src/j4status/j4status.c \
+	$(null)
 
 j4status_CFLAGS = \
 	$(AM_CFLAGS) \
@@ -17,7 +19,8 @@ j4status_CFLAGS = \
 	$(GIO_CFLAGS) \
 	$(GOBJECT_CFLAGS) \
 	$(GMODULE_CFLAGS) \
-	$(GLIB_CFLAGS)
+	$(GLIB_CFLAGS) \
+	$(null)
 
 j4status_LDADD = \
 	libj4status.la \
@@ -25,10 +28,13 @@ j4status_LDADD = \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \
 	$(GMODULE_LIBS) \
-	$(GLIB_LIBS)
+	$(GLIB_LIBS) \
+	$(null)
 
 man1_MANS += \
-	man/j4status.1
+	man/j4status.1 \
+	$(null)
 
 man5_MANS += \
-	man/j4status.conf.5
+	man/j4status.conf.5 \
+	$(null)
