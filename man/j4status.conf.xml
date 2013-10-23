@@ -103,6 +103,52 @@
         </refsect2>
     </refsect1>
 
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Flat output of time</title>
+
+            <programlisting>
+[Plugins]
+Output=flat
+Input=time;
+
+[Time]
+Format=%H:%M:%S
+            </programlisting>
+        </example>
+
+        <example>
+            <title>Flat output of file-based notifications and time</title>
+
+            <programlisting>
+[Plugins]
+Output=flat
+Input=file-monitor;time;
+
+[FileMonitor]
+Files=/run/my-notification-daemon/notification;
+            </programlisting>
+        </example>
+
+        <example condition="website;enable_default_features">
+            <title>i3status-like configuration</title>
+
+            <programlisting>
+[Plugins]
+Output=i3bar
+Input=nm;upower;sensors;time;
+
+[Time]
+Zones=Europe/Paris;
+
+[NetworkManager]
+Interfaces=eth0;wlan0;
+            </programlisting>
+        </example>
+    </refsect1>
+
     <refsect1 id="see-also">
         <title>See Also</title>
         <para>
