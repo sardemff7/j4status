@@ -13,6 +13,7 @@ man/%.1 man/%.5: man/%.xml man/config.dtd
 		$(XSLTPROC) \
 		-o $(dir $@) \
 		$(AM_XSLTPROCFLAGS) \
+		--stringparam profile.condition '$(subst $(space),;,$(XSLTPROC_CONDITIONS))' \
 		http://docbook.sourceforge.net/release/xsl/current/manpages/profile-docbook.xsl \
 		$<
 
