@@ -98,7 +98,7 @@
                 </varlistentry>
                 <varlistentry>
                     <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                    <listitem><para>a plugin to monitor files and dispaly their content</para></listitem>
+                    <listitem><para>a plugin to monitor files and display their content</para></listitem>
                 </varlistentry>
                 <varlistentry condition="website;enable_nm_input">
                     <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
