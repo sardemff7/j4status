@@ -115,6 +115,29 @@
         </refsect2>
     </refsect1>
 
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Monitor main ethernet and main wireless interfaces</title>
+
+            <programlisting>
+[NetworkManager]
+Interfaces=eth0;wlan0;
+            </programlisting>
+            <para>
+                Here is the expected output :
+            </para>
+            <screen>
+E: 10.0.1.1 (1Gb/s) | W: 10.0.0.1 (077% at home, 42Mb/s)    <lineannotation>When connected to both</lineannotation>
+W: 10.0.0.1 (077% at home, 42Mb/s)                          <lineannotation>When connected to wireless only</lineannotation>
+E: 10.0.1.1 (1Gb/s) | W: Down                               <lineannotation>When connected to ethernet only</lineannotation>
+E: 10.0.1.1 (1Gb/s) | W: Need auth                          <lineannotation>When wireless requires a passkey</lineannotation>
+E: 10.0.1.1 (1Gb/s)                                         <lineannotation>When connected to ethernet only with wireless hardware off</lineannotation>
+            </screen>
+        </example>
+    </refsect1>
+
     <refsect1 id="see-also">
         <title>See Also</title>
         <para>
