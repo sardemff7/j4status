@@ -60,6 +60,7 @@ include src/input/systemd/systemd.mk
 endif
 include man/man.mk
 
+-include local-rules.mk
 
 #
 # Hooks
