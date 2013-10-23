@@ -10,6 +10,18 @@ CLEANFILES += \
 	$(man5_MANS) \
 	$(null)
 
+# Features defaulting to enable
+# They more or less provide i3status features
+if ENABLE_I3BAR_OUTPUT
+if ENABLE_NM_INPUT
+if ENABLE_UPOWER_INPUT
+if ENABLE_SENSORS_INPUT
+XSLTPROC_CONDITIONS += enable_default_features
+endif
+endif
+endif
+endif
+
 man/%.1 man/%.5: man/%.xml man/config.dtd
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && \
 		$(XSLTPROC) \
