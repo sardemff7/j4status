@@ -109,6 +109,46 @@
         </refsect2>
     </refsect1>
 
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Displaying local time (default)</title>
+
+            <para>
+                The default configuration is to display local time in the “YYYY-MM-DD HH:MM:SS” format.
+            </para>
+            <para>
+                Here is the expected output :
+            </para>
+            <screen>
+2013-10-21 08:48:30
+            </screen>
+        </example>
+
+        <example>
+            <title>Displaying time for Toronto, Paris and Tokyo (with some fancyness)</title>
+
+            <programlisting>
+[Time]
+Zones=America/Toronto;Europe/Paris;Asia/Tokyo
+Formats=%I:%M %p %Z;%c;;
+            </programlisting>
+            <para>
+                This configuration will display three timezones: America/Toronto, Europe/Paris and Asia/Tokyo.
+                The Toronto part will display a 12-hour time with timezone name.
+                The Paris part will display localised date and time.
+                The Tokyo part will use the global format, which is the default here.
+            </para>
+            <para>
+                Here is the expected output :
+            </para>
+            <screen>
+02:48 AM EDT | Mon Oct 21 08:48:30 CEST 2013 | 2013-10-21 15:48:30
+            </screen>
+        </example>
+    </refsect1>
+
     <refsect1 id="see-also">
         <title>See Also</title>
         <para>
