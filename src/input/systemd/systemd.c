@@ -21,14 +21,15 @@
  */
 
 #include <glib.h>
+#include <gio/gio.h>
 
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
 
-#include "dbus.h"
-
 #define SYSTEMD_BUS_NAME "org.freedesktop.systemd1"
 #define SYSTEMD_OBJECT_PATH "/org/freedesktop/systemd1"
+#define SYSTEMD_MANAGER_INTERFACE_NAME SYSTEMD_BUS_NAME ".Manager"
+#define SYSTEMD_UNIT_INTERFACE_NAME SYSTEMD_BUS_NAME ".Unit"
 
 struct _J4statusPluginContext {
     J4statusCoreContext *core;
@@ -39,14 +40,88 @@ struct _J4statusPluginContext {
     guint watch_id;
     GDBusConnection *connection;
     gboolean started;
-    J4statusSystemdManager *manager;
+    GDBusProxy *manager;
 };
 
 typedef struct {
     J4statusPluginContext *context;
-    J4statusSystemdUnit *unit;
+    GDBusProxy *unit;
 } J4statusSystemdSectionContext;
 
+static gboolean
+_j4status_systemd_dbus_call(GDBusProxy *proxy, const gchar *method, GError **error)
+{
+    GVariant *ret;
+    ret = g_dbus_proxy_call_sync(proxy, method, g_variant_new("()"), G_DBUS_CALL_FLAGS_NONE, -1, NULL, error);
+    if ( ret == NULL )
+        return FALSE;
+    g_variant_get(ret, "()");
+    g_variant_unref(ret);
+    return TRUE;
+}
+
+static GDBusProxy *
+_j4status_systemd_dbus_get_unit(J4statusPluginContext *context, const gchar *unit_name)
+{
+    GError *error = NULL;
+    GVariant *ret;
+
+    ret = g_dbus_proxy_call_sync(context->manager, "GetUnit", g_variant_new("(s)", unit_name), G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+    if ( ret == NULL )
+    {
+        g_warning("Could get unit object path %s: %s", unit_name, error->message);
+        g_clear_error(&error);
+        return NULL;
+    }
+
+    gchar *unit_object_path;
+    g_variant_get(ret, "(o)", &unit_object_path);
+    g_variant_unref(ret);
+
+    GDBusProxy *unit;
+    unit = g_dbus_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES, NULL, SYSTEMD_BUS_NAME, unit_object_path, SYSTEMD_UNIT_INTERFACE_NAME, NULL, &error);
+    g_free(unit_object_path);
+    if ( unit == NULL )
+        g_warning("Could not monitor unit %s: %s", unit_name, error->message);
+    g_clear_error(&error);
+
+    return unit;
+}
+
+static GVariant *
+_j4status_systemd_dbus_get_property(GDBusProxy *proxy, const gchar *property)
+{
+    GError *error = NULL;
+    GVariant *ret, *val = NULL;
+
+    ret = g_dbus_proxy_call_sync(proxy, "org.freedesktop.DBus.Properties.Get", g_variant_new("(ss)", g_dbus_proxy_get_interface_name(proxy), property), G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+    if ( ret == NULL )
+        g_warning("Could get property %s . %s: %s", g_dbus_proxy_get_interface_name(proxy), property, error->message);
+    else
+    {
+        g_variant_get(ret, "(v)", &val);
+        g_variant_unref(ret);
+    }
+    g_clear_error(&error);
+
+    return val;
+}
+
+static gchar *
+_j4status_systemd_dbus_get_property_string(GDBusProxy *proxy, const gchar *property, const gchar *default_value)
+{
+    GVariant *ret;
+
+    ret = _j4status_systemd_dbus_get_property(proxy, property);
+    if ( ret == NULL )
+        return g_strdup(default_value);
+
+    gchar *val;
+    g_variant_get(ret, "s", &val);
+    g_variant_unref(ret);
+
+    return val;
+}
 
 static void
 _j4status_systemd_section_free(gpointer data)
@@ -63,13 +138,13 @@ _j4status_systemd_section_free(gpointer data)
 }
 
 static void
-_j4status_systemd_unit_state_changed(J4statusSystemdUnit *gobject, GParamSpec *pspec, gpointer user_data)
+_j4status_systemd_unit_state_changed(GDBusProxy *gobject, GParamSpec *pspec, gpointer user_data)
 {
     J4statusSection *section = user_data;
     J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
 
     gchar *state;
-    state = j4status_systemd_unit_dup_active_state(section_context->unit);
+    state = _j4status_systemd_dbus_get_property_string(section_context->unit, "ActiveState", "Unknown");
     j4status_section_set_value(section, state);
     if ( ( g_strcmp0(state, "active") == 0 ) || ( g_strcmp0(state, "reloading") == 0 ) )
         j4status_section_set_state(section, J4STATUS_STATE_GOOD);
@@ -84,23 +159,10 @@ _j4status_systemd_unit_state_changed(J4statusSystemdUnit *gobject, GParamSpec *p
 static void
 _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_name)
 {
-    GError *error = NULL;
-    gchar *unit_object_path;
-
-    if ( ! j4status_systemd_manager_call_get_unit_sync(context->manager, unit_name, &unit_object_path, NULL, &error) )
-    {
-        g_warning("Could get unit object path %s: %s", unit_name, error->message);
-        return;
-    }
-
-    J4statusSystemdUnit *unit;
-    unit = j4status_systemd_unit_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES, SYSTEMD_BUS_NAME, unit_object_path, NULL, &error);
-    g_free(unit_object_path);
+    GDBusProxy *unit;
+    unit = _j4status_systemd_dbus_get_unit(context, unit_name);
     if ( unit == NULL )
-    {
-        g_warning("Could not monitor unit %s: %s", unit_name, error->message);
         return;
-    }
 
     J4statusSystemdSectionContext *section_context;
     J4statusSection *section;
@@ -127,7 +189,7 @@ _j4status_systemd_bus_appeared(GDBusConnection *connection, const gchar *name, c
 
     context->connection = connection;
 
-    context->manager = j4status_systemd_manager_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_NONE, SYSTEMD_BUS_NAME, SYSTEMD_OBJECT_PATH, NULL, &error);
+    context->manager = g_dbus_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_NONE, NULL, SYSTEMD_BUS_NAME, SYSTEMD_OBJECT_PATH, SYSTEMD_MANAGER_INTERFACE_NAME, NULL, &error);
     if ( context->manager == NULL )
     {
         g_warning("Could not connect to systemd manager: %s", error->message);
@@ -136,7 +198,7 @@ _j4status_systemd_bus_appeared(GDBusConnection *connection, const gchar *name, c
     }
     if ( context->started )
     {
-        if ( ! j4status_systemd_manager_call_subscribe_sync(context->manager, NULL, &error) )
+        if ( ! _j4status_systemd_dbus_call(context->manager, "Subscribe", &error) )
         {
             g_warning("Could not subscribe to systemd events: %s", error->message);
             g_clear_error(&error);
@@ -227,7 +289,7 @@ _j4status_systemd_start(J4statusPluginContext *context)
 
     context->started = TRUE;
     if ( context->manager != NULL )
-        j4status_systemd_manager_call_subscribe_sync(context->manager, NULL, NULL);
+        _j4status_systemd_dbus_call(context->manager, "Subscribe", NULL);
 }
 
 static void
@@ -238,7 +300,7 @@ _j4status_systemd_stop(J4statusPluginContext *context)
 
     context->started = FALSE;
     if ( context->manager != NULL )
-        j4status_systemd_manager_call_unsubscribe_sync(context->manager, NULL, NULL);
+        _j4status_systemd_dbus_call(context->manager, "Unsubscribe", NULL);
 }
 
 void
