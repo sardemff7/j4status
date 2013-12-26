@@ -144,11 +144,13 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
 
     context->up_client = up_client_new();
 
+#if ! UP_CHECK_VERSION(0,99,0)
     if ( ! up_client_enumerate_devices_sync(context->up_client, NULL, NULL) )
     {
         g_object_unref(context->up_client);
         return NULL;
     }
+#endif /* ! UP_CHECK_VERSION(0,99,0) */
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Battery");
