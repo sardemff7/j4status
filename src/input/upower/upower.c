@@ -34,7 +34,11 @@ struct _J4statusPluginContext {
 };
 
 static void
+#if UP_CHECK_VERSION(0,99,0)
+_j4status_upower_battery_changed(UpDevice *device, GParamSpec *pspec, gpointer user_data)
+#else /* ! UP_CHECK_VERSION(0,99,0) */
 _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
+#endif /* ! UP_CHECK_VERSION(0,99,0) */
 {
     J4statusSection *section = user_data;
     J4statusPluginContext *context = j4status_section_get_user_data(section);
@@ -178,8 +182,13 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
         switch ( g_value_get_int(&value) )
         {
         case UP_DEVICE_KIND_BATTERY:
+#if UP_CHECK_VERSION(0,99,0)
+            g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_battery_changed), section);
+            _j4status_upower_battery_changed(device, NULL, section);
+#else /* ! UP_CHECK_VERSION(0,99,0) */
             g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_battery_changed), section);
             _j4status_upower_battery_changed(device, section);
+#endif /* ! UP_CHECK_VERSION(0,99,0) */
         break;
         default:
             continue;
