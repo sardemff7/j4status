@@ -461,7 +461,9 @@ _j4status_nm_client_device_removed(NMClient *client, NMDevice *device, gpointer 
     j4status_section_free(section);
 }
 
-J4statusPluginContext *
+static void _j4status_nm_uninit(J4statusPluginContext *context);
+
+static J4statusPluginContext *
 _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
 {
     GKeyFile *key_file;
@@ -496,6 +498,12 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
 
     const GPtrArray *devices;
     devices = nm_client_get_devices(context->nm_client);
+    if ( devices == NULL )
+    {
+        _j4status_nm_uninit(context);
+        return NULL;
+    }
+
     gchar **interface;
     for ( interface = context->interfaces ; *interface != NULL ; ++interface )
     {
