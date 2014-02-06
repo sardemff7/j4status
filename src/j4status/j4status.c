@@ -183,7 +183,7 @@ main(int argc, char *argv[])
     gboolean one_shot = FALSE;
     gchar **input_plugins = NULL;
     gchar *output_plugin = NULL;
-    gchar *config;
+    gchar *config = NULL;
 
     int retval = 0;
     GError *error = NULL;
