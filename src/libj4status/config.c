@@ -20,6 +20,10 @@
  *
  */
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <glib.h>
 
 #define CONFIG_SYSCONFFILE SYSCONFDIR G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
@@ -57,14 +61,20 @@ GKeyFile *
 libj4status_config_get_key_file(const gchar *section)
 {
     GKeyFile *key_file;
+    gchar *file = NULL;
 
     const gchar *env_file;
     env_file = g_getenv("J4STATUS_CONFIG_FILE");
-    key_file = _libj4status_config_try_dir(env_file, section);
-    if ( key_file != NULL )
-        return key_file;
+    if ( env_file != NULL )
+    {
+        if ( strchr(env_file, G_DIR_SEPARATOR) == NULL )
+            env_file = file = g_build_filename(g_get_user_config_dir(), PACKAGE_NAME, env_file, NULL);
+        key_file = _libj4status_config_try_dir(env_file, section);
+        g_free(file);
+        if ( key_file != NULL )
+            return key_file;
+    }
 
-    gchar *file;
     file = g_build_filename(g_get_user_config_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "config", NULL);
     key_file = _libj4status_config_try_dir(file, section);
     g_free(file);
