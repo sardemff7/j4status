@@ -183,6 +183,7 @@ main(int argc, char *argv[])
     gboolean one_shot = FALSE;
     gchar **input_plugins = NULL;
     gchar *output_plugin = NULL;
+    gchar *config;
 
     int retval = 0;
     GError *error = NULL;
@@ -239,6 +240,7 @@ main(int argc, char *argv[])
         { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
         { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
         { "one-shot", '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
+        { "config",   'c', 0, G_OPTION_ARG_STRING,       &config,        "Config file to use", "<config>" },
         { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
         { NULL }
     };
@@ -259,6 +261,12 @@ main(int argc, char *argv[])
     {
         g_fprintf(stdout, PACKAGE_NAME " " PACKAGE_VERSION "\n");
         goto end;
+    }
+
+    if ( config != NULL )
+    {
+        g_setenv("J4STATUS_CONFIG_FILE", config, TRUE);
+        g_free(config);
     }
 
     GKeyFile *key_file;
