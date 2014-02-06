@@ -138,7 +138,7 @@ _j4status_systemd_section_free(gpointer data)
 }
 
 static void
-_j4status_systemd_unit_state_changed(GDBusProxy *gobject, GParamSpec *pspec, gpointer user_data)
+_j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_properties, GStrv invalidated_properties, gpointer user_data)
 {
     J4statusSection *section = user_data;
     J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
@@ -175,8 +175,8 @@ _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_nam
     j4status_section_set_instance(section, unit_name);
     j4status_section_set_label(section, unit_name);
 
-    g_signal_connect(unit, "notify::active-state", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
-    _j4status_systemd_unit_state_changed(unit, NULL, section);
+    g_signal_connect(unit, "g-properties-changed", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
+    _j4status_systemd_unit_state_changed(unit, NULL, NULL, section);
 
     context->sections = g_list_prepend(context->sections, section);
 }
