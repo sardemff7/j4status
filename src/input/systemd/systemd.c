@@ -94,15 +94,19 @@ _j4status_systemd_dbus_get_property(GDBusProxy *proxy, const gchar *property)
     GError *error = NULL;
     GVariant *ret, *val = NULL;
 
-    ret = g_dbus_proxy_call_sync(proxy, "org.freedesktop.DBus.Properties.Get", g_variant_new("(ss)", g_dbus_proxy_get_interface_name(proxy), property), G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
-    if ( ret == NULL )
-        g_warning("Could get property %s . %s: %s", g_dbus_proxy_get_interface_name(proxy), property, error->message);
-    else
+    val = g_dbus_proxy_get_cached_property(proxy, property);
+    if ( val == NULL )
     {
-        g_variant_get(ret, "(v)", &val);
-        g_variant_unref(ret);
+        ret = g_dbus_proxy_call_sync(proxy, "org.freedesktop.DBus.Properties.Get", g_variant_new("(ss)", g_dbus_proxy_get_interface_name(proxy), property), G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+        if ( ret == NULL )
+            g_warning("Could get property %s . %s: %s", g_dbus_proxy_get_interface_name(proxy), property, error->message);
+        else
+        {
+            g_variant_get(ret, "(v)", &val);
+            g_variant_unref(ret);
+        }
+        g_clear_error(&error);
     }
-    g_clear_error(&error);
 
     return val;
 }
