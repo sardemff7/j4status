@@ -149,3 +149,22 @@ AC_CONFIG_FILES([
     src/libj4status-plugin/libj4status-plugin.pc
 ])
 AC_OUTPUT
+
+AC_MSG_RESULT([
+    ${PACKAGE_NAME} ${PACKAGE_VERSION}
+
+    Output plugins:
+        Flat: yes
+        i3bar: $enable_i3bar_output
+
+    Input plugins:
+        Time: yes
+        File monitor: yes
+        NetworkManager: $enable_nm_input
+        UPower: $enable_upower_input
+        Sensors: $enable_sensors_input
+        systemd: $enable_systemd_input
+
+dnl     Tests: $enable_tests
+    Debug mode: $enable_debug
+])
