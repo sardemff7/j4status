@@ -156,12 +156,14 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
     }
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 
+    /* Not using the configuration file
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Battery");
     if ( key_file != NULL )
     {
         g_key_file_free(key_file);
     }
+    */
 
     GPtrArray *devices;
     UpDevice *device;
