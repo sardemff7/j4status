@@ -32,8 +32,7 @@
 #define SYSTEMD_UNIT_INTERFACE_NAME SYSTEMD_BUS_NAME ".Unit"
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
     gchar **units;
     GRegex *dbus_name_regex;
@@ -157,7 +156,7 @@ _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_prop
     else
         j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
 
-    libj4status_core_trigger_display(section_context->context->core, section_context->context->core_interface);
+    libj4status_core_trigger_display(section_context->context->core);
 }
 
 static void
@@ -229,7 +228,7 @@ _j4status_systemd_bus_vanished(GDBusConnection *connection, const gchar *name, g
 }
 
 J4statusPluginContext *
-_j4status_systemd_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_systemd_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("systemd");
@@ -248,7 +247,6 @@ _j4status_systemd_init(J4statusCoreContext *core, J4statusCoreInterface *core_in
 
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     context->dbus_name_regex = g_regex_new("[-._@:\\\\]", G_REGEX_OPTIMIZE, 0, NULL);
 

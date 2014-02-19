@@ -28,8 +28,7 @@
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
 };
 
@@ -48,12 +47,12 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         g_object_unref(stream);
         gsize length;
         j4status_section_set_value(section, g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL));
-        libj4status_core_trigger_display(context->core, context->core_interface);
+        libj4status_core_trigger_display(context->core);
     }
 }
 
 static J4statusPluginContext *
-_j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_file_monitor_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file = NULL;
 
@@ -78,7 +77,6 @@ _j4status_file_monitor_init(J4statusCoreContext *core, J4statusCoreInterface *co
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     gchar **file;
     for ( file = files ; *file != NULL ; ++file )

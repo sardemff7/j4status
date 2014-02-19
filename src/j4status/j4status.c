@@ -286,6 +286,7 @@ main(int argc, char *argv[])
     context = g_new0(J4statusCoreContext, 1);
 
     J4statusCoreInterface interface = {
+        .context = context,
         .trigger_display = _j4status_core_trigger_display
     };
 
@@ -304,7 +305,7 @@ main(int argc, char *argv[])
 
     if ( context->output_plugin->interface.init != NULL )
     {
-        context->output_plugin->context = context->output_plugin->interface.init(context, &interface);
+        context->output_plugin->context = context->output_plugin->interface.init(&interface);
         fflush(stdout);
     }
 
@@ -314,7 +315,7 @@ main(int argc, char *argv[])
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
-        input_plugin->context = input_plugin->interface.init(context, &interface);
+        input_plugin->context = input_plugin->interface.init(&interface);
         sections = input_plugin->interface.get_sections(input_plugin->context);
         if ( sections != NULL )
             context->sections = g_list_prepend(context->sections, sections);

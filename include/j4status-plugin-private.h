@@ -34,10 +34,12 @@ struct _J4statusSection {
     gchar *cache;
 };
 
+typedef struct _J4statusCoreContext J4statusCoreContext;
 
 typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
 
 struct _J4statusCoreInterface {
+    J4statusCoreContext *context;
     J4statusCoreFunc trigger_display;
 };
 

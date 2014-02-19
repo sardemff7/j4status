@@ -30,8 +30,7 @@
 #define TIME_SIZE 4095
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
     gchar *format;
     guint timeout_id;
@@ -62,7 +61,7 @@ _j4status_time_update(gpointer user_data)
 
     g_date_time_unref(date_time);
 
-    libj4status_core_trigger_display(context->core, context->core_interface);
+    libj4status_core_trigger_display(context->core);
 
     return TRUE;
 }
@@ -86,13 +85,12 @@ _j4status_time_add_section(J4statusPluginContext *context, const gchar *timezone
 }
 
 static J4statusPluginContext *
-_j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_time_init(J4statusCoreInterface *core)
 {
     J4statusPluginContext *context;
 
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     context->format = g_strdup("%F %T");
     gchar **timezones = NULL;

@@ -36,8 +36,7 @@
 #define MAX_CHIP_NAME_SIZE 256
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
     struct {
         gboolean show_details;
@@ -101,7 +100,7 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
         value = g_strdup_printf("%+.1f°C", curr);
     j4status_section_set_value(section, value);
 
-    libj4status_core_trigger_display(context->core, context->core_interface);
+    libj4status_core_trigger_display(context->core);
 
     return TRUE;
 }
@@ -169,7 +168,7 @@ _j4status_sensors_add_sensors(J4statusPluginContext *context, const sensors_chip
 }
 
 static J4statusPluginContext *
-_j4status_sensors_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_sensors_init(J4statusCoreInterface *core)
 {
     gchar **sensors = NULL;
     gboolean show_details = FALSE;
@@ -189,7 +188,6 @@ _j4status_sensors_init(J4statusCoreContext *core, J4statusCoreInterface *core_in
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     context->config.show_details = show_details;
 

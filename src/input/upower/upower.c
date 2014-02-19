@@ -27,8 +27,7 @@
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
     UpClient *up_client;
 };
@@ -135,16 +134,15 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
         j4status_section_set_value(section, g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", state, percentage, h, m, time));
     }
 
-    libj4status_core_trigger_display(context->core, context->core_interface);
+    libj4status_core_trigger_display(context->core);
 }
 
 static J4statusPluginContext *
-_j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_upower_init(J4statusCoreInterface *core)
 {
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     context->up_client = up_client_new();
 

@@ -26,7 +26,7 @@
 #include <j4status-plugin-private.h>
 
 void
-libj4status_core_trigger_display(J4statusCoreContext *context, J4statusCoreInterface *interface)
+libj4status_core_trigger_display(J4statusCoreInterface *core)
 {
-    return interface->trigger_display(context);
+    return core->trigger_display(core->context);
 }

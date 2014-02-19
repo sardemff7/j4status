@@ -68,7 +68,7 @@ _j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
 }
 
 static J4statusPluginContext *
-_j4status_i3bar_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_i3bar_init(J4statusCoreInterface *core)
 {
     J4statusPluginContext *context;
 

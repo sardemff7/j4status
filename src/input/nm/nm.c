@@ -31,8 +31,7 @@
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
-    J4statusCoreContext *core;
-    J4statusCoreInterface *core_interface;
+    J4statusCoreInterface *core;
     GList *sections;
     gchar **interfaces;
 
@@ -260,7 +259,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         j4status_section_set_state(section, J4STATUS_STATE_BAD);
     break;
     }
-    libj4status_core_trigger_display(context->core, context->core_interface);
+    libj4status_core_trigger_display(context->core);
 }
 
 static void
@@ -463,7 +462,7 @@ _j4status_nm_client_device_removed(NMClient *client, NMDevice *device, gpointer 
 static void _j4status_nm_uninit(J4statusPluginContext *context);
 
 static J4statusPluginContext *
-_j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interface)
+_j4status_nm_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("NetworkManager");
@@ -481,7 +480,6 @@ _j4status_nm_init(J4statusCoreContext *core, J4statusCoreInterface *core_interfa
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
-    context->core_interface = core_interface;
 
     context->interfaces = interfaces;
 

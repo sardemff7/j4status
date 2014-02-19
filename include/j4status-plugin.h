@@ -23,15 +23,14 @@
 #ifndef __J4STATUS_J4STATUS_PLUGIN_H__
 #define __J4STATUS_J4STATUS_PLUGIN_H__
 
-typedef struct _J4statusCoreContext J4statusCoreContext;
 typedef struct _J4statusCoreInterface J4statusCoreInterface;
 
-void libj4status_core_trigger_display(J4statusCoreContext *context, J4statusCoreInterface *interface);
+void libj4status_core_trigger_display(J4statusCoreInterface *core);
 
 
 typedef struct _J4statusPluginContext J4statusPluginContext;
 
-typedef J4statusPluginContext *(*J4statusPluginInitFunc)(J4statusCoreContext *context, J4statusCoreInterface *interface);
+typedef J4statusPluginContext *(*J4statusPluginInitFunc)(J4statusCoreInterface *core);
 typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
 typedef void(*J4statusPluginSimpleFunc)(J4statusPluginContext *context);
 typedef GList **(*J4statusPluginGetSectionsFunc)(J4statusPluginContext *context);
