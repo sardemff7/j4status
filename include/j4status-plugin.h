@@ -23,33 +23,6 @@
 #ifndef __J4STATUS_J4STATUS_PLUGIN_H__
 #define __J4STATUS_J4STATUS_PLUGIN_H__
 
-typedef enum {
-    J4STATUS_STATE_NO_STATE = -1,
-    J4STATUS_STATE_UNAVAILABLE = 0,
-    J4STATUS_STATE_BAD,
-    J4STATUS_STATE_AVERAGE,
-    J4STATUS_STATE_GOOD,
-    J4STATUS_STATE_URGENT
-} J4statusState;
-
-typedef struct _J4statusSection J4statusSection;
-
-J4statusSection *j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data);
-void j4status_section_free(J4statusSection *self);
-const gchar *j4status_section_get_name(const J4statusSection *self);
-gpointer j4status_section_get_user_data(const J4statusSection *self);
-const gchar *j4status_section_get_instance(const J4statusSection *self);
-J4statusState j4status_section_get_state(const J4statusSection *self);
-const gchar *j4status_section_get_label(const J4statusSection *self);
-const gchar *j4status_section_get_value(const J4statusSection *self);
-const gchar *j4status_section_get_cache(const J4statusSection *self);
-gboolean j4status_section_is_dirty(const J4statusSection *self);
-void j4status_section_set_state(J4statusSection *self, J4statusState state);
-void j4status_section_set_label(J4statusSection *self, const gchar *label);
-void j4status_section_set_value(J4statusSection *self, gchar *value);
-void j4status_section_set_cache(J4statusSection *self, gchar *cache);
-
-
 typedef struct _J4statusCoreContext J4statusCoreContext;
 typedef struct _J4statusCoreInterface J4statusCoreInterface;
 
@@ -78,5 +51,31 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, uninit, Simple);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, get_sections, GetSections);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, start, Simple);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, stop, Simple);
+
+typedef enum {
+    J4STATUS_STATE_NO_STATE = -1,
+    J4STATUS_STATE_UNAVAILABLE = 0,
+    J4STATUS_STATE_BAD,
+    J4STATUS_STATE_AVERAGE,
+    J4STATUS_STATE_GOOD,
+    J4STATUS_STATE_URGENT
+} J4statusState;
+
+typedef struct _J4statusSection J4statusSection;
+
+J4statusSection *j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data);
+void j4status_section_free(J4statusSection *self);
+const gchar *j4status_section_get_name(const J4statusSection *self);
+gpointer j4status_section_get_user_data(const J4statusSection *self);
+const gchar *j4status_section_get_instance(const J4statusSection *self);
+J4statusState j4status_section_get_state(const J4statusSection *self);
+const gchar *j4status_section_get_label(const J4statusSection *self);
+const gchar *j4status_section_get_value(const J4statusSection *self);
+const gchar *j4status_section_get_cache(const J4statusSection *self);
+gboolean j4status_section_is_dirty(const J4statusSection *self);
+void j4status_section_set_state(J4statusSection *self, J4statusState state);
+void j4status_section_set_label(J4statusSection *self, const gchar *label);
+void j4status_section_set_value(J4statusSection *self, gchar *value);
+void j4status_section_set_cache(J4statusSection *self, gchar *cache);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_H__ */
