@@ -150,6 +150,15 @@
             </varlistentry>
 
             <varlistentry>
+                <term><option>-c</option></term>
+                <term><option>--config=<replaceable class="parameter">config file</replaceable></option></term>
+                <listitem>
+                    <para>Config file to use</para>
+                    <para>This parameter is an helper to set the <varname>$J4STATUS_CONFIG_FILE</varname> environment variable.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
                 <term><option>-V</option></term>
                 <term><option>--version</option></term>
                 <listitem>
@@ -184,6 +193,7 @@
                 <listitem>
                     <para>Additional configuration file to check.</para>
                     <para>This file is checked first, before standard files, to override them.</para>
+                    <para>If a simple name is given (no directory separator), the named filed is searched in standard directories (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).</para>
                 </listitem>
             </varlistentry>
         </variablelist>
