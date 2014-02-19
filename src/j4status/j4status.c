@@ -187,8 +187,8 @@ main(int argc, char *argv[])
 {
     gboolean print_version = FALSE;
     gboolean one_shot = FALSE;
-    gchar **input_plugins = NULL;
     gchar *output_plugin = NULL;
+    gchar **input_plugins = NULL;
     gchar *config = NULL;
 
     int retval = 0;
@@ -243,8 +243,8 @@ main(int argc, char *argv[])
 
     GOptionEntry entries[] =
     {
-        { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
         { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
+        { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
         { "one-shot", '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
         { "config",   'c', 0, G_OPTION_ARG_STRING,       &config,        "Config file to use", "<config>" },
         { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
