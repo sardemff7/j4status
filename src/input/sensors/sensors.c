@@ -163,6 +163,9 @@ _j4status_sensors_init(J4statusCoreContext *core, J4statusCoreInterface *core_in
     gchar **sensors = NULL;
     gboolean show_details = FALSE;
 
+    if ( sensors_init(NULL) != 0 )
+        return NULL;
+
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Sensors");
     if ( key_file != NULL )
@@ -170,12 +173,6 @@ _j4status_sensors_init(J4statusCoreContext *core, J4statusCoreInterface *core_in
         sensors = g_key_file_get_string_list(key_file, "Sensors", "Sensors", NULL, NULL);
         show_details = g_key_file_get_boolean(key_file, "Sensors", "ShowDetails", NULL);
         g_key_file_free(key_file);
-    }
-
-    if ( sensors_init(NULL) != 0 )
-    {
-        g_strfreev(sensors);
-        return NULL;
     }
 
     J4statusPluginContext *context;
