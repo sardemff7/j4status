@@ -2,10 +2,10 @@ prefix=@prefix@
 exec_prefix=@exec_prefix@
 libdir=@libdir@
 includedir=@includedir@
-pkglibdir=${libdir}/@PACKAGE@
-pkgincludedir=${includedir}/@PACKAGE@
+pkglibdir=@pkglibdir@
+pkgincludedir=@pkgincludedir@
 
-plugindir=${pkglibdir}/plugins
+pluginsdir=@pluginsdir@
 
 Name: libj4status-plugin
 Description: Library to implement a j4status plugin

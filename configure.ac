@@ -32,6 +32,26 @@ dnl IT_PROG_INTLTOOL([0.40.0])
 
 AC_PROG_INSTALL
 
+#
+# Directories
+#
+
+# package-specific dirs
+pkglibdir='${libdir}/'${PACKAGE}
+pkgincludedir='${includedir}/'${PACKAGE}
+pkgdatadir='${datadir}/'${PACKAGE}
+AC_SUBST([pkglibdir])
+AC_SUBST([pkgincludedir])
+AC_SUBST([pkgdatadir])
+
+# pkg-config dirs
+PKG_INSTALLDIR
+
+# j4status specific dirs
+pluginsdir='${pkglibdir}/plugins'
+AC_SUBST([pluginsdir])
+
+
 # Common dependencies
 glib_min_major="2"
 glib_min_minor="28"
@@ -57,8 +77,6 @@ if test -d .git; then
     PACKAGE_VERSION="${PACKAGE_VERSION} - `git describe --tags --always` (`git describe --tags --always --all | sed -e 's:heads/::'`)"
     AC_DEFINE_UNQUOTED([PACKAGE_VERSION], ["$PACKAGE_VERSION"], [Full version with git information])
 fi
-
-PKG_INSTALLDIR
 
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= $glib_min_version])
 AC_DEFINE_UNQUOTED([GLIB_VERSION_MIN_REQUIRED], [(G_ENCODE_VERSION(${glib_min_major},${glib_min_minor}))], [The lower GLib version supported])

@@ -8,8 +8,6 @@
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
-pluginsdir = $(pkglibdir)/plugins
-
 bin_PROGRAMS =
 noinst_LTLIBRARIES =
 lib_LTLIBRARIES =
