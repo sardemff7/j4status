@@ -174,7 +174,7 @@ _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_nam
     section_context->context = context;
     section_context->unit = unit;
 
-    section = j4status_section_new("systemd", unit_name, section_context);
+    section = j4status_section_new(context->core, "systemd", unit_name, section_context);
     j4status_section_set_label(section, unit_name);
 
     g_signal_connect(unit, "g-properties-changed", G_CALLBACK(_j4status_systemd_unit_state_changed), section);

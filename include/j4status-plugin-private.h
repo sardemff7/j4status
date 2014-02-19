@@ -24,6 +24,7 @@
 #define __J4STATUS_J4STATUS_PLUGIN_PRIVATE_H__
 
 struct _J4statusSection {
+    J4statusCoreInterface *core;
     const gchar *name;
     gchar *instance;
     gchar *label;

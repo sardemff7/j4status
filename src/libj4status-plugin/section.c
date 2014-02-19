@@ -26,11 +26,12 @@
 #include <j4status-plugin-private.h>
 
 J4statusSection *
-j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data)
+j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instance, gpointer user_data)
 {
     J4statusSection *self;
 
     self = g_new0(J4statusSection, 1);
+    self->core = core;
     self->name = name;
     self->instance = g_strdup(instance);
     self->user_data = user_data;

@@ -406,7 +406,7 @@ _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, N
         return NULL;
     }
     J4statusSection *section;
-    section = j4status_section_new(name, instance, section_context);
+    section = j4status_section_new(context->core, name, instance, section_context);
     j4status_section_set_label(section, label);
     context->sections = g_list_insert_before(context->sections, sibling, section);
 

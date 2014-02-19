@@ -175,7 +175,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
         name = g_path_get_basename(up_device_get_object_path(device));
         J4statusSection *section;
 
-        section = j4status_section_new("upower", name, context);
+        section = j4status_section_new(context->core, "upower", name, context);
 
         GValue value = G_VALUE_INIT;
 

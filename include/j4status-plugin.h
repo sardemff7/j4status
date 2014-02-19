@@ -62,7 +62,7 @@ typedef enum {
 
 typedef struct _J4statusSection J4statusSection;
 
-J4statusSection *j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data);
+J4statusSection *j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instance, gpointer user_data);
 void j4status_section_free(J4statusSection *self);
 const gchar *j4status_section_get_name(const J4statusSection *self);
 gpointer j4status_section_get_user_data(const J4statusSection *self);
