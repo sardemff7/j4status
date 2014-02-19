@@ -207,6 +207,7 @@
         <title>See Also</title>
         <para>
             <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_i3bar_output"><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_nm_input"><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
