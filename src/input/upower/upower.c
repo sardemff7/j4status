@@ -167,15 +167,17 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
 
     GPtrArray *devices;
     UpDevice *device;
+    gchar *name;
     guint i;
 
     devices = up_client_get_devices(context->up_client);
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
+        name = g_path_get_basename(up_device_get_object_path(device));
         J4statusSection *section;
 
-        section = j4status_section_new("upower", context);
+        section = j4status_section_new("upower", name, context);
 
         GValue value = G_VALUE_INIT;
 
@@ -184,7 +186,6 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
         switch ( g_value_get_int(&value) )
         {
         case UP_DEVICE_KIND_BATTERY:
-            j4status_section_set_instance(section, g_path_get_basename(up_device_get_object_path(device)));
 #if UP_CHECK_VERSION(0,99,0)
             g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_battery_changed), section);
             _j4status_upower_battery_changed(device, NULL, section);
@@ -198,6 +199,8 @@ _j4status_upower_init(J4statusCoreContext *core, J4statusCoreInterface *core_int
         }
 
         context->sections = g_list_prepend(context->sections, section);
+
+        g_free(name);
     }
     g_ptr_array_unref(devices);
 

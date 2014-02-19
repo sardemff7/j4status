@@ -134,9 +134,8 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     sensor_feature->crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
 
     J4statusSection *section;
-    section = j4status_section_new("sensors", sensor_feature);
+    section = j4status_section_new("sensors", name, sensor_feature);
 
-    j4status_section_set_instance(section, name);
     char *label;
     label = sensors_get_label(chip, feature);
     j4status_section_set_label(section, label);

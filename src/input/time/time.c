@@ -77,8 +77,9 @@ _j4status_time_add_section(J4statusPluginContext *context, const gchar *timezone
     section_context->tz = ( timezone != NULL ) ? g_time_zone_new(timezone) : g_time_zone_new_local();
     section_context->format = format;
 
-    section = j4status_section_new("time", section_context);
-    j4status_section_set_instance(section, ( timezone != NULL ) ? timezone : "local");
+    timezone = ( timezone != NULL ) ? timezone : "local";
+
+    section = j4status_section_new("time", timezone, section_context);
     j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
 
     context->sections = g_list_prepend(context->sections, section);

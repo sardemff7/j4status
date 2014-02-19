@@ -34,7 +34,7 @@ typedef enum {
 
 typedef struct _J4statusSection J4statusSection;
 
-J4statusSection *j4status_section_new(const gchar *name, gpointer user_data);
+J4statusSection *j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data);
 void j4status_section_free(J4statusSection *self);
 const gchar *j4status_section_get_name(const J4statusSection *self);
 gpointer j4status_section_get_user_data(const J4statusSection *self);
@@ -44,7 +44,6 @@ const gchar *j4status_section_get_label(const J4statusSection *self);
 const gchar *j4status_section_get_value(const J4statusSection *self);
 const gchar *j4status_section_get_cache(const J4statusSection *self);
 gboolean j4status_section_is_dirty(const J4statusSection *self);
-void j4status_section_set_instance(J4statusSection *self, const gchar *instance);
 void j4status_section_set_state(J4statusSection *self, J4statusState state);
 void j4status_section_set_label(J4statusSection *self, const gchar *label);
 void j4status_section_set_value(J4statusSection *self, gchar *value);

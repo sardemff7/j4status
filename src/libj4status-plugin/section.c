@@ -26,12 +26,13 @@
 #include <j4status-plugin-private.h>
 
 J4statusSection *
-j4status_section_new(const gchar *name, gpointer user_data)
+j4status_section_new(const gchar *name, const gchar *instance, gpointer user_data)
 {
     J4statusSection *self;
 
     self = g_new0(J4statusSection, 1);
     self->name = name;
+    self->instance = g_strdup(instance);
     self->user_data = user_data;
 
     return self;
@@ -96,14 +97,6 @@ gboolean
 j4status_section_is_dirty(const J4statusSection *self)
 {
     return self->dirty;
-}
-
-void
-j4status_section_set_instance(J4statusSection *self, const gchar *instance)
-{
-    self->dirty = TRUE;
-    g_free(self->instance);
-    self->instance = g_strdup(instance);
 }
 
 void
