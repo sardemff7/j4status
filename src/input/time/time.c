@@ -116,7 +116,7 @@ _j4status_time_init(J4statusCoreContext *core, J4statusCoreInterface *core_inter
         formats = g_key_file_get_string_list(key_file, "Time", "Formats", &formats_length, NULL);
         if ( ( formats != NULL ) && ( formats_length != timezones_length ) )
         {
-            g_warning("You should specify one format per timezone");
+            g_warning("You should specify one format per timezone. Will use global format");
             g_strfreev(formats);
             formats = NULL;
         }
