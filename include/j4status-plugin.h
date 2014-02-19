@@ -33,7 +33,6 @@ typedef struct _J4statusPluginContext J4statusPluginContext;
 typedef J4statusPluginContext *(*J4statusPluginInitFunc)(J4statusCoreInterface *core);
 typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
 typedef void(*J4statusPluginSimpleFunc)(J4statusPluginContext *context);
-typedef GList **(*J4statusPluginGetSectionsFunc)(J4statusPluginContext *context);
 
 typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
@@ -47,7 +46,6 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, print, Print);
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, init, Init);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, uninit, Simple);
-LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, get_sections, GetSections);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, start, Simple);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, stop, Simple);
 

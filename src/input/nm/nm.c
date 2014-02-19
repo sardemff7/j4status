@@ -548,15 +548,6 @@ _j4status_nm_uninit(J4statusPluginContext *context)
     g_free(context);
 }
 
-static GList **
-_j4status_nm_get_sections(J4statusPluginContext *context)
-{
-    if ( context == NULL )
-        return NULL;
-
-    return &context->sections;
-}
-
 static void
 _j4status_nm_start(J4statusPluginContext *context)
 {
@@ -582,8 +573,6 @@ j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_nm_init);
     libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_nm_uninit);
-
-    libj4status_input_plugin_interface_add_get_sections_callback(interface, _j4status_nm_get_sections);
 
     libj4status_input_plugin_interface_add_start_callback(interface, _j4status_nm_start);
     libj4status_input_plugin_interface_add_stop_callback(interface, _j4status_nm_stop);

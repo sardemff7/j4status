@@ -37,10 +37,12 @@ struct _J4statusSection {
 
 typedef struct _J4statusCoreContext J4statusCoreContext;
 
+typedef void(*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
 typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
 
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
+    J4statusCoreSectionFunc add_section;
     J4statusCoreFunc trigger_display;
 };
 
@@ -55,8 +57,6 @@ struct _J4statusOutputPluginInterface {
 struct _J4statusInputPluginInterface {
     J4statusPluginInitFunc   init;
     J4statusPluginSimpleFunc uninit;
-
-    J4statusPluginGetSectionsFunc get_sections;
 
     J4statusPluginSimpleFunc start;
     J4statusPluginSimpleFunc stop;

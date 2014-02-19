@@ -36,6 +36,8 @@ j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar
     self->instance = g_strdup(instance);
     self->user_data = user_data;
 
+    self->core->add_section(self->core->context, self);
+
     return self;
 }
 

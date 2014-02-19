@@ -92,6 +92,12 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
 
 #endif /* ! DEBUG */
 
+void
+_j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
+{
+    context->sections = g_list_prepend(context->sections, section);
+}
+
 static gboolean
 _j4status_core_display(gpointer user_data)
 {
@@ -287,6 +293,7 @@ main(int argc, char *argv[])
 
     J4statusCoreInterface interface = {
         .context = context,
+        .add_section = _j4status_core_add_section,
         .trigger_display = _j4status_core_trigger_display
     };
 
@@ -310,15 +317,11 @@ main(int argc, char *argv[])
     }
 
     GList *input_plugin_;
-    GList **sections;
     J4statusInputPlugin *input_plugin;
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
         input_plugin->context = input_plugin->interface.init(&interface);
-        sections = input_plugin->interface.get_sections(input_plugin->context);
-        if ( sections != NULL )
-            context->sections = g_list_prepend(context->sections, sections);
     }
     context->sections = g_list_reverse(context->sections);
 

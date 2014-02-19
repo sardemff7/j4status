@@ -129,94 +129,90 @@ _j4status_i3bar_uninit(J4statusPluginContext *context)
 }
 
 static void
-_j4status_i3bar_print(J4statusPluginContext *context, GList *sections_)
+_j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
 {
     yajl_gen_array_open(context->json_gen);
+    GList *section_;
     J4statusSection *section;
-    for ( ; sections_ != NULL ; sections_ = g_list_next(sections_) )
+    for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
     {
-        GList **section__ = sections_->data;
-        GList *section_;
-        for ( section_ = *section__ ; section_ != NULL ; section_ = g_list_next(section_) )
+        section = section_->data;
+        const gchar *cache;
+        if ( j4status_section_is_dirty(section) )
         {
-            section = section_->data;
-            const gchar *cache;
-            if ( j4status_section_is_dirty(section) )
+            gchar *new_cache = NULL;
+            const gchar *label;
+            const gchar *value;
+
+            value = j4status_section_get_value(section);
+            if ( value != NULL )
             {
-                gchar *new_cache = NULL;
-                const gchar *label;
-                const gchar *value;
-
-                value = j4status_section_get_value(section);
-                if ( value != NULL )
-                {
-                    label = j4status_section_get_label(section);
-                    if ( label != NULL )
-                        new_cache = g_strdup_printf("%s: %s", label, value);
-                    else
-                        new_cache = g_strdup(value);
-                }
-                j4status_section_set_cache(section, new_cache);
-                cache = new_cache;
+                label = j4status_section_get_label(section);
+                if ( label != NULL )
+                    new_cache = g_strdup_printf("%s: %s", label, value);
+                else
+                    new_cache = g_strdup(value);
             }
-            else
-                cache = j4status_section_get_cache(section);
-            if ( cache == NULL )
-                continue;
-
-            yajl_gen_map_open(context->json_gen);
-
-            const gchar *name;
-            name = j4status_section_get_name(section);
-            if ( name != NULL )
-            {
-                yajl_gen_string(context->json_gen, (const unsigned char *)"name", strlen("name"));
-                yajl_gen_string(context->json_gen, (const unsigned char *)name, strlen(name));
-            }
-
-            const gchar *instance;
-            instance = j4status_section_get_instance(section);
-            if ( instance != NULL )
-            {
-                yajl_gen_string(context->json_gen, (const unsigned char *)"instance", strlen("instance"));
-                yajl_gen_string(context->json_gen, (const unsigned char *)instance, strlen(instance));
-            }
-
-            const gchar *colour = NULL;
-            switch ( j4status_section_get_state(section) )
-            {
-            case J4STATUS_STATE_NO_STATE:
-                colour = context->colours.no_state;
-            break;
-            case J4STATUS_STATE_UNAVAILABLE:
-                colour = context->colours.unavailable;
-            break;
-            case J4STATUS_STATE_BAD:
-                colour = context->colours.bad;
-            break;
-            case J4STATUS_STATE_AVERAGE:
-                colour = context->colours.average;
-            break;
-            case J4STATUS_STATE_GOOD:
-                colour = context->colours.good;
-            break;
-            case J4STATUS_STATE_URGENT:
-                colour = context->colours.bad;
-                yajl_gen_string(context->json_gen, (const unsigned char *)"urgent", strlen("urgent"));
-                yajl_gen_bool(context->json_gen, TRUE);
-            break;
-            }
-            if ( colour != NULL )
-            {
-                yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
-                yajl_gen_string(context->json_gen, (const unsigned char *)colour, strlen("#000000"));
-            }
-
-            yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-            yajl_gen_string(context->json_gen, (const unsigned char *)cache, strlen(cache));
-
-            yajl_gen_map_close(context->json_gen);
+            j4status_section_set_cache(section, new_cache);
+            cache = new_cache;
         }
+        else
+            cache = j4status_section_get_cache(section);
+        if ( cache == NULL )
+            continue;
+
+        yajl_gen_map_open(context->json_gen);
+
+        const gchar *name;
+        name = j4status_section_get_name(section);
+        if ( name != NULL )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"name", strlen("name"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)name, strlen(name));
+        }
+
+        const gchar *instance;
+        instance = j4status_section_get_instance(section);
+        if ( instance != NULL )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"instance", strlen("instance"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)instance, strlen(instance));
+        }
+
+        const gchar *colour = NULL;
+        switch ( j4status_section_get_state(section) )
+        {
+        case J4STATUS_STATE_NO_STATE:
+            colour = context->colours.no_state;
+        break;
+        case J4STATUS_STATE_UNAVAILABLE:
+            colour = context->colours.unavailable;
+        break;
+        case J4STATUS_STATE_BAD:
+            colour = context->colours.bad;
+        break;
+        case J4STATUS_STATE_AVERAGE:
+            colour = context->colours.average;
+        break;
+        case J4STATUS_STATE_GOOD:
+            colour = context->colours.good;
+        break;
+        case J4STATUS_STATE_URGENT:
+            colour = context->colours.bad;
+            yajl_gen_string(context->json_gen, (const unsigned char *)"urgent", strlen("urgent"));
+            yajl_gen_bool(context->json_gen, TRUE);
+        break;
+        }
+        if ( colour != NULL )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)colour, strlen("#000000"));
+        }
+
+        yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
+        yajl_gen_string(context->json_gen, (const unsigned char *)cache, strlen(cache));
+
+        yajl_gen_map_close(context->json_gen);
     }
     yajl_gen_array_close(context->json_gen);
 
