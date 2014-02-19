@@ -20,13 +20,20 @@
  *
  */
 
+#ifdef HAVE_STDLIB_H
 #include <stdlib.h>
+#endif /* HAVE_STDLIB_H */
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
 
 #include <glib.h>
 #include <sensors/sensors.h>
 
 #include <j4status-plugin.h>
 #include <libj4status-config.h>
+
+#define MAX_CHIP_NAME_SIZE 256
 
 struct _J4statusPluginContext {
     J4statusCoreContext *core;
@@ -102,14 +109,18 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
 static void
 _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors_chip_name *chip, const sensors_feature *feature)
 {
+    int n;
+    char name[MAX_CHIP_NAME_SIZE + strlen(feature->name) + 1];
+    n = sensors_snprintf_chip_name(name, MAX_CHIP_NAME_SIZE, chip);
+    name[n++] = '/';
+    strcpy(name + n, feature->name);
+
     const sensors_subfeature *input;
 
     input = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_INPUT);
     if ( input == NULL )
     {
-        char n[256];
-        sensors_snprintf_chip_name(n, sizeof(n), chip);
-        g_warning("No temperature input on chip '%s', skipping", n);
+        g_warning("No temperature input on chip '%s', skipping", name);
         return;
     }
 
@@ -125,6 +136,7 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     J4statusSection *section;
     section = j4status_section_new("sensors", sensor_feature);
 
+    j4status_section_set_instance(section, name);
     char *label;
     label = sensors_get_label(chip, feature);
     j4status_section_set_label(section, label);
