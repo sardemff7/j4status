@@ -173,6 +173,7 @@ AC_MSG_RESULT([
 
     Output plugins:
         Flat: yes
+        Debug: yes
         i3bar: $enable_i3bar_output
 
     Input plugins:
