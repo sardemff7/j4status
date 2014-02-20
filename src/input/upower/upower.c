@@ -37,6 +37,11 @@ struct _J4statusPluginContext {
     gboolean started;
 };
 
+typedef struct {
+    J4statusPluginContext *context;
+    J4statusSection *section;
+} J4statusUpowerSection;
+
 static void
 #if UP_CHECK_VERSION(0,99,0)
 _j4status_upower_device_changed(GObject *device, GParamSpec *pspec, gpointer user_data)
@@ -44,8 +49,7 @@ _j4status_upower_device_changed(GObject *device, GParamSpec *pspec, gpointer use
 _j4status_upower_device_changed(GObject *device, gpointer user_data)
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 {
-    J4statusSection *section = user_data;
-    J4statusPluginContext *context = j4status_section_get_user_data(section);
+    J4statusUpowerSection *section = user_data;
 
     UpDeviceState device_state;
     gdouble percentage = -1;
@@ -69,8 +73,8 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     {
     case UP_DEVICE_STATE_LAST: /* Size placeholder */
     case UP_DEVICE_STATE_UNKNOWN:
-        j4status_section_set_state(section, J4STATUS_STATE_UNAVAILABLE);
-        j4status_section_set_value(section, g_strdup("No battery"));
+        j4status_section_set_state(section->section, J4STATUS_STATE_UNAVAILABLE);
+        j4status_section_set_value(section->section, g_strdup("No battery"));
         return;
     case UP_DEVICE_STATE_EMPTY:
         status = "Empty";
@@ -107,7 +111,7 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         g_value_unset(&val);
     break;
     }
-    j4status_section_set_state(section, state);
+    j4status_section_set_state(section->section, state);
 
     gchar *value;
     if ( percentage < 0 )
@@ -132,10 +136,10 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
 
         value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", status, percentage, h, m, time);
     }
-    j4status_section_set_value(section, value);
+    j4status_section_set_value(section->section, value);
 
-    if ( context->started || ( state & J4STATUS_STATE_URGENT ) )
-        libj4status_core_trigger_display(context->core);
+    if ( section->context->started || ( state & J4STATUS_STATE_URGENT ) )
+        libj4status_core_trigger_display(section->context->core);
 }
 
 static J4statusPluginContext *
@@ -255,10 +259,11 @@ _j4status_upower_init(J4statusCoreInterface *core)
             continue;
         }
 
-        J4statusSection *section;
-        section = j4status_section_new(context->core, name, instance, context);
+        J4statusUpowerSection *section;
+        section = g_new0(J4statusUpowerSection, 1);
+        section->section = j4status_section_new(context->core, name, instance, context);
         if ( label != NULL )
-            j4status_section_set_label(section, label);
+            j4status_section_set_label(section->section, label);
 
 #if UP_CHECK_VERSION(0,99,0)
         g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
@@ -273,8 +278,17 @@ _j4status_upower_init(J4statusCoreInterface *core)
     }
     g_ptr_array_unref(devices);
 
-    context->sections = g_list_reverse(context->sections);
     return context;
+}
+
+static void
+_j4status_upower_section_free(gpointer data)
+{
+    J4statusUpowerSection *section = data;
+
+    j4status_section_free(section->section);
+
+    g_free(section);
 }
 
 static void
@@ -283,7 +297,7 @@ _j4status_upower_uninit(J4statusPluginContext *context)
     if ( context == NULL )
         return;
 
-    g_list_free_full(context->sections, (GDestroyNotify) j4status_section_free);
+    g_list_free_full(context->sections, _j4status_upower_section_free);
 
     g_free(context);
 }
