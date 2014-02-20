@@ -427,7 +427,7 @@ _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, N
         g_warning("Unsupported device type for interface '%s'", instance);
         return NULL;
     }
-    section->section = j4status_section_new(context->core, name, instance, NULL);
+    section->section = j4status_section_new(context->core, name, instance);
     j4status_section_set_label(section->section, label);
     context->sections = g_list_prepend(context->sections, section);
 

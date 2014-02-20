@@ -126,7 +126,7 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     J4statusSensorsFeature *sensor_feature;
     sensor_feature = g_new0(J4statusSensorsFeature, 1);
     sensor_feature->context = context;
-    sensor_feature->section = j4status_section_new(context->core, "sensors", name, NULL);
+    sensor_feature->section = j4status_section_new(context->core, "sensors", name);
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
     sensor_feature->input = input;

@@ -27,7 +27,7 @@
 #include <j4status-plugin-private.h>
 
 J4statusSection *
-j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instance, gpointer user_data)
+j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instance)
 {
     g_return_val_if_fail(core != NULL, NULL);
     g_return_val_if_fail(name != NULL, NULL);
@@ -38,7 +38,6 @@ j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar
     self->core = core;
     self->name = name;
     self->instance = g_strdup(instance);
-    self->user_data = user_data;
 
     self->core->add_section(self->core->context, self);
 
@@ -66,14 +65,6 @@ j4status_section_get_name(const J4statusSection *self)
     g_return_val_if_fail(self != NULL, NULL);
 
     return self->name;
-}
-
-gpointer
-j4status_section_get_user_data(J4statusSection *self)
-{
-    g_return_val_if_fail(self != NULL, NULL);
-
-    return self->user_data;
 }
 
 const gchar *

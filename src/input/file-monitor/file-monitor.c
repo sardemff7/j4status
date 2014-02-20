@@ -106,7 +106,7 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
         J4statusFileMonitorSection *section;
         section = g_new0(J4statusFileMonitorSection, 1);
         section->context = context;
-        section->section = j4status_section_new(context->core, "file-monitor", *file, NULL);
+        section->section = j4status_section_new(context->core, "file-monitor", *file);
         j4status_section_set_label(section->section, *file);
         g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
         context->sections = g_list_prepend(context->sections, section);

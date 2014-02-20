@@ -30,7 +30,6 @@ struct _J4statusSection {
     gchar *label;
     gchar *value;
     J4statusState state;
-    gpointer user_data;
     gboolean dirty;
     gchar *cache;
 };
