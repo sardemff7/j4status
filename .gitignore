@@ -1,7 +1,5 @@
 /include/config.h*
 
-/src/input/systemd/dbus.*
-
 /j4status
 /man/config.dtd
 /man/*.1
