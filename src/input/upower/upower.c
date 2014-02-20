@@ -34,9 +34,9 @@ struct _J4statusPluginContext {
 
 static void
 #if UP_CHECK_VERSION(0,99,0)
-_j4status_upower_battery_changed(UpDevice *device, GParamSpec *pspec, gpointer user_data)
+_j4status_upower_battery_changed(GObject *device, GParamSpec *pspec, gpointer user_data)
 #else /* ! UP_CHECK_VERSION(0,99,0) */
-_j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
+_j4status_upower_battery_changed(GObject *device, gpointer user_data)
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 {
     J4statusSection *section = user_data;
@@ -51,12 +51,12 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
     GValue val = G_VALUE_INIT;
 
     g_value_init(&val, G_TYPE_DOUBLE);
-    g_object_get_property(G_OBJECT(device), "percentage", &val);
+    g_object_get_property(device, "percentage", &val);
     percentage = g_value_get_double(&val);
     g_value_unset(&val);
 
     g_value_init(&val, G_TYPE_INT);
-    g_object_get_property(G_OBJECT(device), "state", &val);
+    g_object_get_property(device, "state", &val);
     device_state = g_value_get_int(&val);
     g_value_unset(&val);
 
@@ -81,7 +81,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
         state = J4STATUS_STATE_AVERAGE;
 
         g_value_init(&val, G_TYPE_INT64);
-        g_object_get_property(G_OBJECT(device), "time-to-full", &val);
+        g_object_get_property(device, "time-to-full", &val);
         time = g_value_get_int64(&val);
         g_value_unset(&val);
     break;
@@ -96,7 +96,7 @@ _j4status_upower_battery_changed(UpDevice *device, gpointer user_data)
             state = J4STATUS_STATE_AVERAGE;
 
         g_value_init(&val, G_TYPE_INT64);
-        g_object_get_property(G_OBJECT(device), "time-to-empty", &val);
+        g_object_get_property(device, "time-to-empty", &val);
         time = g_value_get_int64(&val);
         g_value_unset(&val);
     break;
@@ -158,7 +158,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
     */
 
     GPtrArray *devices;
-    UpDevice *device;
+    GObject *device;
     gchar *name;
     guint i;
 
@@ -166,13 +166,13 @@ _j4status_upower_init(J4statusCoreInterface *core)
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
-        name = g_path_get_basename(up_device_get_object_path(device));
+        name = g_path_get_basename(up_device_get_object_path(UP_DEVICE(device)));
         J4statusSection *section;
 
         GValue value = G_VALUE_INIT;
 
         g_value_init(&value, G_TYPE_INT);
-        g_object_get_property(G_OBJECT(device), "kind", &value);
+        g_object_get_property(device, "kind", &value);
         switch ( g_value_get_int(&value) )
         {
         case UP_DEVICE_KIND_BATTERY:
