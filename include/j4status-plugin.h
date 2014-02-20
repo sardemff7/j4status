@@ -41,8 +41,10 @@ typedef enum {
     J4STATUS_STATE_BAD,
     J4STATUS_STATE_AVERAGE,
     J4STATUS_STATE_GOOD,
-    J4STATUS_STATE_URGENT
+    J4STATUS_STATE_URGENT = (1 << 31)
 } J4statusState;
+
+#define J4STATUS_STATE_FLAGS (J4STATUS_STATE_URGENT)
 
 typedef struct _J4statusSection J4statusSection;
 

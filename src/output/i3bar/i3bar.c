@@ -179,8 +179,9 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
             yajl_gen_string(context->json_gen, (const unsigned char *)instance, strlen(instance));
         }
 
+        J4statusState state = j4status_section_get_state(section);
         const gchar *colour = NULL;
-        switch ( j4status_section_get_state(section) )
+        switch ( state & ~J4STATUS_STATE_FLAGS )
         {
         case J4STATUS_STATE_NO_STATE:
             colour = context->colours.no_state;
@@ -198,11 +199,14 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
             colour = context->colours.good;
         break;
         case J4STATUS_STATE_URGENT:
-            colour = context->colours.bad;
-            yajl_gen_string(context->json_gen, (const unsigned char *)"urgent", strlen("urgent"));
-            yajl_gen_bool(context->json_gen, TRUE);
         break;
         }
+        if ( state & J4STATUS_STATE_URGENT )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"urgent", strlen("urgent"));
+            yajl_gen_bool(context->json_gen, TRUE);
+        }
+
         if ( colour != NULL )
         {
             yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));

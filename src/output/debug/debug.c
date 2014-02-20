@@ -25,6 +25,8 @@
 
 #include <j4status-plugin-output.h>
 
+#define BOOL_TO_S(bool) ((bool) ? "yes" : "no")
+
 static void
 _j4status_debug_print(J4statusPluginContext *context, GList *sections)
 {
@@ -34,38 +36,38 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
     {
         section = section_->data;
 
-        const gchar *state = NULL;
-        switch ( j4status_section_get_state(section) )
+        J4statusState state = j4status_section_get_state(section);
+        const gchar *state_s = NULL;
+        switch ( state & ~J4STATUS_STATE_FLAGS )
         {
         case J4STATUS_STATE_NO_STATE:
-            state = "no state";
+            state_s = "no state";
         break;
         case J4STATUS_STATE_UNAVAILABLE:
-            state = "unavailable";
+            state_s = "unavailable";
         break;
         case J4STATUS_STATE_BAD:
-            state = "bad";
+            state_s = "bad";
         break;
         case J4STATUS_STATE_AVERAGE:
-            state = "average";
+            state_s = "average";
         break;
         case J4STATUS_STATE_GOOD:
-            state = "good";
-        break;
-        case J4STATUS_STATE_URGENT:
-            state = "urgent";
+            state_s = "good";
         break;
         }
         g_printf("--"
             "\nName: %s"
             "\nInstance: %s"
             "\nState: %s"
+            "\nUrgent: %s"
             "\nLabel: %s"
             "\nValue: %s"
             "\n--\n",
             j4status_section_get_name(section),
             j4status_section_get_instance(section),
-            state,
+            state_s,
+            BOOL_TO_S(state & J4STATUS_STATE_URGENT),
             j4status_section_get_label(section),
             j4status_section_get_value(section));
     }

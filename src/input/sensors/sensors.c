@@ -71,20 +71,20 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
     if ( feature->crit != NULL )
         sensors_get_value(feature->chip, feature->crit->number, &crit);
 
-    gboolean update = context->started;
+    J4statusState state;
+
+    if ( ( high > 0 ) && ( curr > high ) )
+        state = J4STATUS_STATE_BAD;
+    else
+        state = J4STATUS_STATE_GOOD;
 
     if ( ( crit > 0 ) && ( curr > crit ) )
-    {
-        j4status_section_set_state(section, J4STATUS_STATE_URGENT);
-        update = TRUE;
-    }
-    else if ( ( high > 0 ) && ( curr > high ) )
-        j4status_section_set_state(section, J4STATUS_STATE_BAD);
-    else
-        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+        state |= J4STATUS_STATE_URGENT;
 
-    if ( ! update )
+    if ( ( ! context->started ) && ( ( state & J4STATUS_STATE_URGENT ) == 0 ) )
         return TRUE;
+
+    j4status_section_set_state(section, state);
 
     if ( ! context->config.show_details )
         high = crit = -1;

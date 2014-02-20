@@ -73,7 +73,7 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         return;
     case UP_DEVICE_STATE_EMPTY:
         status = "Empty";
-        state = J4STATUS_STATE_URGENT;
+        state = J4STATUS_STATE_BAD | J4STATUS_STATE_URGENT;
     break;
     case UP_DEVICE_STATE_FULLY_CHARGED:
         status = "Full";
@@ -92,12 +92,13 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     case UP_DEVICE_STATE_DISCHARGING:
     case UP_DEVICE_STATE_PENDING_DISCHARGE:
         status = "Bat";
-        if ( percentage < 5 )
-            state = J4STATUS_STATE_URGENT;
-        else if ( percentage < 15 )
+        if ( percentage < 15 )
             state = J4STATUS_STATE_BAD;
         else
             state = J4STATUS_STATE_AVERAGE;
+
+        if ( percentage < 5 )
+            state |= J4STATUS_STATE_URGENT;
 
         g_value_init(&val, G_TYPE_INT64);
         g_object_get_property(device, "time-to-empty", &val);
