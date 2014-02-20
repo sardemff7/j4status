@@ -44,8 +44,9 @@ struct _J4statusPluginContext {
 
 typedef struct {
     J4statusPluginContext *context;
+    J4statusSection *section;
     GDBusProxy *unit;
-} J4statusSystemdSectionContext;
+} J4statusSystemdSection;
 
 static gboolean
 _j4status_systemd_dbus_call(GDBusProxy *proxy, const gchar *method, GError **error)
@@ -129,34 +130,35 @@ _j4status_systemd_dbus_get_property_string(GDBusProxy *proxy, const gchar *prope
 static void
 _j4status_systemd_section_free(gpointer data)
 {
-    J4statusSection *section = data;
-    J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
+    J4statusSystemdSection *section = data;
 
-    if ( section_context->unit != NULL )
-        g_object_unref(section_context->unit);
+    if ( section->unit != NULL )
+        g_object_unref(section->unit);
 
-    g_free(section_context);
+    j4status_section_free(section->section);
 
-    j4status_section_free(section);
+    g_free(section);
 }
 
 static void
 _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_properties, GStrv invalidated_properties, gpointer user_data)
 {
-    J4statusSection *section = user_data;
-    J4statusSystemdSectionContext *section_context = j4status_section_get_user_data(section);
+    J4statusSystemdSection *section = user_data;
 
-    gchar *state;
-    state = _j4status_systemd_dbus_get_property_string(section_context->unit, "ActiveState", "Unknown");
-    j4status_section_set_value(section, state);
-    if ( ( g_strcmp0(state, "active") == 0 ) || ( g_strcmp0(state, "reloading") == 0 ) )
-        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
-    else if ( ( g_strcmp0(state, "failed") == 0 ) )
-        j4status_section_set_state(section, J4STATUS_STATE_BAD);
+    J4statusState state;
+    gchar *status;
+    status = _j4status_systemd_dbus_get_property_string(section->unit, "ActiveState", "Unknown");
+    if ( ( g_strcmp0(status, "active") == 0 ) || ( g_strcmp0(status, "reloading") == 0 ) )
+        state = J4STATUS_STATE_GOOD;
+    else if ( ( g_strcmp0(status, "failed") == 0 ) )
+        state = J4STATUS_STATE_BAD;
     else
-        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
+        state = J4STATUS_STATE_NO_STATE;
 
-    libj4status_core_trigger_display(section_context->context->core);
+    j4status_section_set_state(section->section, state);
+    j4status_section_set_value(section->section, status);
+
+    libj4status_core_trigger_display(section->context->core);
 }
 
 static void
@@ -167,15 +169,14 @@ _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_nam
     if ( unit == NULL )
         return;
 
-    J4statusSystemdSectionContext *section_context;
-    J4statusSection *section;
+    J4statusSystemdSection *section;
 
-    section_context = g_new0(J4statusSystemdSectionContext, 1);
-    section_context->context = context;
-    section_context->unit = unit;
+    section = g_new0(J4statusSystemdSection, 1);
+    section->context = context;
+    section->unit = unit;
 
-    section = j4status_section_new(context->core, "systemd", unit_name, section_context);
-    j4status_section_set_label(section, unit_name);
+    section->section = j4status_section_new(context->core, "systemd", unit_name, NULL);
+    j4status_section_set_label(section->section, unit_name);
 
     g_signal_connect(unit, "g-properties-changed", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
     _j4status_systemd_unit_state_changed(unit, NULL, NULL, section);
@@ -210,7 +211,6 @@ _j4status_systemd_bus_appeared(GDBusConnection *connection, const gchar *name, c
     gchar **unit;
     for ( unit = context->units ; *unit != NULL ; ++unit )
         _j4status_systemd_add_unit(context, *unit);
-    context->sections = g_list_reverse(context->sections);
 }
 
 static void
