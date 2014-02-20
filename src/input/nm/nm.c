@@ -52,6 +52,7 @@ struct _J4statusPluginContext {
 typedef struct {
     J4statusPluginContext *context;
     NMDevice *device;
+    J4statusSection *section;
 
     gulong state_changed_handler;
 
@@ -61,7 +62,7 @@ typedef struct {
     gulong bitrate_handler;
     gulong active_access_point_handler;
     gulong strength_handler;
-} J4statusNmSectionContext;
+} J4statusNmSection;
 
 static void
 _j4status_nm_device_get_addresses_ipv4(J4statusPluginContext *context, NMDevice *device, GString *addresses)
@@ -139,9 +140,8 @@ _j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *devi
 }
 
 static void
-_j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *section, NMDevice *device)
+_j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *section, NMDevice *device)
 {
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
     J4statusState state = J4STATUS_STATE_NO_STATE;
     gchar *value = NULL;
@@ -220,17 +220,17 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             state = J4STATUS_STATE_AVERAGE;
 
             gchar *ap_text = NULL;
-            if ( section_context->ap != NULL )
+            if ( section->ap != NULL )
             {
                 guint8 strength;
-                strength =  nm_access_point_get_strength(section_context->ap);
+                strength =  nm_access_point_get_strength(section->ap);
                 if ( strength > 75 )
                     state = J4STATUS_STATE_GOOD;
                 else if ( strength < 25 )
                     state = J4STATUS_STATE_BAD;
 
                 const GByteArray *raw_ssid;
-                raw_ssid = nm_access_point_get_ssid(section_context->ap);
+                raw_ssid = nm_access_point_get_ssid(section->ap);
                 ap_text = g_strdup_printf("%03u%% at %.*s, ", strength, raw_ssid->len, (const gchar *)raw_ssid->data);
             }
 
@@ -283,8 +283,8 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
     break;
     }
 
-    j4status_section_set_state(section, state);
-    j4status_section_set_value(section, value);
+    j4status_section_set_state(section->section, state);
+    j4status_section_set_value(section->section, value);
 
     libj4status_core_trigger_display(context->core);
 }
@@ -292,86 +292,81 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
 static void
 _j4status_nm_access_point_property_changed(NMAccessPoint *device, GParamSpec *pspec, gpointer user_data)
 {
-    J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
-    _j4status_nm_device_update(section_context->context, section, section_context->device);
+    J4statusNmSection *section = user_data;
+    _j4status_nm_device_update(section->context, section, section->device);
 }
 
 static void
 _j4status_nm_device_property_changed(NMDevice *device, GParamSpec *pspec, gpointer user_data)
 {
-    J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
-    if ( g_str_equal("active-access-point", pspec->name) )
+    J4statusNmSection *section = user_data;
+    if ( g_strcmp0("active-access-point", pspec->name) == 0 )
     {
-        if ( section_context->ap != NULL )
+        if ( section->ap != NULL )
         {
-            g_signal_handler_disconnect(section_context->ap, section_context->strength_handler);
-            g_object_unref(section_context->ap);
+            g_signal_handler_disconnect(section->ap, section->strength_handler);
+            g_object_unref(section->ap);
         }
-        section_context->ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device));
-        if ( section_context->ap != NULL )
-            section_context->strength_handler = g_signal_connect(g_object_ref(section_context->ap), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
+        section->ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device));
+        if ( section->ap != NULL )
+            section->strength_handler = g_signal_connect(g_object_ref(section->ap), "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
     }
-    _j4status_nm_device_update(section_context->context, section, device);
+    _j4status_nm_device_update(section->context, section, device);
 }
 
 static void
 _j4status_nm_device_state_changed(NMDevice *device, guint state, guint arg2, guint arg3, gpointer user_data)
 {
-    J4statusSection *section = user_data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
-    _j4status_nm_device_update(section_context->context, section, device);
+    J4statusNmSection *section = user_data;
+    _j4status_nm_device_update(section->context, section, device);
 }
 
 static void
 _j4status_nm_device_monitor(gpointer data, gpointer user_data)
 {
-    J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
+    J4statusNmSection *section = data;
 
-    switch ( nm_device_get_device_type(section_context->device) )
+    switch ( nm_device_get_device_type(section->device) )
     {
     case NM_DEVICE_TYPE_WIFI:
-        section_context->bitrate_handler = g_signal_connect(section_context->device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
-        section_context->active_access_point_handler = g_signal_connect(section_context->device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
-        if ( section_context->ap != NULL )
-            section_context->strength_handler = g_signal_connect(section_context->ap, "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
+        section->bitrate_handler = g_signal_connect(section->device, "notify::bitrate", G_CALLBACK(_j4status_nm_device_property_changed), section);
+        section->active_access_point_handler = g_signal_connect(section->device, "notify::active-access-point", G_CALLBACK(_j4status_nm_device_property_changed), section);
+        if ( section->ap != NULL )
+            section->strength_handler = g_signal_connect(section->ap, "notify::strength", G_CALLBACK(_j4status_nm_access_point_property_changed), section);
     break;
     default:
     break;
     }
-    section_context->state_changed_handler = g_signal_connect(section_context->device, "state-changed", G_CALLBACK(_j4status_nm_device_state_changed), section);
-    _j4status_nm_device_update(section_context->context, section, section_context->device);
+    section->state_changed_handler = g_signal_connect(section->device, "state-changed", G_CALLBACK(_j4status_nm_device_state_changed), section);
+    _j4status_nm_device_update(section->context, section, section->device);
 }
 
 static void
 _j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
 {
-    J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
+    J4statusNmSection *section = data;
 
-    switch ( nm_device_get_device_type(section_context->device) )
+    switch ( nm_device_get_device_type(section->device) )
     {
     case NM_DEVICE_TYPE_WIFI:
-        g_signal_handler_disconnect(section_context->device, section_context->bitrate_handler);
-        g_signal_handler_disconnect(section_context->device, section_context->active_access_point_handler);
-        if ( section_context->ap != NULL )
-            g_signal_handler_disconnect(section_context->ap, section_context->strength_handler);
+        g_signal_handler_disconnect(section->device, section->bitrate_handler);
+        g_signal_handler_disconnect(section->device, section->active_access_point_handler);
+        if ( section->ap != NULL )
+            g_signal_handler_disconnect(section->ap, section->strength_handler);
     break;
     default:
     break;
     }
-    g_signal_handler_disconnect(section_context->device, section_context->state_changed_handler);
+    g_signal_handler_disconnect(section->device, section->state_changed_handler);
 }
 
-static J4statusSection *
+static J4statusNmSection *
 _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, NMDevice *device, GList *sibling)
 {
-    J4statusNmSectionContext *section_context;
-    section_context = g_new0(J4statusNmSectionContext, 1);
-    section_context->context = context;
-    section_context->device = g_object_ref(device);
+    J4statusNmSection *section;
+    section = g_new0(J4statusNmSection, 1);
+    section->context = context;
+    section->device = g_object_ref(device);
 
     const gchar *name;
     const gchar *label;
@@ -390,9 +385,9 @@ _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, N
     case NM_DEVICE_TYPE_WIFI:
         name = "nm-wifi";
         label = "W";
-        section_context->ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device));
-        if ( section_context->ap != NULL )
-            g_object_ref(section_context->ap);
+        section->ap = nm_device_wifi_get_active_access_point(NM_DEVICE_WIFI(device));
+        if ( section->ap != NULL )
+            g_object_ref(section->ap);
     break;
     case NM_DEVICE_TYPE_BT:
         name = "nm-bluetooth";
@@ -432,10 +427,9 @@ _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, N
         g_warning("Unsupported device type for interface '%s'", instance);
         return NULL;
     }
-    J4statusSection *section;
-    section = j4status_section_new(context->core, name, instance, section_context);
-    j4status_section_set_label(section, label);
-    context->sections = g_list_insert_before(context->sections, sibling, section);
+    section->section = j4status_section_new(context->core, name, instance, NULL);
+    j4status_section_set_label(section->section, label);
+    context->sections = g_list_prepend(context->sections, section);
 
     return section;
 }
@@ -461,7 +455,7 @@ _j4status_nm_client_device_added(NMClient *client, NMDevice *device, gpointer us
         if ( *(interface+1) != NULL )
             sibling = g_list_find_custom(context->sections, *(interface+1), _j4status_nm_find_interface);
 
-        J4statusSection *section;
+        J4statusNmSection *section;
         section = _j4status_nm_add_device(context, *interface, device, sibling);
         if ( section == NULL )
             return;
@@ -551,14 +545,13 @@ _j4status_nm_init(J4statusCoreInterface *core)
 static void
 _j4status_nm_section_free(gpointer data)
 {
-    J4statusSection *section = data;
-    J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
+    J4statusNmSection *section = data;
 
-    g_object_unref(section_context->device);
+    g_object_unref(section->device);
 
-    g_free(section_context);
+    j4status_section_free(section->section);
 
-    j4status_section_free(section);
+    g_free(section);
 }
 
 static void
