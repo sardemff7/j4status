@@ -34,6 +34,7 @@ struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     GList *sections;
     UpClient *up_client;
+    gboolean started;
 };
 
 static void
@@ -133,7 +134,8 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     }
     j4status_section_set_value(section, value);
 
-    libj4status_core_trigger_display(context->core);
+    if ( context->started || ( state & J4STATUS_STATE_URGENT ) )
+        libj4status_core_trigger_display(context->core);
 }
 
 static J4statusPluginContext *
@@ -286,9 +288,30 @@ _j4status_upower_uninit(J4statusPluginContext *context)
     g_free(context);
 }
 
+static void
+_j4status_upower_start(J4statusPluginContext *context)
+{
+    if ( context == NULL )
+        return;
+
+    context->started = TRUE;
+}
+
+static void
+_j4status_upower_stop(J4statusPluginContext *context)
+{
+    if ( context == NULL )
+        return;
+
+    context->started = FALSE;
+}
+
 void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_upower_init);
     libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_upower_uninit);
+
+    libj4status_input_plugin_interface_add_start_callback(interface, _j4status_upower_start);
+    libj4status_input_plugin_interface_add_stop_callback(interface, _j4status_upower_stop);
 }
