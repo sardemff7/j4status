@@ -152,14 +152,15 @@ _j4status_upower_init(J4statusCoreInterface *core)
     }
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 
-    /* Not using the configuration file
+    gboolean all_devices = FALSE;
+
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("Battery");
+    key_file = libj4status_config_get_key_file("UPower");
     if ( key_file != NULL )
     {
+        all_devices = g_key_file_get_boolean(key_file, "UPower", "AllDevices", NULL);
         g_key_file_free(key_file);
     }
-    */
 
     GPtrArray *devices;
     GObject *device;
@@ -181,6 +182,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
         const gchar *path;
         const gchar *name = NULL;
         const gchar *instance = NULL;
+        const gchar *label = NULL;
 
         path = up_device_get_object_path(UP_DEVICE(device));
         instance = g_utf8_strrchr(path, -1, '/') + strlen("/") + strlen(up_device_kind_to_string(kind)) + strlen("_");
@@ -190,12 +192,71 @@ _j4status_upower_init(J4statusCoreInterface *core)
         case UP_DEVICE_KIND_BATTERY:
             name = "upower-battery";
         break;
-        default:
+        case UP_DEVICE_KIND_UPS:
+            if ( ! all_devices )
+                continue;
+            name = "upower-ups";
+            label = "UPS";
+        break;
+        case UP_DEVICE_KIND_MONITOR:
+            if ( ! all_devices )
+                continue;
+            name = "upower-monitor";
+            label = "Monitor";
+        break;
+        case UP_DEVICE_KIND_MOUSE:
+            if ( ! all_devices )
+                continue;
+            name = "upower-mouse";
+            label = "Mouse";
+        break;
+        case UP_DEVICE_KIND_KEYBOARD:
+            if ( ! all_devices )
+                continue;
+            name = "upower-keyboard";
+            label = "Keyboard";
+        break;
+        case UP_DEVICE_KIND_PDA:
+            if ( ! all_devices )
+                continue;
+            name = "upower-pda";
+            label = "PDA";
+        break;
+        case UP_DEVICE_KIND_PHONE:
+            if ( ! all_devices )
+                continue;
+            name = "upower-phone";
+            label = "Phone";
+        break;
+        case UP_DEVICE_KIND_MEDIA_PLAYER:
+            if ( ! all_devices )
+                continue;
+            name = "upower-media-player";
+            label = "Media player";
+        break;
+        case UP_DEVICE_KIND_TABLET:
+            if ( ! all_devices )
+                continue;
+            name = "upower-tablet";
+            label = "Tablet";
+        break;
+        case UP_DEVICE_KIND_COMPUTER:
+            if ( ! all_devices )
+                continue;
+            name = "upower-computer";
+            label = "Computer";
+        break;
+        case UP_DEVICE_KIND_UNKNOWN:
+        case UP_DEVICE_KIND_LINE_POWER:
+        case UP_DEVICE_KIND_LAST: /* Size placeholder */
             continue;
         }
 
         J4statusSection *section;
         section = j4status_section_new(context->core, name, instance, context);
+        if ( label != NULL )
+            j4status_section_set_label(section, label);
+
 #if UP_CHECK_VERSION(0,99,0)
         g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
         _j4status_upower_device_changed(device, NULL, section);
