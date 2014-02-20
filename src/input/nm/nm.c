@@ -64,6 +64,81 @@ typedef struct {
 } J4statusNmSectionContext;
 
 static void
+_j4status_nm_device_get_addresses_ipv4(J4statusPluginContext *context, NMDevice *device, GString *addresses)
+{
+    NMIP4Config *ip4_config;
+
+    ip4_config = nm_device_get_ip4_config(device);
+    if ( ip4_config == NULL )
+        return;
+
+    const GSList *address_;
+    for ( address_ = nm_ip4_config_get_addresses(ip4_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
+    {
+        guint32 address;
+        address = nm_ip4_address_get_address(address_->data);
+        g_string_append_printf(addresses, "%u.%u.%u.%u", (address >> 0) & 255, (address >> 8) & 255, (address >> 16) & 255, (address >> 24) & 255);
+        if (g_slist_next(address_) != NULL )
+            g_string_append(addresses, ", ");
+    }
+    g_string_append(addresses, " ");
+}
+
+static void
+_j4status_nm_device_get_addresses_ipv6(J4statusPluginContext *context, NMDevice *device, GString *addresses)
+{
+    NMIP6Config *ip6_config;
+
+    ip6_config = nm_device_get_ip6_config(device);
+    if ( ip6_config == NULL )
+        return;
+
+    const GSList *address_;
+    for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
+    {
+        const struct in6_addr *address;
+        address = nm_ip6_address_get_address(address_->data);
+
+        guint b = 0;
+        gboolean shortened = FALSE;
+        gboolean was_shortened = FALSE;
+        guint fragment;
+        for (;;)
+        {
+            fragment = ( address->s6_addr[b] << 8 ) + address->s6_addr[b+1];
+            if ( ( fragment == 0 ) && ( ! was_shortened ) )
+                shortened = TRUE;
+            else
+            {
+                if ( shortened )
+                {
+                    g_string_append_c(addresses, ':');
+                    shortened = FALSE;
+                    was_shortened = TRUE;
+                }
+                g_string_append_printf(addresses, "%x", fragment);
+            }
+            b += 2;
+            if ( b >= 16 )
+                break;
+            if ( ( ! shortened ) || ( b == 0 ) )
+                g_string_append_c(addresses, ':');
+        }
+
+        if (g_slist_next(address_) != NULL )
+            g_string_append(addresses, ", ");
+    }
+    g_string_append(addresses, " ");
+}
+
+static void
+_j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *device, GString *addresses)
+{
+    _j4status_nm_device_get_addresses_ipv4(context, device, addresses);
+    _j4status_nm_device_get_addresses_ipv6(context, device, addresses);
+}
+
+static void
 _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *section, NMDevice *device)
 {
     J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
@@ -131,65 +206,11 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
     break;
     case NM_DEVICE_STATE_ACTIVATED:
     {
-        NMIP4Config *ip4_config;
-        NMIP6Config *ip6_config;
         GString *addresses;
 
         addresses = g_string_new("");
-        ip4_config = nm_device_get_ip4_config(device);
-        if ( ip4_config != NULL )
-        {
-            const GSList *address_;
-            for ( address_ = nm_ip4_config_get_addresses(ip4_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
-            {
-                guint32 address;
-                address = nm_ip4_address_get_address(address_->data);
-                g_string_append_printf(addresses, "%u.%u.%u.%u", (address >> 0) & 255, (address >> 8) & 255, (address >> 16) & 255, (address >> 24) & 255);
-                if (g_slist_next(address_) != NULL )
-                    g_string_append(addresses, ", ");
-            }
-            g_string_append(addresses, " ");
-        }
-        ip6_config = nm_device_get_ip6_config(device);
-        if ( ip6_config != NULL )
-        {
-            const GSList *address_;
-            for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
-            {
-                const struct in6_addr *address;
-                address = nm_ip6_address_get_address(address_->data);
+        _j4status_nm_device_get_addresses(context, device, addresses);
 
-                guint b = 0;
-                gboolean shortened = FALSE;
-                gboolean was_shortened = FALSE;
-                guint fragment;
-                for (;;)
-                {
-                    fragment = ( address->s6_addr[b] << 8 ) + address->s6_addr[b+1];
-                    if ( ( fragment == 0 ) && ( ! was_shortened ) )
-                        shortened = TRUE;
-                    else
-                    {
-                        if ( shortened )
-                        {
-                            g_string_append_c(addresses, ':');
-                            shortened = FALSE;
-                            was_shortened = TRUE;
-                        }
-                        g_string_append_printf(addresses, "%x", fragment);
-                    }
-                    b += 2;
-                    if ( b >= 16 )
-                        break;
-                    if ( ( ! shortened ) || ( b == 0 ) )
-                        g_string_append_c(addresses, ':');
-                }
-
-                if (g_slist_next(address_) != NULL )
-                    g_string_append(addresses, ", ");
-            }
-            g_string_append(addresses, " ");
-        }
         switch ( nm_device_get_device_type(device) )
         {
         case NM_DEVICE_TYPE_WIFI:
