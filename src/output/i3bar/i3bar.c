@@ -25,7 +25,7 @@
 #include <string.h>
 #include <yajl/yajl_gen.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-output.h>
 
 #include <libj4status-config.h>
 

@@ -22,7 +22,8 @@
 
 #include <glib.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-output.h>
+#include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
 J4statusSection *
@@ -68,7 +69,7 @@ j4status_section_get_name(const J4statusSection *self)
 }
 
 gpointer
-j4status_section_get_user_data(const J4statusSection *self)
+j4status_section_get_user_data(J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
 

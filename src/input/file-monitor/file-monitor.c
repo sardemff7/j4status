@@ -24,7 +24,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-input.h>
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {

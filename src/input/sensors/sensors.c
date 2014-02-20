@@ -30,7 +30,7 @@
 #include <glib.h>
 #include <sensors/sensors.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-input.h>
 #include <libj4status-config.h>
 
 #define MAX_CHIP_NAME_SIZE 256

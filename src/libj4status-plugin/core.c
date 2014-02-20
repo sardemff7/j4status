@@ -22,7 +22,8 @@
 
 #include <glib.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-output.h>
+#include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
 void

@@ -28,7 +28,8 @@
 #endif /* G_OS_UNIX */
 #include <gio/gio.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-output.h>
+#include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
 #include <libj4status-config.h>

@@ -27,7 +27,7 @@
 #include <libnm-glib/nm-device-ethernet.h>
 #include <libnm-glib/nm-device-wifi.h>
 
-#include <j4status-plugin.h>
+#include <j4status-plugin-input.h>
 #include <libj4status-config.h>
 
 struct _J4statusPluginContext {
