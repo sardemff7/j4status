@@ -35,7 +35,6 @@ struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     GList *sections;
     gchar **units;
-    GRegex *dbus_name_regex;
     guint watch_id;
     GDBusConnection *connection;
     gboolean started;
@@ -248,8 +247,6 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
 
-    context->dbus_name_regex = g_regex_new("[-._@:\\\\]", G_REGEX_OPTIMIZE, 0, NULL);
-
     context->units = units;
     context->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM, SYSTEMD_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE, _j4status_systemd_bus_appeared, _j4status_systemd_bus_vanished, context, NULL);
 
@@ -265,8 +262,6 @@ _j4status_systemd_uninit(J4statusPluginContext *context)
     g_list_free_full(context->sections, _j4status_systemd_section_free);
 
     g_bus_unwatch_name(context->watch_id);
-
-    g_regex_unref(context->dbus_name_regex);
 
     g_strfreev(context->units);
 
