@@ -20,6 +20,10 @@
  *
  */
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <glib.h>
 #include <upower.h>
 
@@ -34,9 +38,9 @@ struct _J4statusPluginContext {
 
 static void
 #if UP_CHECK_VERSION(0,99,0)
-_j4status_upower_battery_changed(GObject *device, GParamSpec *pspec, gpointer user_data)
+_j4status_upower_device_changed(GObject *device, GParamSpec *pspec, gpointer user_data)
 #else /* ! UP_CHECK_VERSION(0,99,0) */
-_j4status_upower_battery_changed(GObject *device, gpointer user_data)
+_j4status_upower_device_changed(GObject *device, gpointer user_data)
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 {
     J4statusSection *section = user_data;
@@ -159,40 +163,49 @@ _j4status_upower_init(J4statusCoreInterface *core)
 
     GPtrArray *devices;
     GObject *device;
-    gchar *name;
     guint i;
 
     devices = up_client_get_devices(context->up_client);
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
-        name = g_path_get_basename(up_device_get_object_path(UP_DEVICE(device)));
-        J4statusSection *section;
 
         GValue value = G_VALUE_INIT;
+        UpDeviceKind kind;
 
         g_value_init(&value, G_TYPE_INT);
         g_object_get_property(device, "kind", &value);
-        switch ( g_value_get_int(&value) )
+        kind = g_value_get_int(&value);
+        g_value_unset(&value);
+
+        const gchar *path;
+        const gchar *name = NULL;
+        const gchar *instance = NULL;
+
+        path = up_device_get_object_path(UP_DEVICE(device));
+        instance = g_utf8_strrchr(path, -1, '/') + strlen("/") + strlen(up_device_kind_to_string(kind)) + strlen("_");
+
+        switch ( kind )
         {
         case UP_DEVICE_KIND_BATTERY:
-            section = j4status_section_new(context->core, "upower-battery", name, context);
-#if UP_CHECK_VERSION(0,99,0)
-            g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_battery_changed), section);
-            _j4status_upower_battery_changed(device, NULL, section);
-#else /* ! UP_CHECK_VERSION(0,99,0) */
-            g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_battery_changed), section);
-            _j4status_upower_battery_changed(device, section);
-#endif /* ! UP_CHECK_VERSION(0,99,0) */
+            name = "upower-battery";
         break;
         default:
-            goto next;
+            continue;
         }
+
+        J4statusSection *section;
+        section = j4status_section_new(context->core, name, instance, context);
+#if UP_CHECK_VERSION(0,99,0)
+        g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
+        _j4status_upower_device_changed(device, NULL, section);
+#else /* ! UP_CHECK_VERSION(0,99,0) */
+        g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
+        _j4status_upower_device_changed(device, section);
+#endif /* ! UP_CHECK_VERSION(0,99,0) */
 
         context->sections = g_list_prepend(context->sections, section);
 
-    next:
-        g_free(name);
     }
     g_ptr_array_unref(devices);
 
