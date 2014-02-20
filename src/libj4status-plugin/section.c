@@ -28,6 +28,9 @@
 J4statusSection *
 j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instance, gpointer user_data)
 {
+    g_return_val_if_fail(core != NULL, NULL);
+    g_return_val_if_fail(name != NULL, NULL);
+
     J4statusSection *self;
 
     self = g_new0(J4statusSection, 1);
@@ -44,6 +47,8 @@ j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar
 void
 j4status_section_free(J4statusSection *self)
 {
+    g_return_if_fail(self != NULL);
+
     g_free(self->cache);
 
     g_free(self->value);
@@ -57,54 +62,72 @@ j4status_section_free(J4statusSection *self)
 const gchar *
 j4status_section_get_name(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->name;
 }
 
 gpointer
 j4status_section_get_user_data(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->user_data;
 }
 
 const gchar *
 j4status_section_get_instance(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->instance;
 }
 
 J4statusState
 j4status_section_get_state(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, J4STATUS_STATE_NO_STATE);
+
     return self->state;
 }
 
 const gchar *
 j4status_section_get_label(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->label;
 }
 
 const gchar *
 j4status_section_get_value(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->value;
 }
 
 const gchar *
 j4status_section_get_cache(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, NULL);
+
     return self->cache;
 }
 
 gboolean
 j4status_section_is_dirty(const J4statusSection *self)
 {
+    g_return_val_if_fail(self != NULL, TRUE);
+
     return self->dirty;
 }
 
 void
 j4status_section_set_state(J4statusSection *self, J4statusState state)
 {
+    g_return_if_fail(self != NULL);
+
     self->dirty = TRUE;
     self->state = state;
 }
@@ -112,6 +135,8 @@ j4status_section_set_state(J4statusSection *self, J4statusState state)
 void
 j4status_section_set_label(J4statusSection *self, const gchar *label)
 {
+    g_return_if_fail(self != NULL);
+
     self->dirty = TRUE;
     g_free(self->label);
     self->label = g_strdup(label);
@@ -120,6 +145,8 @@ j4status_section_set_label(J4statusSection *self, const gchar *label)
 void
 j4status_section_set_value(J4statusSection *self, gchar *value)
 {
+    g_return_if_fail(self != NULL);
+
     self->dirty = TRUE;
     g_free(self->value);
     self->value = value;
@@ -128,6 +155,8 @@ j4status_section_set_value(J4statusSection *self, gchar *value)
 void
 j4status_section_set_cache(J4statusSection *self, gchar *cache)
 {
+    g_return_if_fail(self != NULL);
+
     g_free(self->cache);
     self->cache = cache;
     self->dirty = FALSE;
