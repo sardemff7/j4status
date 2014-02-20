@@ -143,22 +143,24 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
 {
     J4statusNmSectionContext *section_context = j4status_section_get_user_data(section);
 
+    J4statusState state = J4STATUS_STATE_NO_STATE;
+    gchar *value = NULL;
     switch ( nm_device_get_state(device) )
     {
     case NM_DEVICE_STATE_UNKNOWN:
-        j4status_section_set_value(section, context->show_unknown ? g_strdup("Unknown") : NULL);
-        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
+        state = J4STATUS_STATE_NO_STATE;
+        value = context->show_unknown ? g_strdup("Unknown") : NULL;
     break;
     case NM_DEVICE_STATE_UNMANAGED:
-        j4status_section_set_value(section, context->show_unmanaged ? g_strdup("Unmanaged") : NULL);
-        j4status_section_set_state(section, J4STATUS_STATE_NO_STATE);
+        state = J4STATUS_STATE_NO_STATE;
+        value = context->show_unmanaged ? g_strdup("Unmanaged") : NULL;
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
-        j4status_section_set_value(section, context->hide_unavailable ? NULL : g_strdup("Unavailable"));
-        j4status_section_set_state(section, J4STATUS_STATE_UNAVAILABLE);
+        state = J4STATUS_STATE_UNAVAILABLE;
+        value = context->hide_unavailable ? NULL : g_strdup("Unavailable");
     break;
     case NM_DEVICE_STATE_DISCONNECTED:
-        j4status_section_set_state(section, J4STATUS_STATE_BAD);
+        state = J4STATUS_STATE_BAD;
         switch ( nm_device_get_device_type(device) )
         {
         case NM_DEVICE_TYPE_WIFI:
@@ -171,38 +173,38 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 if ( aps != NULL )
                     aps_number = g_strdup_printf(" (%u APs)", aps->len);
             }
-            j4status_section_set_value(section, g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : ""));
+            value = g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : "");
             g_free(aps_number);
         }
         break;
         default:
-            j4status_section_set_value(section, g_strdup("Down"));
+            value = g_strdup("Down");
         break;
         }
     break;
     case NM_DEVICE_STATE_PREPARE:
-        j4status_section_set_value(section, g_strdup("Prepare"));
-        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
+        state = J4STATUS_STATE_AVERAGE;
+        value = g_strdup("Prepare");
     break;
     case NM_DEVICE_STATE_CONFIG:
-        j4status_section_set_value(section, g_strdup("Config"));
-        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
+        state = J4STATUS_STATE_AVERAGE;
+        value = g_strdup("Config");
     break;
     case NM_DEVICE_STATE_NEED_AUTH:
-        j4status_section_set_value(section, g_strdup("Need auth"));
-        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
+        state = J4STATUS_STATE_AVERAGE;
+        value = g_strdup("Need auth");
     break;
     case NM_DEVICE_STATE_IP_CONFIG:
-        j4status_section_set_value(section, g_strdup("IP configuration"));
-        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+        state = J4STATUS_STATE_GOOD;
+        value = g_strdup("IP configuration");
     break;
     case NM_DEVICE_STATE_IP_CHECK:
-        j4status_section_set_value(section, g_strdup("IP check"));
-        j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+        state = J4STATUS_STATE_GOOD;
+        value = g_strdup("IP check");
     break;
     case NM_DEVICE_STATE_SECONDARIES:
-        j4status_section_set_value(section, g_strdup("Secondaries"));
-        j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
+        state = J4STATUS_STATE_AVERAGE;
+        value = g_strdup("Secondaries");
     break;
     case NM_DEVICE_STATE_ACTIVATED:
     {
@@ -215,7 +217,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         {
         case NM_DEVICE_TYPE_WIFI:
         {
-            j4status_section_set_state(section, J4STATUS_STATE_AVERAGE);
+            state = J4STATUS_STATE_AVERAGE;
 
             gchar *ap_text = NULL;
             if ( section_context->ap != NULL )
@@ -223,9 +225,9 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
                 guint8 strength;
                 strength =  nm_access_point_get_strength(section_context->ap);
                 if ( strength > 75 )
-                    j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+                    state = J4STATUS_STATE_GOOD;
                 else if ( strength < 25 )
-                    j4status_section_set_state(section, J4STATUS_STATE_BAD);
+                    state = J4STATUS_STATE_BAD;
 
                 const GByteArray *raw_ssid;
                 raw_ssid = nm_access_point_get_ssid(section_context->ap);
@@ -235,7 +237,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             guint32 bitrate;
             bitrate = nm_device_wifi_get_bitrate(NM_DEVICE_WIFI(device));
 
-            j4status_section_set_value(section, g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000));
+            value = g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000);
 
             g_free(ap_text);
             g_string_free(addresses, TRUE);
@@ -243,7 +245,7 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
         break;
         case NM_DEVICE_TYPE_ETHERNET:
         {
-            j4status_section_set_state(section, J4STATUS_STATE_GOOD);
+            state = J4STATUS_STATE_GOOD;
 
             guint32 speed;
             speed = nm_device_ethernet_get_speed(NM_DEVICE_ETHERNET(device));
@@ -251,35 +253,39 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusSection *sect
             if ( speed == 0 )
             {
                 g_string_truncate(addresses, addresses->len - 1);
-                j4status_section_set_value(section, g_string_free(addresses, FALSE));
+                value = g_string_free(addresses, FALSE);
             }
             else
             {
                     if ( ( speed % 1000 ) == 0 )
-                    j4status_section_set_value(section, g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000));
+                    value = g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000);
                 else
-                    j4status_section_set_value(section, g_strdup_printf("%s(%uMb/s)", addresses->str, speed));
+                    value = g_strdup_printf("%s(%uMb/s)", addresses->str, speed);
 
                 g_string_free(addresses, TRUE);
             }
         }
         break;
         default:
-            j4status_section_set_state(section, J4STATUS_STATE_GOOD);
-            j4status_section_set_value(section, g_string_free(addresses, FALSE));
+            state = J4STATUS_STATE_GOOD;
+            value = g_string_free(addresses, FALSE);
         break;
         }
     }
     break;
     case NM_DEVICE_STATE_DEACTIVATING:
-        j4status_section_set_value(section, g_strdup("Disconnecting"));
-        j4status_section_set_state(section, J4STATUS_STATE_BAD);
+        state = J4STATUS_STATE_BAD;
+        value = g_strdup("Disconnecting");
     break;
     case NM_DEVICE_STATE_FAILED:
-        j4status_section_set_value(section, g_strdup("Failed"));
-        j4status_section_set_state(section, J4STATUS_STATE_BAD);
+        state = J4STATUS_STATE_BAD;
+        value = g_strdup("Failed");
     break;
     }
+
+    j4status_section_set_state(section, state);
+    j4status_section_set_value(section, value);
+
     libj4status_core_trigger_display(context->core);
 }
 
