@@ -45,7 +45,6 @@ struct _J4statusPluginContext {
 };
 
 typedef struct {
-    J4statusPluginContext *context;
     J4statusSection *section;
     const sensors_chip_name *chip;
     const sensors_feature *feature;
@@ -54,12 +53,9 @@ typedef struct {
     const sensors_subfeature *crit;
 } J4statusSensorsFeature;
 
-static gboolean
-_j4status_sensors_feature_temp_update(gpointer user_data)
+static void
+_j4status_sensors_feature_temp_update(J4statusPluginContext *context, J4statusSensorsFeature *feature)
 {
-    J4statusSensorsFeature *feature = user_data;
-    J4statusPluginContext *context = feature->context;
-
     double curr;
     sensors_get_value(feature->chip, feature->input->number, &curr);
 
@@ -82,7 +78,7 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
         state |= J4STATUS_STATE_URGENT;
 
     if ( ( ! context->started ) && ( ( state & J4STATUS_STATE_URGENT ) == 0 ) )
-        return TRUE;
+        return;
 
     j4status_section_set_state(feature->section, state);
 
@@ -101,6 +97,16 @@ _j4status_sensors_feature_temp_update(gpointer user_data)
     j4status_section_set_value(feature->section, value);
 
     libj4status_core_trigger_display(context->core);
+}
+
+static gboolean
+_j4status_sensors_update(gpointer user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    GList *feature;
+    for ( feature = context->sections ; feature != NULL ; feature = g_list_next(feature) )
+        _j4status_sensors_feature_temp_update(context, feature->data);
 
     return TRUE;
 }
@@ -125,7 +131,6 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     J4statusSensorsFeature *sensor_feature;
     sensor_feature = g_new0(J4statusSensorsFeature, 1);
-    sensor_feature->context = context;
     sensor_feature->section = j4status_section_new(context->core, "sensors", name);
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
@@ -137,8 +142,6 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     label = sensors_get_label(chip, feature);
     j4status_section_set_label(sensor_feature->section, label);
     free(label);
-
-    g_timeout_add_seconds(2, _j4status_sensors_feature_temp_update, sensor_feature);
 
     context->sections = g_list_prepend(context->sections, sensor_feature);
 }
@@ -206,6 +209,8 @@ _j4status_sensors_init(J4statusCoreInterface *core)
     }
     g_strfreev(sensors);
 
+    g_timeout_add_seconds(2, _j4status_sensors_update, context);
+
     return context;
 }
 
@@ -239,10 +244,7 @@ _j4status_sensors_start(J4statusPluginContext *context)
         return;
 
     context->started = TRUE;
-
-    GList *section;
-    for ( section = context->sections ; section != NULL ; section = g_list_next(section) )
-        _j4status_sensors_feature_temp_update(section->data);
+    _j4status_sensors_update(context);
 }
 
 static void
