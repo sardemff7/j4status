@@ -74,6 +74,16 @@
             <variablelist>
                 <varlistentry>
                     <term>
+                        <varname>Interval=</varname>
+                        (A <type>number of seconds</type>, defaults to <literal>1</literal>)
+                    </term>
+                    <listitem>
+                        <para>The number of seconds between each update.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>Format=</varname>
                         (<type>format string</type>, defaults to <literal>"%F %T"</literal>)
                     </term>

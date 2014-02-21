@@ -31,8 +31,9 @@
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
-    GList *sections;
+    guint64 interval;
     gchar *format;
+    GList *sections;
     guint timeout_id;
 };
 
@@ -99,6 +100,8 @@ _j4status_time_init(J4statusCoreInterface *core)
     key_file = libj4status_config_get_key_file("Time");
     if ( key_file != NULL )
     {
+        context->interval = g_key_file_get_uint64(key_file, "Time", "Interval", NULL);
+
         gchar *format;
         format = g_key_file_get_string(key_file, "Time", "Format", NULL);
         if ( format != NULL )
@@ -121,6 +124,8 @@ _j4status_time_init(J4statusCoreInterface *core)
 
         g_key_file_free(key_file);
     }
+    if ( context->interval < 1 )
+        context->interval = 1;
 
     if ( timezones == NULL )
         _j4status_time_add_section(context, NULL, NULL);
@@ -178,7 +183,7 @@ static void
 _j4status_time_start(J4statusPluginContext *context)
 {
     _j4status_time_update(context);
-    context->timeout_id = g_timeout_add_seconds(1, _j4status_time_update, context);
+    context->timeout_id = g_timeout_add_seconds(context->interval, _j4status_time_update, context);
 }
 
 static void
