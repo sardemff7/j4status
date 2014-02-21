@@ -310,7 +310,7 @@ main(int argc, char *argv[])
         g_error("No usable output plugin, tried '%s'", output_plugin);
 
     context->input_plugins = j4status_plugins_get_input_plugins(&interface, input_plugins);
-    if ( context->input_plugins )
+    if ( context->input_plugins == NULL )
     {
         g_warning("No input plugins, will stop early");
         one_shot = TRUE;
