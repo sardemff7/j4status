@@ -261,6 +261,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
 
         J4statusUpowerSection *section;
         section = g_new0(J4statusUpowerSection, 1);
+        section->context = context;
         section->section = j4status_section_new(context->core, name, instance);
         if ( label != NULL )
             j4status_section_set_label(section->section, label);
