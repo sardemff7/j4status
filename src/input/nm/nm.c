@@ -32,8 +32,7 @@
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
-    GList *sections;
-    gchar **interfaces;
+    GHashTable *sections;
 
     /* Generic configuration */
     gboolean show_unknown;
@@ -51,6 +50,7 @@ struct _J4statusPluginContext {
 
 typedef struct {
     J4statusPluginContext *context;
+    const gchar *interface;
     NMDevice *device;
     J4statusSection *section;
 
@@ -322,7 +322,7 @@ _j4status_nm_device_state_changed(NMDevice *device, guint state, guint arg2, gui
 }
 
 static void
-_j4status_nm_device_monitor(gpointer data, gpointer user_data)
+_j4status_nm_device_monitor(gpointer key, gpointer data, gpointer user_data)
 {
     J4statusNmSection *section = data;
 
@@ -342,7 +342,7 @@ _j4status_nm_device_monitor(gpointer data, gpointer user_data)
 }
 
 static void
-_j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
+_j4status_nm_device_unmonitor(gpointer key, gpointer data, gpointer user_data)
 {
     J4statusNmSection *section = data;
 
@@ -360,12 +360,9 @@ _j4status_nm_device_unmonitor(gpointer data, gpointer user_data)
     g_signal_handler_disconnect(section->device, section->state_changed_handler);
 }
 
-static J4statusNmSection *
-_j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, NMDevice *device, GList *sibling)
+static void
+_j4status_nm_section_attach_device(J4statusPluginContext *context, J4statusNmSection *section, NMDevice *device)
 {
-    J4statusNmSection *section;
-    section = g_new0(J4statusNmSection, 1);
-    section->context = context;
     section->device = g_object_ref(device);
 
     const gchar *name;
@@ -424,63 +421,72 @@ _j4status_nm_add_device(J4statusPluginContext *context, const gchar *instance, N
     break;
 #endif /* NM_CHECK_VERSION(0.9.5) */
     default:
-        g_warning("Unsupported device type for interface '%s'", instance);
-        return NULL;
+        g_warning("Unsupported device type for interface '%s'", section->interface);
+        return;
     }
-    section->section = j4status_section_new(context->core, name, instance);
+    section->section = j4status_section_new(context->core, name, section->interface);
     j4status_section_set_label(section->section, label);
-    context->sections = g_list_prepend(context->sections, section);
 
-    return section;
+    if ( context->started )
+        _j4status_nm_device_monitor(NULL, section, NULL);
 }
 
-static gint
-_j4status_nm_find_interface(gconstpointer section, gconstpointer iface)
+static void
+_j4status_nm_section_detach_device(J4statusNmSection *section)
 {
-    return g_strcmp0(j4status_section_get_instance(section), iface);
+    g_object_unref(section->device);
+    section->device = NULL;
+    j4status_section_free(section->section);
+    section->section = NULL;
 }
 
 static void
 _j4status_nm_client_device_added(NMClient *client, NMDevice *device, gpointer user_data)
 {
     J4statusPluginContext *context = user_data;
-    const gchar *iface = nm_device_get_iface(device);
-    gchar **interface;
-    for ( interface = context->interfaces ; *interface != NULL ; ++interface )
-    {
-        if ( ! g_str_equal(*interface, iface) )
-            continue;
-
-        GList *sibling = NULL;
-        if ( *(interface+1) != NULL )
-            sibling = g_list_find_custom(context->sections, *(interface+1), _j4status_nm_find_interface);
-
-        J4statusNmSection *section;
-        section = _j4status_nm_add_device(context, *interface, device, sibling);
-        if ( section == NULL )
-            return;
-        if ( context->started )
-            _j4status_nm_device_monitor(section, NULL);
-    }
+    J4statusNmSection *section;
+    section = g_hash_table_lookup(context->sections, nm_device_get_iface(device));
+    if ( section != NULL )
+        _j4status_nm_section_attach_device(context, section, device);
 }
 
 static void
 _j4status_nm_client_device_removed(NMClient *client, NMDevice *device, gpointer user_data)
 {
     J4statusPluginContext *context = user_data;
-    GList *section_;
-    section_ = g_list_find_custom(context->sections, nm_device_get_iface(device), _j4status_nm_find_interface);
-    if ( section_ == NULL )
-        return;
-
-    J4statusSection *section;
-    section = section_->data;
-    context->sections = g_list_delete_link(context->sections, section_);
-
-    j4status_section_free(section);
+    J4statusNmSection *section;
+    section = g_hash_table_lookup(context->sections, nm_device_get_iface(device));
+    if ( section != NULL )
+        _j4status_nm_section_detach_device(section);
 }
 
-static void _j4status_nm_uninit(J4statusPluginContext *context);
+static void
+_j4status_nm_section_new(J4statusPluginContext *context, gchar *interface)
+{
+    J4statusNmSection *section;
+    section = g_new0(J4statusNmSection, 1);
+    section->context = context;
+    section->interface = interface;
+
+    g_hash_table_insert(context->sections, interface, section);
+
+    NMDevice *device;
+    device = nm_client_get_device_by_iface(context->nm_client, interface);
+    if ( device != NULL )
+        _j4status_nm_section_attach_device(context, section, device);
+}
+
+static void
+_j4status_nm_section_free(gpointer data)
+{
+    J4statusNmSection *section = data;
+
+    g_object_unref(section->device);
+
+    j4status_section_free(section->section);
+
+    g_free(section);
+}
 
 static J4statusPluginContext *
 _j4status_nm_init(J4statusCoreInterface *core)
@@ -502,7 +508,7 @@ _j4status_nm_init(J4statusCoreInterface *core)
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
 
-    context->interfaces = interfaces;
+    context->sections = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, _j4status_nm_section_free);
 
     context->show_unknown = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnknown", NULL);
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
@@ -514,27 +520,10 @@ _j4status_nm_init(J4statusCoreInterface *core)
 
     context->nm_client = nm_client_new();
 
-    const GPtrArray *devices;
-    devices = nm_client_get_devices(context->nm_client);
-    if ( devices == NULL )
-    {
-        _j4status_nm_uninit(context);
-        return NULL;
-    }
-
     gchar **interface;
-    for ( interface = context->interfaces ; *interface != NULL ; ++interface )
-    {
-        NMDevice *device;
-        guint i;
-        for ( i = 0 ; i < devices->len ; ++i )
-        {
-            device = g_ptr_array_index(devices, i);
-            if ( ! g_str_equal(*interface, nm_device_get_iface(device)) )
-                continue;
-            _j4status_nm_add_device(context, *interface, device, context->sections);
-        }
-    }
+    for ( interface = interfaces ; *interface != NULL ; ++interface )
+        _j4status_nm_section_new(context, *interface);
+    g_free(interfaces);
 
     g_signal_connect(context->nm_client, "device-added", G_CALLBACK(_j4status_nm_client_device_added), context);
     g_signal_connect(context->nm_client, "device-removed", G_CALLBACK(_j4status_nm_client_device_removed), context);
@@ -543,27 +532,14 @@ _j4status_nm_init(J4statusCoreInterface *core)
 }
 
 static void
-_j4status_nm_section_free(gpointer data)
-{
-    J4statusNmSection *section = data;
-
-    g_object_unref(section->device);
-
-    j4status_section_free(section->section);
-
-    g_free(section);
-}
-
-static void
 _j4status_nm_uninit(J4statusPluginContext *context)
 {
     if ( context == NULL )
         return;
 
-    g_list_free_full(context->sections, _j4status_nm_section_free);
+    g_hash_table_unref(context->sections);
 
     g_object_unref(context->nm_client);
-    g_strfreev(context->interfaces);
 
     g_free(context);
 }
@@ -574,7 +550,7 @@ _j4status_nm_start(J4statusPluginContext *context)
     if ( context == NULL )
         return;
 
-    g_list_foreach(context->sections, _j4status_nm_device_monitor, NULL);
+    g_hash_table_foreach(context->sections, _j4status_nm_device_monitor, NULL);
     context->started = TRUE;
 }
 
@@ -585,7 +561,7 @@ _j4status_nm_stop(J4statusPluginContext *context)
         return;
 
     context->started = FALSE;
-    g_list_foreach(context->sections, _j4status_nm_device_unmonitor, NULL);
+    g_hash_table_foreach(context->sections, _j4status_nm_device_unmonitor, NULL);
 }
 
 void
