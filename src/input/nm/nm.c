@@ -481,7 +481,8 @@ _j4status_nm_section_free(gpointer data)
 {
     J4statusNmSection *section = data;
 
-    g_object_unref(section->device);
+    if ( section->device != NULL )
+        g_object_unref(section->device);
 
     j4status_section_free(section->section);
 
