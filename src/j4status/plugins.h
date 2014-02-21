@@ -35,8 +35,8 @@ typedef struct {
     J4statusInputPluginInterface interface;
 } J4statusInputPlugin;
 
-J4statusOutputPlugin *j4status_plugins_get_output_plugin(const gchar *name);
+J4statusOutputPlugin *j4status_plugins_get_output_plugin(J4statusCoreInterface *core, const gchar *name);
 
-GList *j4status_plugins_get_input_plugins(gchar **names);
+GList *j4status_plugins_get_input_plugins(J4statusCoreInterface *core, gchar **names);
 
 #endif /* __J4STATUS_PLUGINS_H__ */

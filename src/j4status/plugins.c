@@ -21,6 +21,7 @@
  */
 
 #include <glib.h>
+#include <glib/gstdio.h>
 #include <gmodule.h>
 
 #include <j4status-plugin-output.h>
@@ -84,10 +85,10 @@ _j4status_plugins_get_module(const gchar *file)
 typedef void(*J4statusOutputPluginGetInterfaceFunc)(J4statusOutputPluginInterface *interface);
 
 J4statusOutputPlugin *
-j4status_plugins_get_output_plugin(const gchar *name)
+j4status_plugins_get_output_plugin(J4statusCoreInterface *core, const gchar *name)
 {
     if ( name == NULL )
-        return j4status_plugins_get_output_plugin("flat");
+        return j4status_plugins_get_output_plugin(core, "flat");
     GModule *module;
 
     gchar *file;
@@ -96,7 +97,7 @@ j4status_plugins_get_output_plugin(const gchar *name)
     g_free(file);
 
     if ( ( module == NULL ) && ( ! g_str_equal(name, "flat") ) )
-        return j4status_plugins_get_output_plugin("flat");
+        return j4status_plugins_get_output_plugin(core, "flat");
 
     J4statusOutputPluginGetInterfaceFunc func;
 
@@ -115,13 +116,30 @@ j4status_plugins_get_output_plugin(const gchar *name)
 
     func(&plugin->interface);
 
+    if ( plugin->interface.init != NULL )
+    {
+        plugin->context = plugin->interface.init(core);
+        if ( plugin->context == NULL )
+        {
+            /*
+             * Returning NULL here means the plugin will not work.
+             * Just return anything but NULL if you needs init
+             * without a context.
+             */
+            g_module_close(plugin->module);
+            g_free(module);
+            return NULL;
+        }
+        fflush(stdout);
+    }
+
     return plugin;
 }
 
 typedef void(*J4statusInputPluginGetInterfaceFunc)(J4statusInputPluginInterface *interface);
 
 static J4statusInputPlugin *
-j4status_plugins_get_input_plugin(const gchar *name)
+j4status_plugins_get_input_plugin(J4statusCoreInterface *core, const gchar *name)
 {
     if ( name == NULL )
         return NULL;
@@ -152,11 +170,27 @@ j4status_plugins_get_input_plugin(const gchar *name)
 
     func(&plugin->interface);
 
+    if ( plugin->interface.init != NULL )
+    {
+        plugin->context = plugin->interface.init(core);
+        if ( plugin->context == NULL )
+        {
+            /*
+             * Returning NULL here means the plugin will not work.
+             * Just return anything but NULL if you needs init
+             * without a context.
+             */
+            g_module_close(plugin->module);
+            g_free(module);
+            return NULL;
+        }
+    }
+
     return plugin;
 }
 
 GList *
-j4status_plugins_get_input_plugins(gchar **names)
+j4status_plugins_get_input_plugins(J4statusCoreInterface *core, gchar **names)
 {
     if ( names == NULL )
         return NULL;
@@ -167,7 +201,7 @@ j4status_plugins_get_input_plugins(gchar **names)
     J4statusInputPlugin *plugin;
     for ( name = names ; *name != NULL ; ++name )
     {
-        plugin = j4status_plugins_get_input_plugin(*name);
+        plugin = j4status_plugins_get_input_plugin(core, *name);
         if ( plugin != NULL )
             input_plugins = g_list_prepend(input_plugins, plugin);
     }

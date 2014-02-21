@@ -22,7 +22,7 @@
 
 #include <glib.h>
 #include <glib-object.h>
-#include <glib/gprintf.h>
+#include <glib/gstdio.h>
 #ifdef G_OS_UNIX
 #include <glib-unix.h>
 #endif /* G_OS_UNIX */
@@ -305,24 +305,15 @@ main(int argc, char *argv[])
     g_unix_signal_add(SIGHUP, _j4status_core_signal_hup, context);
 #endif /* G_OS_UNIX */
 
-    context->output_plugin = j4status_plugins_get_output_plugin(output_plugin);
+    context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
     if ( context->output_plugin == NULL )
         g_error("No usable output plugin, tried '%s'", output_plugin);
 
-    context->input_plugins = j4status_plugins_get_input_plugins(input_plugins);
-
-    if ( context->output_plugin->interface.init != NULL )
+    context->input_plugins = j4status_plugins_get_input_plugins(&interface, input_plugins);
+    if ( context->input_plugins )
     {
-        context->output_plugin->context = context->output_plugin->interface.init(&interface);
-        fflush(stdout);
-    }
-
-    GList *input_plugin_;
-    J4statusInputPlugin *input_plugin;
-    for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
-    {
-        input_plugin = input_plugin_->data;
-        input_plugin->context = input_plugin->interface.init(&interface);
+        g_warning("No input plugins, will stop early");
+        one_shot = TRUE;
     }
     context->sections = g_list_reverse(context->sections);
 
@@ -335,6 +326,8 @@ main(int argc, char *argv[])
     g_main_loop_run(context->loop);
     g_main_loop_unref(context->loop);
 
+    GList *input_plugin_;
+    J4statusInputPlugin *input_plugin;
     for ( input_plugin_ = context->input_plugins ; input_plugin_ != NULL ; input_plugin_ = g_list_next(input_plugin_) )
     {
         input_plugin = input_plugin_->data;
