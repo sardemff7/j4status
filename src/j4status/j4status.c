@@ -20,6 +20,10 @@
  *
  */
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <glib.h>
 #include <glib-object.h>
 #include <glib/gstdio.h>
@@ -40,6 +44,7 @@ struct _J4statusCoreContext {
     guint interval;
     GMainLoop *loop;
     GList *input_plugins;
+    GHashTable *order_weights;
     GList *sections;
     J4statusOutputPlugin *output_plugin;
     gulong display_handle;
@@ -93,11 +98,40 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
 
 #endif /* ! DEBUG */
 
-void
+static gint
+_j4status_core_compare_sections(gconstpointer a_, gconstpointer b_)
+{
+    const J4statusSection *a = a_, *b = b_;
+    return (a->weight - b->weight);
+}
+
+static void
 _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
 {
-    context->sections = g_list_prepend(context->sections, section);
-    section->link = context->sections;
+    if ( context->order_weights != NULL )
+    {
+        if ( section->instance == NULL )
+            section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->name));
+        else
+        {
+            gchar id[strlen(section->name) + 1 + strlen(section->instance) + 1], *e;
+            e = stpcpy(id, section->name);
+            *e = ':';
+            strcpy(++e, section->instance);
+            section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, id));
+        }
+    }
+    if ( context->loop == NULL )
+    {
+        /* We are not started, thus sort has yet to happen */
+        context->sections = g_list_prepend(context->sections, section);
+        section->link = context->sections;
+    }
+    else
+    {
+        context->sections = g_list_insert_sorted(context->sections, section, _j4status_core_compare_sections);
+        section->link = g_list_find(context->sections, section);
+    }
 }
 
 void
@@ -197,6 +231,7 @@ main(int argc, char *argv[])
     gboolean one_shot = FALSE;
     gchar *output_plugin = NULL;
     gchar **input_plugins = NULL;
+    gchar **order = NULL;
     gchar *config = NULL;
 
     int retval = 0;
@@ -253,6 +288,7 @@ main(int argc, char *argv[])
     {
         { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
         { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
+        { "order",    'O', 0, G_OPTION_ARG_STRING_ARRAY, &order,         "Order of sections, specified once a section (see man)", "<section id>" },
         { "one-shot", '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
         { "config",   'c', 0, G_OPTION_ARG_STRING,       &config,        "Config file to use", "<config>" },
         { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
@@ -293,6 +329,9 @@ main(int argc, char *argv[])
         if ( input_plugins == NULL )
             input_plugins = g_key_file_get_string_list(key_file, "Plugins", "Input", NULL, NULL);
 
+        if ( order == NULL )
+            order = g_key_file_get_string_list(key_file, "Plugins", "Order", NULL, NULL);
+
         g_key_file_free(key_file);
     }
 
@@ -317,6 +356,15 @@ main(int argc, char *argv[])
     if ( context->output_plugin == NULL )
         g_error("No usable output plugin, tried '%s'", output_plugin);
 
+    if ( order != NULL )
+    {
+        context->order_weights = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+        gchar **id;
+        for ( id = order ; *id != NULL ; ++id )
+            g_hash_table_insert(context->order_weights, *id, GINT_TO_POINTER(1 + id - order));
+        g_free(order);
+    }
+
     context->input_plugins = j4status_plugins_get_input_plugins(&interface, input_plugins);
     if ( context->input_plugins == NULL )
     {
@@ -324,6 +372,8 @@ main(int argc, char *argv[])
         one_shot = TRUE;
     }
     context->sections = g_list_reverse(context->sections);
+    if ( context->order_weights != NULL )
+        context->sections = g_list_sort(context->sections, _j4status_core_compare_sections);
 
     _j4status_core_start(context);
 
@@ -347,6 +397,9 @@ main(int argc, char *argv[])
         context->output_plugin->interface.uninit(context->output_plugin->context);
         fflush(stdout);
     }
+
+    if ( context->order_weights != NULL )
+        g_hash_table_unref(context->order_weights);
 
 end:
 #if DEBUG

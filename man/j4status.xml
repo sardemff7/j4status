@@ -146,6 +146,17 @@
             </varlistentry>
 
             <varlistentry>
+                <term><option>-O</option></term>
+                <term><option>--order=<replaceable class="parameter">plugin</replaceable></option></term>
+                <listitem>
+                    <para>Order of sections</para>
+                    <para>May be specified multiple times.</para>
+                    <para>See <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>.</para>
+                    <para></para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
                 <term><option>-1</option></term>
                 <term><option>--one-shot</option></term>
                 <listitem>
