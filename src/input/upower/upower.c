@@ -262,9 +262,15 @@ _j4status_upower_init(J4statusCoreInterface *core)
         J4statusUpowerSection *section;
         section = g_new0(J4statusUpowerSection, 1);
         section->context = context;
-        section->section = j4status_section_new(context->core, name, instance);
+        section->section = j4status_section_new(context->core);
+
+        j4status_section_set_name(section->section, name);
+        j4status_section_set_instance(section->section, instance);
         if ( label != NULL )
             j4status_section_set_label(section->section, label);
+
+        j4status_section_insert(section->section);
+        context->sections = g_list_prepend(context->sections, section);
 
 #if UP_CHECK_VERSION(0,99,0)
         g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
@@ -273,9 +279,6 @@ _j4status_upower_init(J4statusCoreInterface *core)
         g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
         _j4status_upower_device_changed(device, section);
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
-
-        context->sections = g_list_prepend(context->sections, section);
-
     }
     g_ptr_array_unref(devices);
 

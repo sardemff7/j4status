@@ -106,9 +106,14 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
         J4statusFileMonitorSection *section;
         section = g_new0(J4statusFileMonitorSection, 1);
         section->context = context;
-        section->section = j4status_section_new(context->core, "file-monitor", *file);
+        section->section = j4status_section_new(context->core);
+
+        j4status_section_set_name(section->section, "file-monitor");
+        j4status_section_set_instance(section->section, *file);
         j4status_section_set_label(section->section, *file);
         g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
+
+        j4status_section_insert(section->section);
         context->sections = g_list_prepend(context->sections, section);
     }
     g_strfreev(files);

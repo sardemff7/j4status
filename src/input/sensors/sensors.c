@@ -131,7 +131,7 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     J4statusSensorsFeature *sensor_feature;
     sensor_feature = g_new0(J4statusSensorsFeature, 1);
-    sensor_feature->section = j4status_section_new(context->core, "sensors", name);
+    sensor_feature->section = j4status_section_new(context->core);
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
     sensor_feature->input = input;
@@ -140,9 +140,12 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     char *label;
     label = sensors_get_label(chip, feature);
+    j4status_section_set_name(sensor_feature->section, "sensors");
+    j4status_section_set_instance(sensor_feature->section, name);
     j4status_section_set_label(sensor_feature->section, label);
     free(label);
 
+    j4status_section_insert(sensor_feature->section);
     context->sections = g_list_prepend(context->sections, sensor_feature);
 }
 

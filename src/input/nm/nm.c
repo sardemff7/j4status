@@ -424,8 +424,12 @@ _j4status_nm_section_attach_device(J4statusPluginContext *context, J4statusNmSec
         g_warning("Unsupported device type for interface '%s'", section->interface);
         return;
     }
-    section->section = j4status_section_new(context->core, name, section->interface);
+    section->section = j4status_section_new(context->core);
+    j4status_section_set_name(section->section, name);
+    j4status_section_set_instance(section->section, section->interface);
     j4status_section_set_label(section->section, label);
+
+    j4status_section_insert(section->section);
 
     if ( context->started )
         _j4status_nm_device_monitor(NULL, section, NULL);

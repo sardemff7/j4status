@@ -25,14 +25,20 @@
 
 struct _J4statusSection {
     J4statusCoreInterface *core;
+    gboolean freeze;
 
+    /* Input plugins can only touch these
+     * before inserting the section in the list */
     const gchar *name;
     gchar *instance;
     gchar *label;
 
+    /* Input plugins can only touch these
+     * once the section is inserted in the list */
     J4statusState state;
     gchar *value;
 
+    /* Reserved for the output plugin */
     gboolean dirty;
     gchar *cache;
 };

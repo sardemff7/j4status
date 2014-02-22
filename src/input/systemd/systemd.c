@@ -197,10 +197,13 @@ _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
     section = g_new0(J4statusSystemdSection, 1);
     section->context = context;
     section->unit_name = unit_name;
+    section->section = j4status_section_new(context->core);
 
-    section->section = j4status_section_new(context->core, "systemd", unit_name);
+    j4status_section_set_name(section->section, "systemd");
+    j4status_section_set_instance(section->section, unit_name);
     j4status_section_set_label(section->section, unit_name);
 
+    j4status_section_insert(section->section);
     context->sections = g_list_prepend(context->sections, section);
 }
 
