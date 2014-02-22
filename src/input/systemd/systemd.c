@@ -42,6 +42,7 @@ struct _J4statusPluginContext {
 typedef struct {
     J4statusPluginContext *context;
     J4statusSection *section;
+    gchar *unit_name;
     GDBusProxy *unit;
 } J4statusSystemdSection;
 
@@ -121,19 +122,6 @@ _j4status_systemd_dbus_get_property_string(GDBusProxy *proxy, const gchar *prope
 }
 
 static void
-_j4status_systemd_section_free(gpointer data)
-{
-    J4statusSystemdSection *section = data;
-
-    if ( section->unit != NULL )
-        g_object_unref(section->unit);
-
-    j4status_section_free(section->section);
-
-    g_free(section);
-}
-
-static void
 _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_properties, GStrv invalidated_properties, gpointer user_data)
 {
     J4statusSystemdSection *section = user_data;
@@ -155,26 +143,63 @@ _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_prop
 }
 
 static void
-_j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_name)
+_j4status_systemd_section_attach_unit(gpointer data, gpointer user_data)
 {
-    GDBusProxy *unit;
-    unit = _j4status_systemd_dbus_get_unit(context, unit_name);
-    if ( unit == NULL )
+    J4statusPluginContext *context = user_data;
+    J4statusSystemdSection *section = data;
+
+    if ( section->unit != NULL )
         return;
 
+    section->unit = _j4status_systemd_dbus_get_unit(context, section->unit_name);
+
+    if ( section->unit != NULL )
+    {
+        g_signal_connect(section->unit, "g-properties-changed", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
+        _j4status_systemd_unit_state_changed(section->unit, NULL, NULL, section);
+    }
+}
+
+static void
+_j4status_systemd_section_detach_unit(gpointer data, gpointer user_data)
+{
+    J4statusSystemdSection *section = data;
+
+    if ( section->unit != NULL )
+        g_object_unref(section->unit);
+    section->unit = NULL;
+    j4status_section_set_state(section->section, J4STATUS_STATE_UNAVAILABLE);
+    j4status_section_set_value(section->section, NULL);
+}
+
+
+static void
+_j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
+{
     J4statusSystemdSection *section;
 
     section = g_new0(J4statusSystemdSection, 1);
     section->context = context;
-    section->unit = unit;
+    section->unit_name = unit_name;
 
     section->section = j4status_section_new(context->core, "systemd", unit_name);
     j4status_section_set_label(section->section, unit_name);
 
-    g_signal_connect(unit, "g-properties-changed", G_CALLBACK(_j4status_systemd_unit_state_changed), section);
-    _j4status_systemd_unit_state_changed(unit, NULL, NULL, section);
-
     context->sections = g_list_prepend(context->sections, section);
+}
+
+static void
+_j4status_systemd_section_free(gpointer data)
+{
+    J4statusSystemdSection *section = data;
+
+    if ( section->unit != NULL )
+        g_object_unref(section->unit);
+
+    j4status_section_free(section->section);
+    g_free(section->unit_name);
+
+    g_free(section);
 }
 
 J4statusPluginContext *
@@ -223,7 +248,7 @@ _j4status_systemd_init(J4statusCoreInterface *core)
 
     gchar **unit;
     for ( unit = units ; *unit != NULL ; ++unit )
-        _j4status_systemd_add_unit(context, *unit);
+        _j4status_systemd_section_new(context, *unit);
     g_free(units);
 
     return context;
@@ -259,6 +284,7 @@ _j4status_systemd_start(J4statusPluginContext *context)
 
     context->started = TRUE;
     _j4status_systemd_dbus_call(context->manager, "Subscribe", NULL);
+    g_list_foreach(context->sections, _j4status_systemd_section_attach_unit, context);
 }
 
 static void
@@ -269,6 +295,7 @@ _j4status_systemd_stop(J4statusPluginContext *context)
 
     context->started = FALSE;
     _j4status_systemd_dbus_call(context->manager, "Unsubscribe", NULL);
+    g_list_foreach(context->sections, _j4status_systemd_section_detach_unit, context);
 }
 
 void
