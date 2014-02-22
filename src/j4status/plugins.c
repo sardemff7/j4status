@@ -127,7 +127,7 @@ j4status_plugins_get_output_plugin(J4statusCoreInterface *core, const gchar *nam
              * without a context.
              */
             g_module_close(plugin->module);
-            g_free(module);
+            g_free(plugin);
             return NULL;
         }
         fflush(stdout);
@@ -181,7 +181,7 @@ j4status_plugins_get_input_plugin(J4statusCoreInterface *core, const gchar *name
              * without a context.
              */
             g_module_close(plugin->module);
-            g_free(module);
+            g_free(plugin);
             return NULL;
         }
     }
