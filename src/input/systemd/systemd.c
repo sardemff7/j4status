@@ -34,8 +34,6 @@
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     GList *sections;
-    gchar **units;
-    guint watch_id;
     GDBusConnection *connection;
     gboolean started;
     GDBusProxy *manager;
@@ -179,49 +177,6 @@ _j4status_systemd_add_unit(J4statusPluginContext *context, const gchar *unit_nam
     context->sections = g_list_prepend(context->sections, section);
 }
 
-static void
-_j4status_systemd_bus_appeared(GDBusConnection *connection, const gchar *name, const gchar *name_owner, gpointer user_data)
-{
-    GError *error = NULL;
-    J4statusPluginContext *context = user_data;
-
-    context->connection = connection;
-
-    context->manager = g_dbus_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_NONE, NULL, SYSTEMD_BUS_NAME, SYSTEMD_OBJECT_PATH, SYSTEMD_MANAGER_INTERFACE_NAME, NULL, &error);
-    if ( context->manager == NULL )
-    {
-        g_warning("Could not connect to systemd manager: %s", error->message);
-        g_clear_error(&error);
-        return;
-    }
-    if ( context->started )
-    {
-        if ( ! _j4status_systemd_dbus_call(context->manager, "Subscribe", &error) )
-        {
-            g_warning("Could not subscribe to systemd events: %s", error->message);
-            g_clear_error(&error);
-        }
-    }
-
-    gchar **unit;
-    for ( unit = context->units ; *unit != NULL ; ++unit )
-        _j4status_systemd_add_unit(context, *unit);
-}
-
-static void
-_j4status_systemd_bus_vanished(GDBusConnection *connection, const gchar *name, gpointer user_data)
-{
-    J4statusPluginContext *context = user_data;
-
-    context->connection = connection;
-
-    g_object_unref(context->manager);
-    context->manager = NULL;
-
-    g_list_free_full(context->sections, _j4status_systemd_section_free);
-    context->sections = NULL;
-}
-
 J4statusPluginContext *
 _j4status_systemd_init(J4statusCoreInterface *core)
 {
@@ -239,15 +194,47 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     }
     g_key_file_free(key_file);
 
+    GError *error = NULL;
+
+    GDBusConnection *connection = NULL;
+
+    connection = g_bus_get_sync(G_BUS_TYPE_SYSTEM, NULL, &error);
+    if ( connection == NULL )
+    {
+        g_warning("Couldn't connect to D-Bus: %s", error->message);
+        goto fail;
+    }
+
+    GDBusProxy *manager;
+    manager = g_dbus_proxy_new_sync(connection, G_DBUS_PROXY_FLAGS_NONE, NULL, SYSTEMD_BUS_NAME, SYSTEMD_OBJECT_PATH, SYSTEMD_MANAGER_INTERFACE_NAME, NULL, &error);
+    if ( manager == NULL )
+    {
+        g_warning("Couldn't connect to systemd manager D-Bus interface: %s", error->message);
+        goto fail;
+    }
+
     J4statusPluginContext *context = NULL;
 
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
 
-    context->units = units;
-    context->watch_id = g_bus_watch_name(G_BUS_TYPE_SYSTEM, SYSTEMD_BUS_NAME, G_BUS_NAME_WATCHER_FLAGS_NONE, _j4status_systemd_bus_appeared, _j4status_systemd_bus_vanished, context, NULL);
+    context->connection = connection;
+    context->manager = manager;
+
+    gchar **unit;
+    for ( unit = units ; *unit != NULL ; ++unit )
+        _j4status_systemd_add_unit(context, *unit);
+    g_free(units);
 
     return context;
+
+fail:
+    g_clear_error(&error);
+    if ( connection != NULL )
+        g_object_unref(connection);
+    g_strfreev(units);
+
+    return NULL;
 }
 
 static void
@@ -258,9 +245,8 @@ _j4status_systemd_uninit(J4statusPluginContext *context)
 
     g_list_free_full(context->sections, _j4status_systemd_section_free);
 
-    g_bus_unwatch_name(context->watch_id);
-
-    g_strfreev(context->units);
+    g_object_unref(context->manager);
+    g_object_unref(context->connection);
 
     g_free(context);
 }
@@ -272,8 +258,7 @@ _j4status_systemd_start(J4statusPluginContext *context)
         return;
 
     context->started = TRUE;
-    if ( context->manager != NULL )
-        _j4status_systemd_dbus_call(context->manager, "Subscribe", NULL);
+    _j4status_systemd_dbus_call(context->manager, "Subscribe", NULL);
 }
 
 static void
@@ -283,8 +268,7 @@ _j4status_systemd_stop(J4statusPluginContext *context)
         return;
 
     context->started = FALSE;
-    if ( context->manager != NULL )
-        _j4status_systemd_dbus_call(context->manager, "Unsubscribe", NULL);
+    _j4status_systemd_dbus_call(context->manager, "Unsubscribe", NULL);
 }
 
 void
