@@ -59,16 +59,17 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
         g_printf("--"
             "\nName: %s"
             "\nInstance: %s"
+            "\nLabel: %s"
+            "\n"
             "\nState: %s"
             "\nUrgent: %s"
-            "\nLabel: %s"
             "\nValue: %s"
             "\n--\n",
             j4status_section_get_name(section),
             j4status_section_get_instance(section),
+            j4status_section_get_label(section),
             state_s,
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
-            j4status_section_get_label(section),
             j4status_section_get_value(section));
     }
 }
