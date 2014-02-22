@@ -73,16 +73,16 @@ _j4status_systemd_dbus_get_unit(J4statusPluginContext *context, const gchar *uni
         return NULL;
     }
 
-    gchar *unit_object_path;
-    g_variant_get(ret, "(o)", &unit_object_path);
-    g_variant_unref(ret);
+    const gchar *unit_object_path;
+    g_variant_get(ret, "(&o)", &unit_object_path);
 
     GDBusProxy *unit;
     unit = g_dbus_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES, NULL, SYSTEMD_BUS_NAME, unit_object_path, SYSTEMD_UNIT_INTERFACE_NAME, NULL, &error);
-    g_free(unit_object_path);
     if ( unit == NULL )
         g_warning("Could not monitor unit %s: %s", unit_name, error->message);
     g_clear_error(&error);
+
+    g_variant_unref(ret);
 
     return unit;
 }
