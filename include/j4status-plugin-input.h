@@ -37,8 +37,10 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, stop, Simple);
 
 J4statusSection *j4status_section_new(J4statusCoreInterface *core, const gchar *name, const gchar *instancez);
 void j4status_section_free(J4statusSection *section);
-void j4status_section_set_state(J4statusSection *section, J4statusState state);
+
 void j4status_section_set_label(J4statusSection *section, const gchar *label);
+
+void j4status_section_set_state(J4statusSection *section, J4statusState state);
 void j4status_section_set_value(J4statusSection *section, gchar *value);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_INPUT_H__ */

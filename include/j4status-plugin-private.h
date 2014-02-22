@@ -25,11 +25,14 @@
 
 struct _J4statusSection {
     J4statusCoreInterface *core;
+
     const gchar *name;
     gchar *instance;
     gchar *label;
-    gchar *value;
+
     J4statusState state;
+    gchar *value;
+
     gboolean dirty;
     gchar *cache;
 };
