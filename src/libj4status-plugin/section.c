@@ -149,15 +149,6 @@ j4status_section_get_instance(const J4statusSection *self)
     return self->instance;
 }
 
-J4statusState
-j4status_section_get_state(const J4statusSection *self)
-{
-    g_return_val_if_fail(self != NULL, J4STATUS_STATE_NO_STATE);
-    g_return_val_if_fail(self->freeze, J4STATUS_STATE_NO_STATE);
-
-    return self->state;
-}
-
 const gchar *
 j4status_section_get_label(const J4statusSection *self)
 {
@@ -165,6 +156,15 @@ j4status_section_get_label(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, NULL);
 
     return self->label;
+}
+
+J4statusState
+j4status_section_get_state(const J4statusSection *self)
+{
+    g_return_val_if_fail(self != NULL, J4STATUS_STATE_NO_STATE);
+    g_return_val_if_fail(self->freeze, J4STATUS_STATE_NO_STATE);
+
+    return self->state;
 }
 
 const gchar *
