@@ -62,20 +62,16 @@ _j4status_systemd_dbus_call(GDBusProxy *proxy, const gchar *method, GError **err
 static GDBusProxy *
 _j4status_systemd_dbus_get_unit(J4statusPluginContext *context, const gchar *unit_name)
 {
-    GError *error = NULL;
     GVariant *ret;
 
-    ret = g_dbus_proxy_call_sync(context->manager, "GetUnit", g_variant_new("(s)", unit_name), G_DBUS_CALL_FLAGS_NONE, -1, NULL, &error);
+    ret = g_dbus_proxy_call_sync(context->manager, "GetUnit", g_variant_new("(s)", unit_name), G_DBUS_CALL_FLAGS_NONE, -1, NULL, NULL);
     if ( ret == NULL )
-    {
-        g_warning("Could get unit object path %s: %s", unit_name, error->message);
-        g_clear_error(&error);
         return NULL;
-    }
 
     const gchar *unit_object_path;
     g_variant_get(ret, "(&o)", &unit_object_path);
 
+    GError *error = NULL;
     GDBusProxy *unit;
     unit = g_dbus_proxy_new_sync(context->connection, G_DBUS_PROXY_FLAGS_GET_INVALIDATED_PROPERTIES, NULL, SYSTEMD_BUS_NAME, unit_object_path, SYSTEMD_UNIT_INTERFACE_NAME, NULL, &error);
     if ( unit == NULL )
