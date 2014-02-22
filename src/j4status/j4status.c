@@ -97,6 +97,13 @@ void
 _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
 {
     context->sections = g_list_prepend(context->sections, section);
+    section->link = context->sections;
+}
+
+void
+_j4status_core_remove_section(J4statusCoreContext *context, J4statusSection *section)
+{
+    context->sections = g_list_remove_link(context->sections, section->link);
 }
 
 static gboolean
@@ -295,6 +302,7 @@ main(int argc, char *argv[])
     J4statusCoreInterface interface = {
         .context = context,
         .add_section = _j4status_core_add_section,
+        .remove_section = _j4status_core_remove_section,
         .trigger_display = _j4status_core_trigger_display
     };
 

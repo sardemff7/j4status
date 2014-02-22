@@ -26,6 +26,8 @@
 struct _J4statusSection {
     J4statusCoreInterface *core;
     gboolean freeze;
+    /* Reserved for the core */
+    GList *link;
 
     /* Input plugins can only touch these
      * before inserting the section in the list */
@@ -51,6 +53,7 @@ typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
     J4statusCoreSectionFunc add_section;
+    J4statusCoreSectionFunc remove_section;
     J4statusCoreFunc trigger_display;
 };
 

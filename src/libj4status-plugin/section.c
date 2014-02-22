@@ -49,6 +49,9 @@ j4status_section_free(J4statusSection *self)
 {
     g_return_if_fail(self != NULL);
 
+    if ( self->freeze )
+        self->core->remove_section(self->core->context, self);
+
     g_free(self->cache);
 
     g_free(self->value);
