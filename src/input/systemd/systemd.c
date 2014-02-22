@@ -172,6 +172,22 @@ _j4status_systemd_section_detach_unit(gpointer data, gpointer user_data)
     j4status_section_set_value(section->section, NULL);
 }
 
+static void
+_j4status_systemd_bus_signal(GDBusProxy *proxy, gchar *sender_name, gchar *signal_name, GVariant *parameters, gpointer user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( g_strcmp0(signal_name, "Reloading") == 0 )
+    {
+        gboolean reloading;
+        g_variant_get(parameters, "(b)", &reloading);
+        if ( reloading )
+            g_list_foreach(context->sections, _j4status_systemd_section_detach_unit, context);
+        else
+            g_list_foreach(context->sections, _j4status_systemd_section_attach_unit, context);
+    }
+}
+
 
 static void
 _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
@@ -250,6 +266,8 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     for ( unit = units ; *unit != NULL ; ++unit )
         _j4status_systemd_section_new(context, *unit);
     g_free(units);
+
+    g_signal_connect(context->manager, "g-signal", G_CALLBACK(_j4status_systemd_bus_signal), context);
 
     return context;
 
