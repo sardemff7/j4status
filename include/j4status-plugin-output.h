@@ -35,13 +35,13 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, init, Init);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, uninit, Simple);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, print, Print);
 
-const gchar *j4status_section_get_name(const J4statusSection *self);
-const gchar *j4status_section_get_instance(const J4statusSection *self);
-J4statusState j4status_section_get_state(const J4statusSection *self);
-const gchar *j4status_section_get_label(const J4statusSection *self);
-const gchar *j4status_section_get_value(const J4statusSection *self);
-const gchar *j4status_section_get_cache(const J4statusSection *self);
-gboolean j4status_section_is_dirty(const J4statusSection *self);
-void j4status_section_set_cache(J4statusSection *self, gchar *cache);
+const gchar *j4status_section_get_name(const J4statusSection *section);
+const gchar *j4status_section_get_instance(const J4statusSection *section);
+J4statusState j4status_section_get_state(const J4statusSection *section);
+const gchar *j4status_section_get_label(const J4statusSection *section);
+const gchar *j4status_section_get_value(const J4statusSection *section);
+const gchar *j4status_section_get_cache(const J4statusSection *section);
+gboolean j4status_section_is_dirty(const J4statusSection *section);
+void j4status_section_set_cache(J4statusSection *section, gchar *cache);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_OUTPUT_H__ */
