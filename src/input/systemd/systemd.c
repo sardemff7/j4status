@@ -241,6 +241,7 @@ _j4status_systemd_init(J4statusCoreInterface *core)
         g_key_file_free(key_file);
         return NULL;
     }
+    g_key_file_free(key_file);
 
     J4statusPluginContext *context = NULL;
 
