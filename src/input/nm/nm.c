@@ -148,11 +148,9 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *se
     switch ( nm_device_get_state(device) )
     {
     case NM_DEVICE_STATE_UNKNOWN:
-        state = J4STATUS_STATE_NO_STATE;
         value = context->show_unknown ? g_strdup("Unknown") : NULL;
     break;
     case NM_DEVICE_STATE_UNMANAGED:
-        state = J4STATUS_STATE_NO_STATE;
         value = context->show_unmanaged ? g_strdup("Unmanaged") : NULL;
     break;
     case NM_DEVICE_STATE_UNAVAILABLE:
