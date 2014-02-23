@@ -36,8 +36,8 @@ typedef void(*J4statusPluginSimpleFunc)(J4statusPluginContext *context);
 
 
 typedef enum {
-    J4STATUS_STATE_NO_STATE = -1,
-    J4STATUS_STATE_UNAVAILABLE = 0,
+    J4STATUS_STATE_NO_STATE = 0,
+    J4STATUS_STATE_UNAVAILABLE,
     J4STATUS_STATE_BAD,
     J4STATUS_STATE_AVERAGE,
     J4STATUS_STATE_GOOD,
