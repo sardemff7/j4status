@@ -268,6 +268,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
         j4status_section_set_instance(section->section, instance);
         if ( label != NULL )
             j4status_section_set_label(section->section, label);
+        j4status_section_set_max_width(section->section, -strlen("Chr 100.0% (00:00:00)"));
 
         j4status_section_insert(section->section);
         context->sections = g_list_prepend(context->sections, section);
