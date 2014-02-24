@@ -46,6 +46,17 @@ typedef enum {
 
 #define J4STATUS_STATE_FLAGS (J4STATUS_STATE_URGENT)
 
+typedef struct {
+    gboolean set;
+    guint8 red;
+    guint8 green;
+    guint8 blue;
+} J4statusColour;
+
+J4statusColour j4status_colour_parse(const gchar *colour);
+const gchar *j4status_colour_to_hex(J4statusColour colour);
+const gchar *j4status_colour_to_rgb(J4statusColour colour);
+
 typedef struct _J4statusSection J4statusSection;
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_H__ */
