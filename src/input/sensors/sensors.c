@@ -140,9 +140,23 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     char *label;
     label = sensors_get_label(chip, feature);
+
+    gint64 max_width = strlen("+100.0*C");
+    if ( context->config.show_details )
+    {
+        if ( ( sensor_feature->crit != NULL ) && ( sensor_feature->max != NULL ) )
+            max_width += strlen(" (high = +100.0°C, crit = +100.0°C)");
+        else if ( sensor_feature->crit != NULL )
+            max_width += strlen(" (crit = +100.0°C)");
+        else if ( sensor_feature->max != NULL )
+            max_width += strlen(" (high = +100.0°C)");
+    }
+
     j4status_section_set_name(sensor_feature->section, "sensors");
     j4status_section_set_instance(sensor_feature->section, name);
     j4status_section_set_label(sensor_feature->section, label);
+    j4status_section_set_max_width(sensor_feature->section, -max_width);
+
     free(label);
 
     j4status_section_insert(sensor_feature->section);
