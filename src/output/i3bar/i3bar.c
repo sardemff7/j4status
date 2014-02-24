@@ -49,22 +49,9 @@ _j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
     if ( config == NULL )
         return;
 
-    if ( ( config[0] == '#' ) && ( strlen(config) == strlen("#000000") ) )
-    {
-        gchar *end;
-        g_ascii_strtoull(config+1, &end, 16);
-        if ( end == (config + strlen("#000000")) )
-        {
-            *colour = config;
-            config = NULL;
-        }
-    }
-    else if ( ( config[0] == '\0' ) || ( g_str_equal(config, "none") ) )
-    {
-        g_free(*colour);
-        *colour = NULL;
-    }
+    g_free(*colour);
 
+    *colour = g_strdup(j4status_colour_to_hex(j4status_colour_parse(config)));
     g_free(config);
 }
 
