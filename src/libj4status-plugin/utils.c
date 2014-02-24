@@ -102,7 +102,7 @@ j4status_colour_to_hex(J4statusColour colour)
     if ( ! colour.set )
         return NULL;
 
-    g_sprintf(_j4status_colour_hex, "#%x%x%x", colour.red, colour.green, colour.blue);
+    g_sprintf(_j4status_colour_hex, "#%02x%02x%02x", colour.red, colour.green, colour.blue);
 
     return _j4status_colour_hex;
 }
