@@ -42,6 +42,7 @@ void j4status_section_free(J4statusSection *section);
 void j4status_section_set_name(J4statusSection *section, const gchar *name);
 void j4status_section_set_instance(J4statusSection *section, const gchar *instance);
 void j4status_section_set_label(J4statusSection *section, const gchar *label);
+void j4status_section_set_label_colour(J4statusSection *section, J4statusColour colour);
 void j4status_section_insert(J4statusSection *section);
 
 /* API once the section is inserted in the list */

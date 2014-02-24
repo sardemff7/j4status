@@ -38,6 +38,7 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, print, Print);
 const gchar *j4status_section_get_name(const J4statusSection *section);
 const gchar *j4status_section_get_instance(const J4statusSection *section);
 const gchar *j4status_section_get_label(const J4statusSection *section);
+J4statusColour j4status_section_get_label_colour(const J4statusSection *section);
 J4statusState j4status_section_get_state(const J4statusSection *section);
 J4statusColour j4status_section_get_colour(const J4statusSection *section);
 const gchar *j4status_section_get_value(const J4statusSection *section);

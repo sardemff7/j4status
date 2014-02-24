@@ -60,6 +60,7 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             "\nName: %s"
             "\nInstance: %s"
             "\nLabel: %s"
+            "\nLabel colour: %s"
             "\n"
             "\nState: %s"
             "\nUrgent: %s"
@@ -69,6 +70,7 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             j4status_section_get_name(section),
             j4status_section_get_instance(section),
             j4status_section_get_label(section),
+            j4status_colour_to_hex(j4status_section_get_label_colour(section)),
             state_s,
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
             j4status_colour_to_hex(j4status_section_get_colour(section)),

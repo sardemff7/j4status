@@ -35,6 +35,7 @@ struct _J4statusSection {
     const gchar *name;
     gchar *instance;
     gchar *label;
+    J4statusColour label_colour;
 
     /* Input plugins can only touch these
      * once the section is inserted in the list */

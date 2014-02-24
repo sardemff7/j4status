@@ -137,19 +137,28 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
     for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
     {
         section = section_->data;
+
+        const gchar *label;
+        label = j4status_section_get_label(section);
+        const gchar *label_colour;
+        label_colour = j4status_colour_to_hex(j4status_section_get_label_colour(section));
+
+        const gchar *value;
+        value = j4status_section_get_value(section);
+
         const gchar *cache;
         if ( j4status_section_is_dirty(section) )
         {
             gchar *new_cache = NULL;
-            const gchar *label;
-            const gchar *value;
-
-            value = j4status_section_get_value(section);
             if ( value != NULL )
             {
-                label = j4status_section_get_label(section);
                 if ( label != NULL )
-                    new_cache = g_strdup_printf("%s: %s", label, value);
+                {
+                    if ( label_colour != NULL )
+                        new_cache = g_strdup_printf("%s: ", label);
+                    else
+                        new_cache = g_strdup_printf("%s: %s", label, value);
+                }
                 else
                     new_cache = g_strdup(value);
             }
@@ -160,6 +169,29 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
             cache = j4status_section_get_cache(section);
         if ( cache == NULL )
             continue;
+
+        if ( ( label != NULL ) && ( label_colour != NULL ) )
+        {
+            /* We create a fake section with just the label */
+            yajl_gen_map_open(context->json_gen);
+
+            yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)label_colour, strlen("#000000"));
+
+            yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)cache, strlen(cache));
+
+            yajl_gen_string(context->json_gen, (const unsigned char *)"separator", strlen("separator"));
+            yajl_gen_bool(context->json_gen, FALSE);
+            yajl_gen_string(context->json_gen, (const unsigned char *)"separator_block_width", strlen("separator_block_width"));
+            yajl_gen_integer(context->json_gen, 0);
+
+            yajl_gen_map_close(context->json_gen);
+
+            /* We use the cache for the label, since the value is on its own */
+            cache = value;
+
+        }
 
         yajl_gen_map_open(context->json_gen);
 

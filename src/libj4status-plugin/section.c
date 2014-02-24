@@ -94,6 +94,15 @@ j4status_section_set_label(J4statusSection *self, const gchar *label)
 }
 
 void
+j4status_section_set_label_colour(J4statusSection *self, J4statusColour colour)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(! self->freeze);
+
+    self->label_colour = colour;
+}
+
+void
 j4status_section_insert(J4statusSection *self)
 {
     g_return_if_fail(self != NULL);
@@ -166,6 +175,16 @@ j4status_section_get_label(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, NULL);
 
     return self->label;
+}
+
+J4statusColour
+j4status_section_get_label_colour(const J4statusSection *self)
+{
+    J4statusColour def = { FALSE, 0, 0, 0 };
+    g_return_val_if_fail(self != NULL, def);
+    g_return_val_if_fail(self->freeze, def);
+
+    return self->label_colour;
 }
 
 J4statusState
