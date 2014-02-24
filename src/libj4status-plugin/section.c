@@ -116,6 +116,16 @@ j4status_section_set_state(J4statusSection *self, J4statusState state)
 }
 
 void
+j4status_section_set_colour(J4statusSection *self, J4statusColour colour)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(self->freeze);
+
+    self->dirty = TRUE;
+    self->colour = colour;
+}
+
+void
 j4status_section_set_value(J4statusSection *self, gchar *value)
 {
     g_return_if_fail(self != NULL);
@@ -165,6 +175,16 @@ j4status_section_get_state(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, J4STATUS_STATE_NO_STATE);
 
     return self->state;
+}
+
+J4statusColour
+j4status_section_get_colour(const J4statusSection *self)
+{
+    J4statusColour def = { FALSE, 0, 0, 0 };
+    g_return_val_if_fail(self != NULL, def);
+    g_return_val_if_fail(self->freeze, def);
+
+    return self->colour;
 }
 
 const gchar *

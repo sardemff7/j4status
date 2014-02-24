@@ -39,6 +39,7 @@ struct _J4statusSection {
     /* Input plugins can only touch these
      * once the section is inserted in the list */
     J4statusState state;
+    J4statusColour colour;
     gchar *value;
 
     /* Reserved for the output plugin */

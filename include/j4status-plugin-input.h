@@ -46,6 +46,7 @@ void j4status_section_insert(J4statusSection *section);
 
 /* API once the section is inserted in the list */
 void j4status_section_set_state(J4statusSection *section, J4statusState state);
+void j4status_section_set_colour(J4statusSection *section, J4statusColour colour);
 void j4status_section_set_value(J4statusSection *section, gchar *value);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_INPUT_H__ */

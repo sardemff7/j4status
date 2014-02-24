@@ -207,6 +207,11 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
             yajl_gen_bool(context->json_gen, TRUE);
         }
 
+        const gchar *forced_colour;
+        forced_colour = j4status_colour_to_hex(j4status_section_get_colour(section));
+        if ( forced_colour != NULL )
+            colour = forced_colour;
+
         if ( colour != NULL )
         {
             yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
