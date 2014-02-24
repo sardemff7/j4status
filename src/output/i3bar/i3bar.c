@@ -221,7 +221,7 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
             if ( max_width < 0 )
             {
                 gsize l = - max_width + 1;
-                if ( label_colour == NULL )
+                if ( ( label != NULL ) && ( label_colour == NULL ) )
                     l += strlen(label);
                 gchar max_value[l];
                 memset(max_value, 'm', l);
