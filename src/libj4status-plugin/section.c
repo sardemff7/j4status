@@ -39,8 +39,6 @@ j4status_section_new(J4statusCoreInterface *core)
 
     self = g_new0(J4statusSection, 1);
     self->core = core;
-    self->align = J4STATUS_ALIGN_CENTER;
-    self->state = J4STATUS_STATE_NO_STATE;
 
     return self;
 }
