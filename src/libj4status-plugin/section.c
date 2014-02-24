@@ -20,11 +20,77 @@
  *
  */
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <glib.h>
+#include <glib/gprintf.h>
+
+#include <libj4status-config.h>
 
 #include <j4status-plugin-output.h>
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
+#include <j4status-plugin.h>
+
+static void
+_j4status_section_get_override(J4statusSection *self)
+{
+    if ( self->name == NULL )
+        return;
+
+    gsize l = strlen("Override ") + strlen(self->name) + 1, o;
+    if ( self->instance != NULL )
+        l += strlen(":") + strlen(self->instance);
+
+    gchar group[l];
+    o = g_sprintf(group, "Override %s", self->name);
+    if ( self->instance != NULL )
+        g_sprintf(group + o, ":%s", self->instance);
+
+    GKeyFile *key_file;
+    key_file = libj4status_config_get_key_file(group);
+    if ( key_file == NULL )
+        return;
+
+    GError *error = NULL;
+
+    gchar *label;
+    label = g_key_file_get_string(key_file, group, "Label", NULL);
+    if ( label != NULL )
+    {
+        g_free(self->label);
+        self->label = label;
+    }
+
+    gchar *label_colour;
+    label_colour = g_key_file_get_string(key_file, group, "LabelColour", NULL);
+    if ( label_colour != NULL )
+    {
+        self->label_colour = j4status_colour_parse(label_colour);
+        g_free(label_colour);
+    }
+
+    gchar *align;
+    align = g_key_file_get_string(key_file, group, "Alignment", NULL);
+    if ( align != NULL )
+    {
+        if ( g_ascii_strcasecmp(align, "left") == 0 )
+            self->align = J4STATUS_ALIGN_LEFT;
+        else if ( g_ascii_strcasecmp(align, "right") == 0 )
+            self->align = J4STATUS_ALIGN_RIGHT;
+        else if ( g_ascii_strcasecmp(align, "centre") == 0 )
+            self->align = J4STATUS_ALIGN_CENTER;
+        g_free(label_colour);
+    }
+
+    gint64 max_width;
+    max_width = g_key_file_get_int64(key_file, group, "MaxWidth", &error);
+    if ( error == NULL )
+        self->max_width = max_width;
+    g_clear_error(&error);
+}
 
 /*
  * Input plugins API
@@ -125,6 +191,8 @@ j4status_section_insert(J4statusSection *self)
     g_return_if_fail(self != NULL);
     g_return_if_fail(! self->freeze);
     g_return_if_fail(self->name != NULL);
+
+    _j4status_section_get_override(self);
 
     self->freeze = TRUE;
     self->core->add_section(self->core->context, self);

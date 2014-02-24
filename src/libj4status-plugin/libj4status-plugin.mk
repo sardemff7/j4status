@@ -38,5 +38,6 @@ libj4status_plugin_la_LDFLAGS = \
 	$(null)
 
 libj4status_plugin_la_LIBADD = \
+	libj4status.la \
 	$(GLIB_LIBS) \
 	$(null)

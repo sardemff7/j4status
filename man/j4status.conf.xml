@@ -73,7 +73,7 @@
         </para>
     </refsect1>
 
-    <refsect1 id="esctions">
+    <refsect1 id="sections">
         <title>Sections</title>
 
         <refsect2 id="section-plugins">
@@ -110,6 +110,48 @@
                         <para>Each <type>section identifier</type> is of the form <userinput><replaceable>name</replaceable><optional>:<replaceable>instance</replaceable></optional></userinput>. To find the relevant data, use the <command>debug</command> output plugin.</para>
                         <para>If not specified, sections are sorted as input plugins are adding them.</para>
                         <para>Unlisted sections will be put at the beginning.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+
+        <refsect2 id="section-override">
+            <title>Section <varname>[Override <replaceable>section identifier</replaceable>]</varname></title>
+
+            <para>You can define an <varname>Override</varname> section to modify some parts of a j4status section.</para>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Label=</varname>
+                        (<type>string</type>)
+                    </term>
+                    <listitem>
+                        <para>The label to use.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>LabelColour=</varname>
+                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>none</literal>)
+                    </term>
+                    <listitem>
+                        <para>The label colour to use.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Alignment=</varname>
+                        (<simplelist type='inline'>
+                            <member><literal>left</literal></member>
+                            <member><literal>right</literal></member>
+                            <member><literal>center</literal></member>
+                        </simplelist>)
+                    </term>
+                    <listitem>
+                        <para>Alignment of this section.</para>
                     </listitem>
                 </varlistentry>
             </variablelist>
