@@ -36,6 +36,8 @@ struct _J4statusSection {
     gchar *instance;
     gchar *label;
     J4statusColour label_colour;
+    J4statusAlign align;
+    gint64 max_width;
 
     /* Input plugins can only touch these
      * once the section is inserted in the list */

@@ -37,6 +37,7 @@ struct _J4statusPluginContext {
         gchar *average;
         gchar *good;
     } colours;
+    gboolean align;
     yajl_gen json_gen;
 };
 
@@ -89,6 +90,7 @@ _j4status_i3bar_init(J4statusCoreInterface *core)
         _j4status_i3bar_update_colour(&context->colours.bad, key_file, "BadColour");
         _j4status_i3bar_update_colour(&context->colours.average, key_file, "AverageColour");
         _j4status_i3bar_update_colour(&context->colours.good, key_file, "GoodColour");
+        context->align = g_key_file_get_boolean(key_file, "i3bar", "Align", NULL);
         g_key_file_free(key_file);
     }
 
@@ -209,6 +211,43 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
         {
             yajl_gen_string(context->json_gen, (const unsigned char *)"instance", strlen("instance"));
             yajl_gen_string(context->json_gen, (const unsigned char *)instance, strlen(instance));
+        }
+
+        gint64 max_width;
+        max_width = j4status_section_get_max_width(section);
+        if ( context->align && ( max_width != 0 ) )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"min_width", strlen("min_width"));
+            if ( max_width < 0 )
+            {
+                gsize l = - max_width + 1;
+                if ( label_colour == NULL )
+                    l += strlen(label);
+                gchar max_value[l];
+                memset(max_value, 'm', l);
+                max_value[l] ='\0';
+                yajl_gen_string(context->json_gen, (const unsigned char *)max_value, l);
+            }
+            else
+                yajl_gen_integer(context->json_gen, max_width);
+
+            const gchar *align = NULL;
+            switch ( j4status_section_get_align(section) )
+            {
+            case J4STATUS_ALIGN_LEFT:
+                align = "left";
+            break;
+            case J4STATUS_ALIGN_RIGHT:
+                align = "right";
+            break;
+            case J4STATUS_ALIGN_CENTER:
+            break;
+            }
+            if ( align != NULL )
+            {
+                yajl_gen_string(context->json_gen, (const unsigned char *)"align", strlen("align"));
+                yajl_gen_string(context->json_gen, (const unsigned char *)align, strlen(align));
+            }
         }
 
         J4statusState state = j4status_section_get_state(section);

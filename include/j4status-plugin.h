@@ -36,6 +36,12 @@ typedef void(*J4statusPluginSimpleFunc)(J4statusPluginContext *context);
 
 
 typedef enum {
+    J4STATUS_ALIGN_CENTER = 0,
+    J4STATUS_ALIGN_LEFT,
+    J4STATUS_ALIGN_RIGHT
+} J4statusAlign;
+
+typedef enum {
     J4STATUS_STATE_NO_STATE = 0,
     J4STATUS_STATE_UNAVAILABLE,
     J4STATUS_STATE_BAD,

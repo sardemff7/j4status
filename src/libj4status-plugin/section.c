@@ -39,6 +39,7 @@ j4status_section_new(J4statusCoreInterface *core)
 
     self = g_new0(J4statusSection, 1);
     self->core = core;
+    self->align = J4STATUS_ALIGN_CENTER;
     self->state = J4STATUS_STATE_NO_STATE;
 
     return self;
@@ -100,6 +101,24 @@ j4status_section_set_label_colour(J4statusSection *self, J4statusColour colour)
     g_return_if_fail(! self->freeze);
 
     self->label_colour = colour;
+}
+
+void
+j4status_section_set_align(J4statusSection *self, J4statusAlign align)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(! self->freeze);
+
+    self->align = align;
+}
+
+void
+j4status_section_set_max_width(J4statusSection *self, gint64 max_width)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(! self->freeze);
+
+    self->max_width = max_width;
 }
 
 void
@@ -185,6 +204,23 @@ j4status_section_get_label_colour(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, def);
 
     return self->label_colour;
+}
+
+J4statusAlign
+j4status_section_get_align(const J4statusSection *self)
+{
+    g_return_val_if_fail(self != NULL, J4STATUS_ALIGN_CENTER);
+
+    return self->align;
+}
+
+gint64
+j4status_section_get_max_width(const J4statusSection *self)
+{
+    g_return_val_if_fail(self != NULL, NULL);
+    g_return_val_if_fail(self->freeze, NULL);
+
+    return self->max_width;
 }
 
 J4statusState

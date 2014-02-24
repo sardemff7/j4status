@@ -36,6 +36,20 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
     {
         section = section_->data;
 
+        const gchar *align = NULL;
+        switch ( j4status_section_get_align(section) )
+        {
+        case J4STATUS_ALIGN_LEFT:
+            align = "left";
+        break;
+        case J4STATUS_ALIGN_RIGHT:
+            align = "right";
+        break;
+        case J4STATUS_ALIGN_CENTER:
+            align = "center";
+        break;
+        }
+
         J4statusState state = j4status_section_get_state(section);
         const gchar *state_s = NULL;
         switch ( state & ~J4STATUS_STATE_FLAGS )
@@ -61,6 +75,8 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             "\nInstance: %s"
             "\nLabel: %s"
             "\nLabel colour: %s"
+            "\nAlignment: %s"
+            "\nMaximum width: %jd"
             "\n"
             "\nState: %s"
             "\nUrgent: %s"
@@ -71,6 +87,8 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             j4status_section_get_instance(section),
             j4status_section_get_label(section),
             j4status_colour_to_hex(j4status_section_get_label_colour(section)),
+            align,
+            j4status_section_get_max_width(section),
             state_s,
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
             j4status_colour_to_hex(j4status_section_get_colour(section)),
