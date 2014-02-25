@@ -127,7 +127,7 @@
                         (<type>string</type>)
                     </term>
                     <listitem>
-                        <para>The label to use.</para>
+                        <para>The label to use. Empty to remove.</para>
                     </listitem>
                 </varlistentry>
 

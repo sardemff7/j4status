@@ -61,6 +61,8 @@ _j4status_section_get_override(J4statusSection *self)
     if ( label != NULL )
     {
         g_free(self->label);
+        if ( g_strcmp0(label, "") == 0 )
+            label = (g_free(label), NULL);
         self->label = label;
     }
 
