@@ -24,6 +24,10 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
+#ifdef HAVE_STRING_H
+#include <string.h>
+#endif /* HAVE_STRING_H */
+
 #include <glib.h>
 #include <glib/gprintf.h>
 
@@ -32,6 +36,7 @@
 #include <libj4status-config.h>
 
 #define COLOUR_STR(n) gchar n[16] = {0}; /* strlen("\e[38;5;xxxm\e[5m\x07") */
+#define MAX_LINE 256
 
 struct _J4statusPluginContext {
     struct {
@@ -41,6 +46,7 @@ struct _J4statusPluginContext {
         J4statusColour average;
         J4statusColour good;
     } colours;
+    gboolean align;
 };
 
 static void
@@ -98,6 +104,31 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                 }
                 _j4status_flat_set_colour(colour_str, colour, urgent);
 
+                gint64 max_width;
+                max_width = j4status_section_get_max_width(section);
+
+                gsize s = 1, l = 0, r = 0;
+                if ( max_width < 0 )
+                {
+                    s = -max_width;
+                    switch ( j4status_section_get_align(section) )
+                    {
+                    case J4STATUS_ALIGN_CENTER:
+                        l = s / 2;
+                        r = ( s + 1 ) / 2;
+                    break;
+                    case J4STATUS_ALIGN_LEFT:
+                        r = s;
+                    break;
+                    case J4STATUS_ALIGN_RIGHT:
+                        l = s;
+                    break;
+                    }
+                }
+                gchar align_left[s], align_right[s];
+                memset(align_left, ' ', l); align_left[l] = '\0';
+                memset(align_right, ' ', r); align_right[r] = '\0';
+
                 const gchar *label;
                 label = j4status_section_get_label(section);
                 if ( label != NULL )
@@ -105,10 +136,10 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                     COLOUR_STR(label_colour_str);
                     _j4status_flat_set_colour(label_colour_str, j4status_section_get_label_colour(section), FALSE);
 
-                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m: %s%s\e[0m", label_colour_str, label, colour_str, value);
+                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m: %s%s%s\e[0m%s", label_colour_str, label, align_left, colour_str, value, align_right);
                 }
                 else
-                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m", colour_str, value);
+                    new_cache = g_strdup_printf("%s\e[0m%s%s\e[0m%s", align_left, colour_str, value, align_right);
             }
             j4status_section_set_cache(section, new_cache);
             cache = new_cache;
@@ -145,6 +176,11 @@ _j4status_flat_init(J4statusCoreInterface *core)
 
     context = g_new0(J4statusPluginContext, 1);
 
+    GKeyFile *key_file;
+    key_file = libj4status_config_get_key_file("Flat");
+    if ( key_file != NULL )
+        context->align = g_key_file_get_boolean(key_file, "Flat", "Align", NULL);
+
     if ( g_str_has_suffix(g_getenv("TERM"), "-256color") || g_str_has_suffix(g_getenv("TERM"), "-256colour") )
     {
         context->colours.unavailable.set = TRUE;
@@ -157,8 +193,6 @@ _j4status_flat_init(J4statusCoreInterface *core)
         context->colours.good.set = TRUE;
         context->colours.good.green = 0xff;
 
-        GKeyFile *key_file;
-        key_file = libj4status_config_get_key_file("Flat");
         if ( key_file != NULL )
         {
             _j4status_flat_update_colour(&context->colours.no_state, key_file, "NoStateColour");
@@ -166,9 +200,11 @@ _j4status_flat_init(J4statusCoreInterface *core)
             _j4status_flat_update_colour(&context->colours.bad, key_file, "BadColour");
             _j4status_flat_update_colour(&context->colours.average, key_file, "AverageColour");
             _j4status_flat_update_colour(&context->colours.good, key_file, "GoodColour");
-            g_key_file_free(key_file);
         }
     }
+
+    if ( key_file != NULL )
+    g_key_file_free(key_file);
 
     return context;
 }
