@@ -58,7 +58,6 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         g_object_unref(stream);
         gsize length;
         j4status_section_set_value(section->section, g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL));
-        libj4status_core_trigger_display(section->context->core);
     }
 }
 

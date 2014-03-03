@@ -290,8 +290,6 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *se
 
     j4status_section_set_state(section->section, state);
     j4status_section_set_value(section->section, value);
-
-    libj4status_core_trigger_display(context->core);
 }
 
 static void

@@ -69,8 +69,6 @@ _j4status_time_update(gpointer user_data)
 
     g_date_time_unref(date_time);
 
-    libj4status_core_trigger_display(context->core);
-
     return TRUE;
 }
 

@@ -158,10 +158,12 @@ _j4status_core_display(gpointer user_data)
 }
 
 static void
-_j4status_core_trigger_display(J4statusCoreContext *context)
+_j4status_core_trigger_display(J4statusCoreContext *context, gboolean force)
 {
     if ( context->display_handle > 0 )
         return;
+
+    if ( context->started || force )
 
     context->display_handle = g_idle_add(_j4status_core_display, context);
 }
@@ -180,7 +182,7 @@ _j4status_core_start(J4statusCoreContext *context)
             input_plugin->interface.start(input_plugin->context);
     }
 
-    _j4status_core_trigger_display(context);
+    _j4status_core_trigger_display(context, FALSE);
 }
 
 static void

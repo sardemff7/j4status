@@ -141,9 +141,6 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", status, percentage, h, m, time);
     }
     j4status_section_set_value(section->section, value);
-
-    if ( section->context->started || ( state & J4STATUS_STATE_URGENT ) )
-        libj4status_core_trigger_display(section->context->core);
 }
 
 static J4statusPluginContext *

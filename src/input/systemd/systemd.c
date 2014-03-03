@@ -146,8 +146,6 @@ _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_prop
 
     j4status_section_set_state(section->section, state);
     j4status_section_set_value(section->section, status);
-
-    libj4status_core_trigger_display(section->context->core);
 }
 
 static void

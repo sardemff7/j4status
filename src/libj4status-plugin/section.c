@@ -211,7 +211,13 @@ j4status_section_set_state(J4statusSection *self, J4statusState state)
     g_return_if_fail(self != NULL);
     g_return_if_fail(self->freeze);
 
+    if ( state & J4STATUS_STATE_URGENT )
+        self->core->trigger_display(self->core->context, TRUE);
+    else if ( ! self->dirty )
+        self->core->trigger_display(self->core->context, FALSE);
+
     self->dirty = TRUE;
+
     self->state = state;
 }
 
@@ -221,7 +227,11 @@ j4status_section_set_colour(J4statusSection *self, J4statusColour colour)
     g_return_if_fail(self != NULL);
     g_return_if_fail(self->freeze);
 
+    if ( ! self->dirty )
+        self->core->trigger_display(self->core->context, FALSE);
+
     self->dirty = TRUE;
+
     self->colour = colour;
 }
 
@@ -231,7 +241,11 @@ j4status_section_set_value(J4statusSection *self, gchar *value)
     g_return_if_fail(self != NULL);
     g_return_if_fail(self->freeze);
 
+    if ( ! self->dirty )
+        self->core->trigger_display(self->core->context, FALSE);
+
     self->dirty = TRUE;
+
     g_free(self->value);
     self->value = value;
 }

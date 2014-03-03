@@ -99,8 +99,6 @@ _j4status_sensors_feature_temp_update(J4statusPluginContext *context, J4statusSe
     else
         value = g_strdup_printf("%+.1f°C", curr);
     j4status_section_set_value(feature->section, value);
-
-    libj4status_core_trigger_display(context->core);
 }
 
 static gboolean

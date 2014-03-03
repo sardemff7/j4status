@@ -21,7 +21,6 @@ libj4status_plugin_la_SOURCES = \
 	include/j4status-plugin.h \
 	include/j4status-plugin-private.h \
 	src/libj4status-plugin/utils.c \
-	src/libj4status-plugin/core.c \
 	src/libj4status-plugin/plugin.c \
 	src/libj4status-plugin/section.c \
 	$(null)

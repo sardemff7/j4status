@@ -25,9 +25,6 @@
 
 #include <j4status-plugin.h>
 
-void libj4status_core_trigger_display(J4statusCoreInterface *core);
-
-
 typedef struct _J4statusInputPluginInterface J4statusInputPluginInterface;
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, init, Init);
