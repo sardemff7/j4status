@@ -36,6 +36,15 @@
 static gchar _j4status_colour_hex[8];
 static gchar _j4status_colour_rgb[17];
 
+void
+j4status_colour_reset(J4statusColour *colour)
+{
+    colour->set = FALSE;
+    colour->red = 0;
+    colour->green = 0;
+    colour->blue = 0;
+}
+
 static gboolean
 _j4status_colour_parse_internal(const gchar *sr, const gchar *sg, const gchar *sb, guint8 base, J4statusColour *colour)
 {
@@ -98,6 +107,14 @@ j4status_colour_parse(const gchar *colour)
     }
 
     return ret;
+}
+
+J4statusColour
+j4status_colour_parse_length(const gchar *colour, gint length)
+{
+    gchar string[length + 1];
+    g_sprintf(string, "%.*s", length, colour);
+    return j4status_colour_parse(string);
 }
 
 const gchar *
