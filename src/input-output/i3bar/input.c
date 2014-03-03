@@ -455,6 +455,11 @@ _j4status_i3bar_input_section_end_map(void *user_data)
         g_hash_table_insert(client->sections, g_strdup(id), section);
     }
 
+    J4statusState state = J4STATUS_STATE_NO_STATE;
+    if ( client->parse_context.urgent )
+        state |= J4STATUS_STATE_URGENT;
+
+    j4status_section_set_state(section, state);
     j4status_section_set_value(section, client->parse_context.full_text);
     client->parse_context.full_text = NULL;
     j4status_section_set_colour(section, client->parse_context.colour);
