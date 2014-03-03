@@ -50,7 +50,7 @@ struct _J4statusPluginContext {
 };
 
 static void
-_j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
+_j4status_i3bar_output_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
 {
     gchar *config;
     config = g_key_file_get_string(key_file, "i3bar", name, NULL);
@@ -64,7 +64,7 @@ _j4status_i3bar_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
 }
 
 static J4statusPluginContext *
-_j4status_i3bar_init(J4statusCoreInterface *core)
+_j4status_i3bar_output_init(J4statusCoreInterface *core)
 {
     J4statusPluginContext *context;
 
@@ -80,11 +80,11 @@ _j4status_i3bar_init(J4statusCoreInterface *core)
     key_file = libj4status_config_get_key_file("i3bar");
     if ( key_file != NULL )
     {
-        _j4status_i3bar_update_colour(&context->colours.no_state, key_file, "NoStateColour");
-        _j4status_i3bar_update_colour(&context->colours.unavailable, key_file, "UnavailableColour");
-        _j4status_i3bar_update_colour(&context->colours.bad, key_file, "BadColour");
-        _j4status_i3bar_update_colour(&context->colours.average, key_file, "AverageColour");
-        _j4status_i3bar_update_colour(&context->colours.good, key_file, "GoodColour");
+        _j4status_i3bar_output_update_colour(&context->colours.no_state, key_file, "NoStateColour");
+        _j4status_i3bar_output_update_colour(&context->colours.unavailable, key_file, "UnavailableColour");
+        _j4status_i3bar_output_update_colour(&context->colours.bad, key_file, "BadColour");
+        _j4status_i3bar_output_update_colour(&context->colours.average, key_file, "AverageColour");
+        _j4status_i3bar_output_update_colour(&context->colours.good, key_file, "GoodColour");
         context->align = g_key_file_get_boolean(key_file, "i3bar", "Align", NULL);
         g_key_file_free(key_file);
     }
@@ -118,7 +118,7 @@ _j4status_i3bar_init(J4statusCoreInterface *core)
 }
 
 static void
-_j4status_i3bar_uninit(J4statusPluginContext *context)
+_j4status_i3bar_output_uninit(J4statusPluginContext *context)
 {
     yajl_gen_free(context->json_gen);
 
@@ -126,7 +126,7 @@ _j4status_i3bar_uninit(J4statusPluginContext *context)
 }
 
 static void
-_j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
+_j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
 {
     yajl_gen_array_open(context->json_gen);
     GList *section_;
@@ -301,8 +301,8 @@ _j4status_i3bar_print(J4statusPluginContext *context, GList *sections)
 void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
-    libj4status_output_plugin_interface_add_init_callback(interface, _j4status_i3bar_init);
-    libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_i3bar_uninit);
+    libj4status_output_plugin_interface_add_init_callback(interface, _j4status_i3bar_output_init);
+    libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_i3bar_output_uninit);
 
-    libj4status_output_plugin_interface_add_print_callback(interface, _j4status_i3bar_print);
+    libj4status_output_plugin_interface_add_print_callback(interface, _j4status_i3bar_output_print);
 }

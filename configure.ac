@@ -104,11 +104,12 @@ case "$with_dbusinterfacesdir" in
 esac
 AC_SUBST(dbusinterfacesdir)
 
-AC_ARG_ENABLE(i3bar-output, AS_HELP_STRING([--disable-i3bar-output], [Disable i3bar JSON protocol support]), [], enable_i3bar_output=yes)
-if test x$enable_i3bar_output = xyes; then
+AC_ARG_ENABLE(i3bar-input-output, AS_HELP_STRING([--disable-i3bar-input-output], [Disable i3bar JSON protocol support]), [], enable_i3bar_input_output=yes)
+if test x$enable_i3bar_input_output = xyes; then
+    AC_CHECK_HEADERS([signal.h])
     PKG_CHECK_MODULES(YAJL, [yajl >= 2.0.0])
 fi
-AM_CONDITIONAL(ENABLE_I3BAR_OUTPUT, test x$enable_i3bar_output = xyes)
+AM_CONDITIONAL(ENABLE_I3BAR_INPUT_OUTPUT, test x$enable_i3bar_input_output = xyes)
 
 AC_ARG_ENABLE(nm-input, AS_HELP_STRING([--disable-nm-input], [Disable NetworkManager support]), [], enable_nm_input=yes)
 if test x$enable_nm_input = xyes; then
@@ -177,7 +178,7 @@ AC_MSG_RESULT([
     Output plugins:
         Flat: yes
         Debug: yes
-        i3bar: $enable_i3bar_output
+        i3bar: $enable_i3bar_input_output
 
     Input plugins:
         Time: yes
@@ -186,6 +187,7 @@ AC_MSG_RESULT([
         UPower: $enable_upower_input
         Sensors: $enable_sensors_input
         systemd: $enable_systemd_input
+        i3bar: $enable_i3bar_input_output
 
 dnl     Tests: $enable_tests
     Debug mode: $enable_debug

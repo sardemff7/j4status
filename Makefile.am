@@ -40,8 +40,8 @@ include src/libj4status/libj4status.mk
 include src/libj4status-plugin/libj4status-plugin.mk
 include src/output/flat/flat.mk
 include src/output/debug/debug.mk
-if ENABLE_I3BAR_OUTPUT
-include src/output/i3bar/i3bar.mk
+if ENABLE_I3BAR_INPUT_OUTPUT
+include src/input-output/i3bar/i3bar.mk
 endif
 include src/input/time/time.mk
 include src/input/file-monitor/file-monitor.mk

@@ -12,7 +12,7 @@ CLEANFILES += \
 
 # Features defaulting to enable
 # They more or less provide i3status features
-if ENABLE_I3BAR_OUTPUT
+if ENABLE_I3BAR_INPUT_OUTPUT
 if ENABLE_NM_INPUT
 if ENABLE_UPOWER_INPUT
 if ENABLE_SENSORS_INPUT
