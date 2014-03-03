@@ -430,7 +430,16 @@ _j4status_i3bar_input_section_end_map(void *user_data)
     section = g_hash_table_lookup(client->sections, id);
     if ( section != NULL )
     {
-
+        if ( j4status_section_get_align(section) != client->parse_context.align )
+        {
+            client->parse_context.error = g_strdup_printf("Section %s from client '%s': \"align\" mismatch", id, client->name);
+            return 0;
+        }
+        if ( j4status_section_get_max_width(section) != client->parse_context.max_width )
+        {
+            client->parse_context.error = g_strdup_printf("Section %s from client '%s': \"min_width\" mismatch", id, client->name);
+            return 0;
+        }
     }
     else
     {
