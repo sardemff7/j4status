@@ -20,7 +20,14 @@
  *
  */
 
+#ifdef HAVE_CONFIG_H
+#include <config.h>
+#endif /* HAVE_CONFIG_H */
+
+#ifdef HAVE_NETDB_H
 #include <netdb.h>
+#endif /* HAVE_NETDB_H */
+
 #include <glib.h>
 #include <libnm-glib/nm-client.h>
 #include <libnm-glib/nm-device.h>

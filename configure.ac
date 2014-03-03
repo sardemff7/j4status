@@ -78,6 +78,8 @@ if test -d .git; then
     AC_DEFINE_UNQUOTED([PACKAGE_VERSION], ["$PACKAGE_VERSION"], [Full version with git information])
 fi
 
+AC_CHECK_HEADERS([errno.h])
+
 PKG_CHECK_MODULES(GLIB, [glib-2.0 >= $glib_min_version])
 AC_DEFINE_UNQUOTED([GLIB_VERSION_MIN_REQUIRED], [(G_ENCODE_VERSION(${glib_min_major},${glib_min_minor}))], [The lower GLib version supported])
 
@@ -110,6 +112,7 @@ AM_CONDITIONAL(ENABLE_I3BAR_OUTPUT, test x$enable_i3bar_output = xyes)
 
 AC_ARG_ENABLE(nm-input, AS_HELP_STRING([--disable-nm-input], [Disable NetworkManager support]), [], enable_nm_input=yes)
 if test x$enable_nm_input = xyes; then
+    AC_CHECK_HEADERS([netdb.h])
     PKG_CHECK_MODULES(LIBNM, [libnm-util >= 0.9 libnm-glib >= 0.9])
 fi
 AM_CONDITIONAL(ENABLE_NM_INPUT, test x$enable_nm_input = xyes)
