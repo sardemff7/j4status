@@ -18,5 +18,10 @@ flat_la_LDFLAGS = \
 
 flat_la_LIBADD = \
 	libj4status-plugin.la \
+	libj4status.la \
 	$(GLIB_LIBS) \
+	$(null)
+
+man5_MANS += \
+	man/j4status-flat.conf.5 \
 	$(null)

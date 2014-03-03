@@ -29,6 +29,30 @@
 
 #include <j4status-plugin-output.h>
 
+#include <libj4status-config.h>
+
+#define COLOUR_STR(n) gchar n[16] = {0}; /* strlen("\e[38;5;xxxm\e[5m\x07") */
+
+struct _J4statusPluginContext {
+    struct {
+        J4statusColour no_state;
+        J4statusColour unavailable;
+        J4statusColour bad;
+        J4statusColour average;
+        J4statusColour good;
+    } colours;
+};
+
+static void
+_j4status_flat_set_colour(gchar out[], J4statusColour colour, gboolean important)
+{
+    gsize o = 0;
+    if ( colour.set )
+        o = g_sprintf(out, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
+    if ( important )
+        g_sprintf(out + o, "\e[5m\x07");
+}
+
 static void
 _j4status_flat_print(J4statusPluginContext *context, GList *sections)
 {
@@ -42,17 +66,49 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
         if ( j4status_section_is_dirty(section) )
         {
             gchar *new_cache = NULL;
-            const gchar *label;
             const gchar *value;
-
             value = j4status_section_get_value(section);
             if ( value != NULL )
             {
+                J4statusColour colour = {0};
+                COLOUR_STR(colour_str);
+
+
+                J4statusState state = j4status_section_get_state(section);
+                gboolean urgent = ( state & J4STATUS_STATE_URGENT );
+                colour = j4status_section_get_colour(section);
+                if ( ! colour.set )
+                switch ( state & ~J4STATUS_STATE_FLAGS )
+                {
+                case J4STATUS_STATE_NO_STATE:
+                    colour = context->colours.no_state;
+                break;
+                case J4STATUS_STATE_UNAVAILABLE:
+                    colour = context->colours.unavailable;
+                break;
+                case J4STATUS_STATE_BAD:
+                    colour = context->colours.bad;
+                break;
+                case J4STATUS_STATE_AVERAGE:
+                    colour = context->colours.average;
+                break;
+                case J4STATUS_STATE_GOOD:
+                    colour = context->colours.good;
+                break;
+                }
+                _j4status_flat_set_colour(colour_str, colour, urgent);
+
+                const gchar *label;
                 label = j4status_section_get_label(section);
                 if ( label != NULL )
-                    new_cache = g_strdup_printf("%s: %s", label, value);
+                {
+                    COLOUR_STR(label_colour_str);
+                    _j4status_flat_set_colour(label_colour_str, j4status_section_get_label_colour(section), FALSE);
+
+                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m: %s%s\e[0m", label_colour_str, label, colour_str, value);
+                }
                 else
-                    new_cache = g_strdup(value);
+                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m", colour_str, value);
             }
             j4status_section_set_cache(section, new_cache);
             cache = new_cache;
@@ -70,8 +126,64 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
     g_printf("\n");
 }
 
+static void
+_j4status_flat_update_colour(J4statusColour *colour, GKeyFile *key_file, gchar *name)
+{
+    gchar *config;
+    config = g_key_file_get_string(key_file, "Flat", name, NULL);
+    if ( config == NULL )
+        return;
+
+    *colour = j4status_colour_parse(config);
+    g_free(config);
+}
+
+static J4statusPluginContext *
+_j4status_flat_init(J4statusCoreInterface *core)
+{
+    J4statusPluginContext *context;
+
+    context = g_new0(J4statusPluginContext, 1);
+
+    if ( g_str_has_suffix(g_getenv("TERM"), "-256color") || g_str_has_suffix(g_getenv("TERM"), "-256colour") )
+    {
+        context->colours.unavailable.set = TRUE;
+        context->colours.unavailable.blue = 0xff;
+        context->colours.bad.set = TRUE;
+        context->colours.bad.red = 0xff;
+        context->colours.average.set = TRUE;
+        context->colours.average.green = 0xff;
+        context->colours.average.blue = 0xff;
+        context->colours.good.set = TRUE;
+        context->colours.good.green = 0xff;
+
+        GKeyFile *key_file;
+        key_file = libj4status_config_get_key_file("Flat");
+        if ( key_file != NULL )
+        {
+            _j4status_flat_update_colour(&context->colours.no_state, key_file, "NoStateColour");
+            _j4status_flat_update_colour(&context->colours.unavailable, key_file, "UnavailableColour");
+            _j4status_flat_update_colour(&context->colours.bad, key_file, "BadColour");
+            _j4status_flat_update_colour(&context->colours.average, key_file, "AverageColour");
+            _j4status_flat_update_colour(&context->colours.good, key_file, "GoodColour");
+            g_key_file_free(key_file);
+        }
+    }
+
+    return context;
+}
+
+static void
+_j4status_flat_uninit(J4statusPluginContext *context)
+{
+    g_free(context);
+}
+
 void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
+    libj4status_output_plugin_interface_add_init_callback(interface, _j4status_flat_init);
+    libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_flat_uninit);
+
     libj4status_output_plugin_interface_add_print_callback(interface, _j4status_flat_print);
 }
