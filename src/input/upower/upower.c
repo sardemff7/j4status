@@ -61,17 +61,7 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     const gchar *status = "Bat";
     J4statusState state = J4STATUS_STATE_NO_STATE;
 
-    GValue val = G_VALUE_INIT;
-
-    g_value_init(&val, G_TYPE_DOUBLE);
-    g_object_get_property(device, "percentage", &val);
-    percentage = g_value_get_double(&val);
-    g_value_unset(&val);
-
-    g_value_init(&val, G_TYPE_INT);
-    g_object_get_property(device, "state", &val);
-    device_state = g_value_get_int(&val);
-    g_value_unset(&val);
+    g_object_get(device, "percentage", &percentage, "state", &device_state, NULL);
 
     switch ( device_state )
     {
@@ -93,10 +83,7 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         status = "Chr";
         state = J4STATUS_STATE_AVERAGE;
 
-        g_value_init(&val, G_TYPE_INT64);
-        g_object_get_property(device, "time-to-full", &val);
-        time = g_value_get_int64(&val);
-        g_value_unset(&val);
+        g_object_get(device, "time-to-full", &time, NULL);
     break;
     case UP_DEVICE_STATE_DISCHARGING:
     case UP_DEVICE_STATE_PENDING_DISCHARGE:
@@ -109,10 +96,7 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         if ( percentage < 5 )
             state |= J4STATUS_STATE_URGENT;
 
-        g_value_init(&val, G_TYPE_INT64);
-        g_object_get_property(device, "time-to-empty", &val);
-        time = g_value_get_int64(&val);
-        g_value_unset(&val);
+        g_object_get(device, "time-to-empty", &time, NULL);
     break;
     }
     j4status_section_set_state(section->section, state);
@@ -179,13 +163,9 @@ _j4status_upower_init(J4statusCoreInterface *core)
     {
         device = g_ptr_array_index(devices, i);
 
-        GValue value = G_VALUE_INIT;
         UpDeviceKind kind;
 
-        g_value_init(&value, G_TYPE_INT);
-        g_object_get_property(device, "kind", &value);
-        kind = g_value_get_int(&value);
-        g_value_unset(&value);
+        g_object_get(device, "kind", &kind, NULL);
 
         const gchar *path;
         const gchar *name = NULL;
