@@ -57,6 +57,9 @@ endif
 if ENABLE_SYSTEMD_INPUT
 include src/input/systemd/systemd.mk
 endif
+if ENABLE_I3FOCUS_INPUT
+include src/input/i3focus/i3focus.mk
+endif
 include man/man.mk
 
 -include local-rules.mk

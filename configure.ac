@@ -146,6 +146,12 @@ if test x$enable_systemd_input = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_SYSTEMD_INPUT, test x$enable_systemd_input = xyes)
 
+AC_ARG_ENABLE(i3focus-input, AS_HELP_STRING([--enable-i3focus-input], [Enable i3focus support]), [], enable_i3focus_input=no)
+if test x$enable_i3focus_input = xyes; then
+    PKG_CHECK_MODULES(I3IPC_GLIB, [i3ipc-glib-1.0])
+fi
+AM_CONDITIONAL(ENABLE_I3FOCUS_INPUT, test x$enable_i3focus_input = xyes)
+
 
 #
 # Tests
@@ -187,6 +193,7 @@ AC_MSG_RESULT([
         UPower: $enable_upower_input
         Sensors: $enable_sensors_input
         systemd: $enable_systemd_input
+        i3focus: $enable_i3focus_input
         i3bar: $enable_i3bar_input_output
 
 dnl     Tests: $enable_tests
