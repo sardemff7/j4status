@@ -51,6 +51,7 @@ PKG_INSTALLDIR
 pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
 
+GW_INIT([libgwater])
 
 # Common dependencies
 glib_min_major="2"
@@ -139,6 +140,12 @@ if test x$enable_sensors_input = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_SENSORS_INPUT, test x$enable_sensors_input = xyes)
 
+AC_ARG_ENABLE(mpd-input, AS_HELP_STRING([--enable-mpd-input], [Enable MPD support]), [], enable_mpd_input=no)
+if test x$enable_mpd_input = xyes; then
+    GW_CHECK_MPD(MPD)
+fi
+AM_CONDITIONAL(ENABLE_MPD_INPUT, test x$enable_mpd_input = xyes)
+
 AC_ARG_ENABLE(systemd-input, AS_HELP_STRING([--enable-systemd-input], [Enable systemd support]), [], enable_systemd_input=no)
 if test x$enable_systemd_input = xyes; then
     PKG_CHECK_MODULES(SYSTEMD, [systemd])
@@ -192,6 +199,7 @@ AC_MSG_RESULT([
         NetworkManager: $enable_nm_input
         UPower: $enable_upower_input
         Sensors: $enable_sensors_input
+        MPD: $enable_mpd_input
         systemd: $enable_systemd_input
         i3focus: $enable_i3focus_input
         i3bar: $enable_i3bar_input_output

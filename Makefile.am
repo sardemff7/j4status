@@ -5,7 +5,7 @@
  AM_DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-debug
 
-ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I m4 -I libgwater ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
 bin_PROGRAMS =
@@ -53,6 +53,9 @@ include src/input/upower/upower.mk
 endif
 if ENABLE_SENSORS_INPUT
 include src/input/sensors/sensors.mk
+endif
+if ENABLE_MPD_INPUT
+include src/input/mpd/mpd.mk
 endif
 if ENABLE_SYSTEMD_INPUT
 include src/input/systemd/systemd.mk
