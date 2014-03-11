@@ -195,6 +195,40 @@
         </variablelist>
     </refsect1>
 
+    <refsect1>
+        <title>Exit status</title>
+
+        <variablelist>
+            <varlistentry>
+                <term><literal>0</literal></term>
+                <listitem>
+                    <para><command>j4status</command> ended successfully.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><literal>1</literal></term>
+                <listitem>
+                    <para>Failed to parse command line paramaters.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><literal>10</literal></term>
+                <listitem>
+                    <para>No usable output plugin found.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><literal>11</literal></term>
+                <listitem>
+                    <para>No input plugins.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </refsect1>
+
     <refsect1 id="environment">
         <title>Environment</title>
 

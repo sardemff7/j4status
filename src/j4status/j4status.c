@@ -313,6 +313,7 @@ main(int argc, char *argv[])
     {
         g_warning("Option parsing failed: %s\n", error->message);
         g_clear_error(&error);
+        retval = 1;
         goto end;
     }
     g_option_context_free(option_context);
@@ -366,6 +367,7 @@ main(int argc, char *argv[])
     if ( context->output_plugin == NULL )
     {
         g_warning("No usable output plugin, tried '%s'", output_plugin);
+        retval = 10;
         goto end;
     }
 
@@ -383,6 +385,7 @@ main(int argc, char *argv[])
     {
         g_warning("No input plugins, will stop early");
         one_shot = TRUE;
+        retval = 11;
     }
     context->sections = g_list_reverse(context->sections);
     if ( context->order_weights != NULL )
