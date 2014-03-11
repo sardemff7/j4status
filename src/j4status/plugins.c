@@ -100,8 +100,12 @@ j4status_plugins_get_output_plugin(J4statusCoreInterface *core, const gchar *nam
     module = _j4status_plugins_get_module(file);
     g_free(file);
 
-    if ( ( module == NULL ) && ( ! g_str_equal(name, "flat") ) )
+    if ( module == NULL )
+    {
+        if ( g_strcmp0(name, "flat") == 0 )
+            return NULL;
         return j4status_plugins_get_output_plugin(core, "flat");
+    }
 
     J4statusOutputPluginGetInterfaceFunc func;
 
