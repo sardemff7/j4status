@@ -140,6 +140,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
     if ( ! up_client_enumerate_devices_sync(context->up_client, NULL, NULL) )
     {
         g_object_unref(context->up_client);
+        g_free(context);
         return NULL;
     }
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
@@ -159,6 +160,12 @@ _j4status_upower_init(J4statusCoreInterface *core)
     guint i;
 
     devices = up_client_get_devices(context->up_client);
+    if ( devices == NULL )
+    {
+        g_object_unref(context->up_client);
+        g_free(context);
+        return NULL;
+    }
     for ( i = 0 ; i < devices->len ; ++i )
     {
         device = g_ptr_array_index(devices, i);
