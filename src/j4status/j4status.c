@@ -310,7 +310,11 @@ main(int argc, char *argv[])
     g_option_context_set_main_group(option_context, option_group);
 
     if ( ! g_option_context_parse(option_context, &argc, &argv, &error) )
-        g_error("Option parsing failed: %s\n", error->message);
+    {
+        g_warning("Option parsing failed: %s\n", error->message);
+        g_clear_error(&error);
+        goto end;
+    }
     g_option_context_free(option_context);
 
     if ( print_version )
@@ -360,7 +364,10 @@ main(int argc, char *argv[])
 
     context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
     if ( context->output_plugin == NULL )
-        g_error("No usable output plugin, tried '%s'", output_plugin);
+    {
+        g_warning("No usable output plugin, tried '%s'", output_plugin);
+        goto end;
+    }
 
     if ( order != NULL )
     {
