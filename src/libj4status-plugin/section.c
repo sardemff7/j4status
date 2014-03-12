@@ -86,7 +86,7 @@ _j4status_section_get_override(J4statusSection *self)
             self->align = J4STATUS_ALIGN_LEFT;
         else if ( g_ascii_strcasecmp(align, "right") == 0 )
             self->align = J4STATUS_ALIGN_RIGHT;
-        else if ( g_ascii_strcasecmp(align, "centre") == 0 )
+        else if ( g_ascii_strcasecmp(align, "center") == 0 )
             self->align = J4STATUS_ALIGN_CENTER;
         g_free(label_colour);
     }
