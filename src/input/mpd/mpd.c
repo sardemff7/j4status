@@ -54,7 +54,7 @@ struct _J4statusPluginContext {
 typedef enum {
     COMMAND_IDLE,
     COMMAND_QUERY,
-} J4statusMpdSectionCommand;
+} J4statusMpdCommand;
 
 typedef enum {
     STATE_PLAY,
@@ -68,7 +68,7 @@ typedef struct {
     GWaterMpdSource *source;
     struct mpd_async *mpd;
 
-    J4statusMpdSectionCommand command;
+    J4statusMpdCommand command;
 
     gchar *current_song;
     J4statusMpdSectionState state;
@@ -81,10 +81,8 @@ typedef struct {
 } J4statusMpdSection;
 
 static void
-_j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdSectionCommand command)
+_j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command)
 {
-    if ( ! section->context->started )
-        command = COMMAND_IDLE;
 
     switch ( command )
     {
@@ -177,10 +175,8 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
     case COMMAND_IDLE:
         if ( g_str_has_prefix(line, "changed: ") )
             break;
-        if ( ! g_str_has_prefix(line, "OK") )
-            goto fail;
         if ( g_strcmp0(line, "OK") == 0 )
-            _j4status_mpd_section_command(section, COMMAND_QUERY);
+            _j4status_mpd_section_command(section, section->context->started ? COMMAND_QUERY : COMMAND_IDLE);
         section->updating = FALSE;
     break;
     case COMMAND_QUERY:
