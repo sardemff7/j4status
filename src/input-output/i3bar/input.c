@@ -42,6 +42,7 @@
 #endif /* G_OS_UNIX */
 
 #include <yajl/yajl_parse.h>
+#include <yajl/yajl_gen.h>
 
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-output.h>
@@ -133,7 +134,7 @@ typedef struct {
     GList *link;
     gchar *name;
     GPid pid;
-    GDataOutputStream *stdin;
+    GOutputStream *stdin;
     GDataInputStream *stdout;
     GDataInputStream *stderr;
     GCancellable *cancellable;
@@ -141,8 +142,70 @@ typedef struct {
     gint cont_signal;
     yajl_handle json_handle;
     J4statusI3barSectionParseContext parse_context;
+    yajl_gen json_gen;
     GHashTable *sections;
 } J4statusI3barInputClient;
+
+static void
+_j4status_i3bar_input_client_write(J4statusI3barInputClient *client)
+{
+        const unsigned char *output;
+        size_t size;
+        GError *error = NULL;
+        yajl_gen_get_buf(client->json_gen, &output, &size);
+        if ( g_output_stream_write_all(client->stdin, output, size, NULL, NULL, &error) )
+            g_output_stream_write_all(client->stdin, "\n", 1, NULL, NULL, &error);
+        yajl_gen_clear(client->json_gen);
+        if ( error != NULL )
+        {
+            g_warning("Couldn't write event header from client '%s': %s", client->name, error->message);
+            yajl_gen_free(client->json_gen);
+            client->json_gen = NULL;
+            g_object_unref(client->stdin);
+            client->stdin = NULL;
+        }
+}
+static void
+_j4status_i3bar_input_client_action_callback(J4statusSection *section, const gchar *action_id, gpointer user_data)
+{
+    J4statusI3barInputClient *client = user_data;
+
+    if ( ! g_str_has_prefix(action_id, "mouse:") )
+        return;
+
+    gint64 button;
+    button = g_ascii_strtoll(action_id + strlen("mouse:"), NULL, 10);
+    if ( button < 1 )
+        return;
+
+    const gchar *name = j4status_section_get_name(section);
+    const gchar *instance = j4status_section_get_instance(section);
+
+    g_debug("click! %s:%s", name, instance);
+
+    yajl_gen_map_open(client->json_gen);
+
+    yajl_gen_string(client->json_gen, (const unsigned char *)"name", strlen("name"));
+    yajl_gen_string(client->json_gen, (const unsigned char *)name, strlen(name));
+
+    if ( instance != NULL )
+    {
+        yajl_gen_string(client->json_gen, (const unsigned char *)"instance", strlen("instance"));
+        yajl_gen_string(client->json_gen, (const unsigned char *)instance, strlen(instance));
+    }
+
+    yajl_gen_string(client->json_gen, (const unsigned char *)"button", strlen("button"));
+    yajl_gen_integer(client->json_gen, button);
+
+    yajl_gen_string(client->json_gen, (const unsigned char *)"x", strlen("x"));
+    yajl_gen_integer(client->json_gen, 0);
+    yajl_gen_string(client->json_gen, (const unsigned char *)"y", strlen("y"));
+    yajl_gen_integer(client->json_gen, 0);
+
+    yajl_gen_map_close(client->json_gen);
+
+    _j4status_i3bar_input_client_write(client);
+}
 
 /* Header parsing */
 
@@ -449,6 +512,8 @@ _j4status_i3bar_input_section_end_map(void *user_data)
         j4status_section_set_instance(section, instance);
         j4status_section_set_align(section, client->parse_context.align);
         j4status_section_set_max_width(section, client->parse_context.max_width);
+        if ( client->stdin != NULL )
+            j4status_section_set_action_callback(section, _j4status_i3bar_input_client_action_callback, client);
 
         if ( j4status_section_insert(section) )
             g_hash_table_insert(client->sections, g_strdup(id), section);
@@ -643,12 +708,7 @@ _j4status_i3bar_input_client_new(J4statusPluginContext *context, const gchar *cl
     client->cont_signal = header_context.cont_signal;
 
     if ( header_context.click_events )
-    {
-        GOutputStream *raw_out;
-        raw_out = stream_from_fd(out, child_stdin_fd);
-        client->stdin = g_data_output_stream_new(raw_out);
-        g_object_unref(raw_out);
-    }
+        client->stdin = stream_from_fd(out, child_stdin_fd);
 
     raw_in = stream_from_fd(in, child_stderr_fd);
     client->stderr = g_data_input_stream_new(raw_in);
@@ -657,6 +717,12 @@ _j4status_i3bar_input_client_new(J4statusPluginContext *context, const gchar *cl
     client->cancellable = g_cancellable_new();
 
     client->json_handle = yajl_alloc(&_j4status_i3bar_input_section_callbacks, NULL, client);
+    if ( header_context.click_events )
+    {
+        client->json_gen = yajl_gen_alloc(NULL);
+        yajl_gen_array_open(client->json_gen);
+        _j4status_i3bar_input_client_write(client);
+    }
 
 #ifdef G_OS_UNIX
     killpg(client->pid, client->stop_signal);
@@ -695,6 +761,14 @@ _j4status_i3bar_input_client_free(gpointer data)
 {
     J4statusI3barInputClient *client = data;
 
+    if ( client->stdin != NULL )
+    {
+        yajl_gen_array_close(client->json_gen);
+        _j4status_i3bar_input_client_write(client);
+    }
+
+    if ( client->json_gen != NULL )
+        yajl_gen_free(client->json_gen);
     yajl_free(client->json_handle);
 
     g_object_unref(client->stderr);
