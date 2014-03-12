@@ -1,7 +1,7 @@
 /*
  * j4status - Status line generator
  *
- * Copyright © 2012-2013 Quentin "Sardem FF7" Glidic
+ * Copyright © 2012-2014 Quentin "Sardem FF7" Glidic
  *
  * This file is part of j4status.
  *
@@ -30,14 +30,53 @@
 
 #include <glib.h>
 #include <glib/gprintf.h>
+#include <glib-object.h>
+#include <gio/gio.h>
+#ifdef G_OS_UNIX
+#include <gio/gunixinputstream.h>
+#endif /* ! G_OS_UNIX */
 
 #include <yajl/yajl_gen.h>
+#include <yajl/yajl_parse.h>
 
 #include <j4status-plugin-output.h>
 
 #include <libj4status-config.h>
 
+#define yajl_strcmp(str1, len1, str2) ( ( strlen(str2) == len1 ) && ( g_ascii_strncasecmp((const gchar *) str1, str2, len1) == 0 ) )
+
+typedef enum {
+    KEY_NONE = 0,
+    KEY_NAME,
+    KEY_INSTANCE,
+    KEY_X,
+    KEY_Y,
+    KEY_BUTTON,
+} J4statusI3barOutputClickEventsJsonKey;
+
+static gchar *_j4status_i3bar_output_json_key_names[] = {
+    [KEY_NONE] = "none",
+
+    [KEY_NAME] = "name",
+    [KEY_INSTANCE] = "instance",
+    [KEY_X] = "x",
+    [KEY_Y] = "y",
+    [KEY_BUTTON] = "button",
+};
+
+typedef struct {
+    gchar *error;
+    guint array_nesting;
+    gboolean in_event;
+    J4statusI3barOutputClickEventsJsonKey key;
+    gchar *name;
+    gchar *instance;
+    gchar *full_text;
+    gint64 button;
+} J4statusI3barOutputClickEventsParseContext;
+
 struct _J4statusPluginContext {
+    J4statusCoreInterface *core;
     struct {
         gchar *no_state;
         gchar *unavailable;
@@ -47,7 +86,243 @@ struct _J4statusPluginContext {
     } colours;
     gboolean align;
     yajl_gen json_gen;
+    GDataInputStream *in;
+    yajl_handle json_handle;
+    J4statusI3barOutputClickEventsParseContext parse_context;
 };
+
+static int
+_j4status_i3bar_output_click_events_integer(void *user_data, long long value)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( ! context->parse_context.in_event )
+    {
+        if ( context->parse_context.key != KEY_NONE )
+            context->parse_context.error = g_strdup_printf("Key '%s' must be in a section",
+                _j4status_i3bar_output_json_key_names[context->parse_context.key]);
+        else
+            context->parse_context.error = g_strdup_printf("Unexpected integer value: %lld", value);
+        return 0;
+    }
+
+    switch ( context->parse_context.key )
+    {
+    case KEY_X:
+    case KEY_Y:
+        /* Ignoring */
+    break;
+    case KEY_BUTTON:
+        context->parse_context.button = value;
+    break;
+    default:
+        context->parse_context.error = g_strdup_printf("Wrong integer key '%s'",
+            _j4status_i3bar_output_json_key_names[context->parse_context.key]);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_string(void *user_data, const unsigned char *value, size_t length)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( ! context->parse_context.in_event )
+    {
+        if ( context->parse_context.key != KEY_NONE )
+            context->parse_context.error = g_strdup_printf("Key '%s' must be in a section",
+                _j4status_i3bar_output_json_key_names[context->parse_context.key]);
+        else
+            context->parse_context.error = g_strdup_printf("Unexpected string value: %.*s", (gint) length, value);
+        return 0;
+    }
+
+    switch ( context->parse_context.key )
+    {
+    case KEY_NAME:
+        context->parse_context.name = g_strndup((const gchar *) value, length);
+    break;
+    case KEY_INSTANCE:
+        context->parse_context.instance = g_strndup((const gchar *) value, length);
+    break;
+    default:
+        context->parse_context.error = g_strdup_printf("Wrong string key '%s'",
+            _j4status_i3bar_output_json_key_names[context->parse_context.key]);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_start_map(void *user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( context->parse_context.in_event )
+    {
+        context->parse_context.error = g_strdup_printf("Unexpected map in section");
+        return 0;
+    }
+
+    context->parse_context.in_event = TRUE;
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_map_key(void *user_data, const unsigned char *value, size_t length)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( ! context->parse_context.in_event )
+    {
+        context->parse_context.error = g_strdup_printf("Unexpected map key outside section: %.*s", (gint) length, value);
+        return 0;
+    }
+
+    if ( yajl_strcmp(value, length, "name") )
+        context->parse_context.key = KEY_NAME;
+    else if ( yajl_strcmp(value, length, "instance") )
+        context->parse_context.key = KEY_INSTANCE;
+    else if ( yajl_strcmp(value, length, "x") )
+        context->parse_context.key = KEY_X;
+    else if ( yajl_strcmp(value, length, "y") )
+        context->parse_context.key = KEY_Y;
+    else if ( yajl_strcmp(value, length, "button") )
+        context->parse_context.key = KEY_BUTTON;
+    else
+    {
+        context->parse_context.error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_end_map(void *user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( ! context->parse_context.in_event )
+        return 0;
+
+    const gchar *name = context->parse_context.name;
+    const gchar *instance = context->parse_context.instance;
+    if ( ( name == NULL ) && ( instance != NULL ) )
+    {
+        context->parse_context.error = g_strdup_printf("Section instance but without name: %s", instance);
+        return 0;
+    }
+
+    gchar *section_id, *action_id;
+    if ( instance != NULL )
+        section_id = g_strdup_printf("%s:%s", name, instance);
+    else
+        section_id = g_strdup(name);
+    action_id = g_strdup_printf("mouse:%jd", context->parse_context.button);
+
+    j4status_core_trigger_action(context->core, section_id, action_id);
+
+    g_free(action_id);
+    g_free(section_id);
+
+    context->parse_context.in_event = FALSE;
+
+    context->parse_context.key = KEY_NONE;
+
+    g_free(context->parse_context.name);
+    context->parse_context.name = NULL;
+    g_free(context->parse_context.instance);
+    context->parse_context.instance = NULL;
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_start_array(void *user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    if ( ++context->parse_context.array_nesting > 2 )
+    {
+        context->parse_context.error = g_strdup_printf("Too much nested arrays: %u", context->parse_context.array_nesting);
+        return 0;
+    }
+
+    return 1;
+}
+
+static int
+_j4status_i3bar_output_click_events_end_array(void *user_data)
+{
+    J4statusPluginContext *context = user_data;
+
+    --context->parse_context.array_nesting;
+
+    return 1;
+}
+
+
+static yajl_callbacks _j4status_i3bar_output_click_events_callbacks = {
+    .yajl_integer     = _j4status_i3bar_output_click_events_integer,
+    .yajl_string      = _j4status_i3bar_output_click_events_string,
+    .yajl_start_map   = _j4status_i3bar_output_click_events_start_map,
+    .yajl_map_key     = _j4status_i3bar_output_click_events_map_key,
+    .yajl_end_map     = _j4status_i3bar_output_click_events_end_map,
+    .yajl_start_array = _j4status_i3bar_output_click_events_start_array,
+    .yajl_end_array   = _j4status_i3bar_output_click_events_end_array,
+};
+
+#ifdef G_OS_UNIX
+static void
+_j4status_i3bar_ouput_input_callback(GObject *stream, GAsyncResult *res, gpointer user_data)
+{
+    J4statusPluginContext *context = user_data;
+    GError *error = NULL;
+
+    gchar *line;
+    gsize length;
+    line = g_data_input_stream_read_line_finish(context->in, res, &length, &error);
+    if ( line == NULL )
+    {
+        if ( error != NULL )
+            g_warning("Input error: %s", error->message);
+        g_clear_error(&error);
+        return;
+    }
+
+    yajl_status json_state;
+
+    json_state = yajl_parse(context->json_handle, (const unsigned char *) line, length);
+
+    if ( json_state != yajl_status_ok )
+    {
+        g_free(context->parse_context.name);
+        g_free(context->parse_context.instance);
+
+        if ( json_state == yajl_status_error )
+        {
+            unsigned char *str_error;
+            str_error = yajl_get_error(context->json_handle, 0, (const unsigned char *) line, length);
+            g_warning("Couldn't parse section from i3bar: %s", str_error);
+            yajl_free_error(context->json_handle, str_error);
+        }
+        else if ( json_state == yajl_status_client_canceled )
+        {
+            g_warning("i3bar JSON protocol error: %s", context->parse_context.error);
+            g_free(context->parse_context.error);
+        }
+        return;
+    }
+
+    g_free(line);
+    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
+}
+#endif /* G_OS_UNIX */
 
 static void
 _j4status_i3bar_output_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
@@ -69,6 +344,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     J4statusPluginContext *context;
 
     context = g_new0(J4statusPluginContext, 1);
+    context->core = core;
 
     context->colours.no_state    = NULL;
     context->colours.unavailable = g_strdup("#0000FF");
@@ -99,6 +375,8 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     yajl_gen_integer(json_gen, SIGHUP);
     yajl_gen_string(json_gen, (const unsigned char *)"cont_signal", strlen("cont_signal"));
     yajl_gen_integer(json_gen, SIGHUP);
+    yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
+    yajl_gen_bool(json_gen, 1);
     yajl_gen_map_close(json_gen);
 
     const unsigned char *buffer;
@@ -113,6 +391,16 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     g_printf("%s\n", buffer);
     yajl_gen_clear(context->json_gen);
 
+#ifdef G_OS_UNIX
+    GInputStream *in;
+    in = g_unix_input_stream_new(0, FALSE);
+    context->in = g_data_input_stream_new(in);
+    g_object_unref(in);
+
+    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
+#endif /* G_OS_UNIX */
+
+    context->json_handle = yajl_alloc(&_j4status_i3bar_output_click_events_callbacks, NULL, context);
 
     return context;
 }
