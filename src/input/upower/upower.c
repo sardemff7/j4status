@@ -127,6 +127,120 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     j4status_section_set_value(section->section, value);
 }
 
+static void
+_j4status_upower_section_free(gpointer data)
+{
+    J4statusUpowerSection *section = data;
+
+    j4status_section_free(section->section);
+
+    g_free(section);
+}
+
+static void
+_j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gboolean all_devices)
+{
+    UpDeviceKind kind;
+
+    g_object_get(device, "kind", &kind, NULL);
+
+    const gchar *path;
+    const gchar *name = NULL;
+    const gchar *instance = NULL;
+    const gchar *label = NULL;
+
+    path = up_device_get_object_path(UP_DEVICE(device));
+    instance = g_utf8_strrchr(path, -1, '/') + strlen("/") + strlen(up_device_kind_to_string(kind)) + strlen("_");
+
+    switch ( kind )
+    {
+    case UP_DEVICE_KIND_BATTERY:
+        name = "upower-battery";
+    break;
+    case UP_DEVICE_KIND_UPS:
+        if ( ! all_devices )
+            return;
+        name = "upower-ups";
+        label = "UPS";
+    break;
+    case UP_DEVICE_KIND_MONITOR:
+        if ( ! all_devices )
+            return;
+        name = "upower-monitor";
+        label = "Monitor";
+    break;
+    case UP_DEVICE_KIND_MOUSE:
+        if ( ! all_devices )
+            return;
+        name = "upower-mouse";
+        label = "Mouse";
+    break;
+    case UP_DEVICE_KIND_KEYBOARD:
+        if ( ! all_devices )
+            return;
+        name = "upower-keyboard";
+        label = "Keyboard";
+    break;
+    case UP_DEVICE_KIND_PDA:
+        if ( ! all_devices )
+            return;
+        name = "upower-pda";
+        label = "PDA";
+    break;
+    case UP_DEVICE_KIND_PHONE:
+        if ( ! all_devices )
+            return;
+        name = "upower-phone";
+        label = "Phone";
+    break;
+    case UP_DEVICE_KIND_MEDIA_PLAYER:
+        if ( ! all_devices )
+            return;
+        name = "upower-media-player";
+        label = "Media player";
+    break;
+    case UP_DEVICE_KIND_TABLET:
+        if ( ! all_devices )
+            return;
+        name = "upower-tablet";
+        label = "Tablet";
+    break;
+    case UP_DEVICE_KIND_COMPUTER:
+        if ( ! all_devices )
+            return;
+        name = "upower-computer";
+        label = "Computer";
+    break;
+    case UP_DEVICE_KIND_UNKNOWN:
+    case UP_DEVICE_KIND_LINE_POWER:
+    case UP_DEVICE_KIND_LAST: /* Size placeholder */
+        return;
+    }
+
+    J4statusUpowerSection *section;
+    section = g_new0(J4statusUpowerSection, 1);
+    section->context = context;
+    section->section = j4status_section_new(context->core);
+
+    j4status_section_set_name(section->section, name);
+    j4status_section_set_instance(section->section, instance);
+    if ( label != NULL )
+        j4status_section_set_label(section->section, label);
+    j4status_section_set_max_width(section->section, -strlen("Chr 100.0% (00:00:00)"));
+
+    j4status_section_insert(section->section);
+
+    context->sections = g_list_prepend(context->sections, section);
+
+#if UP_CHECK_VERSION(0,99,0)
+    g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
+    _j4status_upower_device_changed(device, NULL, section);
+#else /* ! UP_CHECK_VERSION(0,99,0) */
+    g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
+    _j4status_upower_device_changed(device, section);
+#endif /* ! UP_CHECK_VERSION(0,99,0) */
+}
+
 static J4statusPluginContext *
 _j4status_upower_init(J4statusCoreInterface *core)
 {
@@ -156,7 +270,6 @@ _j4status_upower_init(J4statusCoreInterface *core)
     }
 
     GPtrArray *devices;
-    GObject *device;
     guint i;
 
     devices = up_client_get_devices(context->up_client);
@@ -167,121 +280,11 @@ _j4status_upower_init(J4statusCoreInterface *core)
         return NULL;
     }
     for ( i = 0 ; i < devices->len ; ++i )
-    {
-        device = g_ptr_array_index(devices, i);
-
-        UpDeviceKind kind;
-
-        g_object_get(device, "kind", &kind, NULL);
-
-        const gchar *path;
-        const gchar *name = NULL;
-        const gchar *instance = NULL;
-        const gchar *label = NULL;
-
-        path = up_device_get_object_path(UP_DEVICE(device));
-        instance = g_utf8_strrchr(path, -1, '/') + strlen("/") + strlen(up_device_kind_to_string(kind)) + strlen("_");
-
-        switch ( kind )
-        {
-        case UP_DEVICE_KIND_BATTERY:
-            name = "upower-battery";
-        break;
-        case UP_DEVICE_KIND_UPS:
-            if ( ! all_devices )
-                continue;
-            name = "upower-ups";
-            label = "UPS";
-        break;
-        case UP_DEVICE_KIND_MONITOR:
-            if ( ! all_devices )
-                continue;
-            name = "upower-monitor";
-            label = "Monitor";
-        break;
-        case UP_DEVICE_KIND_MOUSE:
-            if ( ! all_devices )
-                continue;
-            name = "upower-mouse";
-            label = "Mouse";
-        break;
-        case UP_DEVICE_KIND_KEYBOARD:
-            if ( ! all_devices )
-                continue;
-            name = "upower-keyboard";
-            label = "Keyboard";
-        break;
-        case UP_DEVICE_KIND_PDA:
-            if ( ! all_devices )
-                continue;
-            name = "upower-pda";
-            label = "PDA";
-        break;
-        case UP_DEVICE_KIND_PHONE:
-            if ( ! all_devices )
-                continue;
-            name = "upower-phone";
-            label = "Phone";
-        break;
-        case UP_DEVICE_KIND_MEDIA_PLAYER:
-            if ( ! all_devices )
-                continue;
-            name = "upower-media-player";
-            label = "Media player";
-        break;
-        case UP_DEVICE_KIND_TABLET:
-            if ( ! all_devices )
-                continue;
-            name = "upower-tablet";
-            label = "Tablet";
-        break;
-        case UP_DEVICE_KIND_COMPUTER:
-            if ( ! all_devices )
-                continue;
-            name = "upower-computer";
-            label = "Computer";
-        break;
-        case UP_DEVICE_KIND_UNKNOWN:
-        case UP_DEVICE_KIND_LINE_POWER:
-        case UP_DEVICE_KIND_LAST: /* Size placeholder */
-            continue;
-        }
-
-        J4statusUpowerSection *section;
-        section = g_new0(J4statusUpowerSection, 1);
-        section->context = context;
-        section->section = j4status_section_new(context->core);
-
-        j4status_section_set_name(section->section, name);
-        j4status_section_set_instance(section->section, instance);
-        if ( label != NULL )
-            j4status_section_set_label(section->section, label);
-        j4status_section_set_max_width(section->section, -strlen("Chr 100.0% (00:00:00)"));
-
-        j4status_section_insert(section->section);
-        context->sections = g_list_prepend(context->sections, section);
-
-#if UP_CHECK_VERSION(0,99,0)
-        g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
-        _j4status_upower_device_changed(device, NULL, section);
-#else /* ! UP_CHECK_VERSION(0,99,0) */
-        g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
-        _j4status_upower_device_changed(device, section);
-#endif /* ! UP_CHECK_VERSION(0,99,0) */
-    }
+        _j4status_upower_section_new(context, g_ptr_array_index(devices, i), all_devices);
     g_ptr_array_unref(devices);
 
+
     return context;
-}
-
-static void
-_j4status_upower_section_free(gpointer data)
-{
-    J4statusUpowerSection *section = data;
-
-    j4status_section_free(section->section);
-
-    g_free(section);
 }
 
 static void
