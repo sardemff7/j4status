@@ -329,6 +329,9 @@ _j4status_nm_device_monitor(gpointer key, gpointer data, gpointer user_data)
 {
     J4statusNmSection *section = data;
 
+    if ( section->device == NULL )
+        return;
+
     switch ( nm_device_get_device_type(section->device) )
     {
     case NM_DEVICE_TYPE_WIFI:
@@ -348,6 +351,9 @@ static void
 _j4status_nm_device_unmonitor(gpointer key, gpointer data, gpointer user_data)
 {
     J4statusNmSection *section = data;
+
+    if ( section->device == NULL )
+        return;
 
     switch ( nm_device_get_device_type(section->device) )
     {
@@ -489,9 +495,10 @@ _j4status_nm_section_free(gpointer data)
     J4statusNmSection *section = data;
 
     if ( section->device != NULL )
+    {
         g_object_unref(section->device);
-
-    j4status_section_free(section->section);
+        j4status_section_free(section->section);
+    }
 
     g_free(section);
 }
