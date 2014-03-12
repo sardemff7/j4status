@@ -26,6 +26,7 @@
 struct _J4statusSection {
     J4statusCoreInterface *core;
     gboolean freeze;
+    gchar *id;
     /* Reserved for the core */
     gint64 weight;
     GList *link;

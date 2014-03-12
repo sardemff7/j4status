@@ -41,17 +41,8 @@
 static void
 _j4status_section_get_override(J4statusSection *self)
 {
-    if ( self->name == NULL )
-        return;
-
-    gsize l = strlen("Override ") + strlen(self->name) + 1, o;
-    if ( self->instance != NULL )
-        l += strlen(":") + strlen(self->instance);
-
-    gchar group[l];
-    o = g_sprintf(group, "Override %s", self->name);
-    if ( self->instance != NULL )
-        g_sprintf(group + o, ":%s", self->instance);
+    gchar group[strlen("Override ") + strlen(self->id) + 1];
+    g_sprintf(group, "Override %s", self->id);
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file(group);
@@ -130,6 +121,8 @@ j4status_section_free(J4statusSection *self)
     g_free(self->label);
     g_free(self->instance);
 
+    g_free(self->id);
+
     g_free(self);
 }
 
@@ -197,6 +190,11 @@ j4status_section_insert(J4statusSection *self)
     g_return_val_if_fail(self != NULL, FALSE);
     g_return_val_if_fail(! self->freeze, FALSE);
     g_return_val_if_fail(self->name != NULL, FALSE);
+
+    if ( self->instance != NULL )
+        self->id = g_strdup_printf("%s:%s", self->name, self->instance);
+    else
+        self->id = g_strdup(self->name);
 
     _j4status_section_get_override(self);
 

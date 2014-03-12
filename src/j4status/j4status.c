@@ -113,18 +113,7 @@ static gboolean
 _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
 {
     if ( context->order_weights != NULL )
-    {
-        if ( section->instance == NULL )
-            section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->name));
-        else
-        {
-            gchar id[strlen(section->name) + 1 + strlen(section->instance) + 1], *e;
-            e = stpcpy(id, section->name);
-            *e = ':';
-            strcpy(++e, section->instance);
-            section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, id));
-        }
-    }
+        section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->id));
     if ( context->loop == NULL )
     {
         /* We are not started, thus sort has yet to happen */
@@ -354,7 +343,7 @@ main(int argc, char *argv[])
         .context = context,
         .add_section = _j4status_core_add_section,
         .remove_section = _j4status_core_remove_section,
-        .trigger_display = _j4status_core_trigger_display
+        .trigger_display = _j4status_core_trigger_display,
     };
 
 #ifdef G_OS_UNIX
