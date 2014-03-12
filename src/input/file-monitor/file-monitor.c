@@ -41,6 +41,7 @@ struct _J4statusPluginContext {
 
 typedef struct {
     J4statusPluginContext *context;
+    GFileMonitor *monitor;
     J4statusSection *section;
 } J4statusFileMonitorSection;
 
@@ -59,6 +60,18 @@ _j4status_file_monitor_changed(GFileMonitor *monitor, GFile *file, GFile *other_
         gsize length;
         j4status_section_set_value(section->section, g_data_input_stream_read_upto(data_stream, "", -1, &length, NULL, NULL));
     }
+}
+
+static void
+_j4status_file_monitor_section_free(gpointer data)
+{
+    J4statusFileMonitorSection *section = data;
+
+    j4status_section_free(section->section);
+
+    g_object_unref(section->monitor);
+
+    g_free(section);
 }
 
 static J4statusPluginContext *
@@ -112,6 +125,7 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
         J4statusFileMonitorSection *section;
         section = g_new0(J4statusFileMonitorSection, 1);
         section->context = context;
+        section->monitor = monitor;
         section->section = j4status_section_new(context->core);
 
         j4status_section_set_name(section->section, "file-monitor");
@@ -132,16 +146,6 @@ fail:
         g_key_file_free(key_file);
     g_free(dir);
     return NULL;
-}
-
-static void
-_j4status_file_monitor_section_free(gpointer data)
-{
-    J4statusFileMonitorSection *section = data;
-
-    j4status_section_free(section->section);
-
-    g_free(section);
 }
 
 static void
