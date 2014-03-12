@@ -114,7 +114,7 @@
                 </varlistentry>
                 <varlistentry condition="website;enable_sensors_input">
                     <term><command>sensors</command> (see <citerefentry><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                    <listitem><para>a sensors watching plugin, to display temperatures frow your motherboard sensors</para></listitem>
+                    <listitem><para>a sensors watching plugin, to display temperatures from your motherboard sensors</para></listitem>
                 </varlistentry>
                 <varlistentry condition="website;enable_systemd_input">
                     <term><command>systemd</command> (see <citerefentry><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
