@@ -25,6 +25,8 @@
 
 #include <j4status-plugin.h>
 
+typedef void (*J4statusSectionActionCallback)(J4statusSection *section, const gchar *action_id, gpointer user_data);
+
 typedef struct _J4statusInputPluginInterface J4statusInputPluginInterface;
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(input, Input, init, Init);
@@ -42,6 +44,7 @@ void j4status_section_set_label(J4statusSection *section, const gchar *label);
 void j4status_section_set_label_colour(J4statusSection *section, J4statusColour colour);
 void j4status_section_set_align(J4statusSection *section, J4statusAlign align);
 void j4status_section_set_max_width(J4statusSection *section, gint64 max_width);
+void j4status_section_set_action_callback(J4statusSection *section, J4statusSectionActionCallback callback, gpointer user_data);
 gboolean j4status_section_insert(J4statusSection *section) G_GNUC_WARN_UNUSED_RESULT;
 
 /* API once the section is inserted in the list */

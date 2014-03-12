@@ -31,7 +31,7 @@
 #include <j4status-plugin-private.h>
 
 void
-libj4status_core_trigger_display(J4statusCoreInterface *core)
+j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *action_id)
 {
-    return core->trigger_display(core->context);
+    return core->trigger_action(core->context, section_id, action_id);
 }

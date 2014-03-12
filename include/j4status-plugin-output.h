@@ -25,6 +25,8 @@
 
 #include <j4status-plugin.h>
 
+void j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *action_id);
+
 typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
 
 typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;

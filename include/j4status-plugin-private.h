@@ -39,6 +39,10 @@ struct _J4statusSection {
     J4statusColour label_colour;
     J4statusAlign align;
     gint64 max_width;
+    struct {
+        J4statusSectionActionCallback callback;
+        gpointer user_data;
+    } action;
 
     /* Input plugins can only touch these
      * once the section is inserted in the list */
@@ -57,12 +61,14 @@ typedef void (*J4statusCoreFunc)(J4statusCoreContext *context);
 typedef gboolean (*J4statusCoreSectionAddFunc)(J4statusCoreContext *context, J4statusSection *section);
 typedef void (*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
 typedef void (*J4statusCoreTriggerDisplayFunc)(J4statusCoreContext *context, gboolean force);
+typedef void (*J4statusCoreTriggerActionFunc)(J4statusCoreContext *context, const gchar *section_id, const gchar *action_id);
 
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
     J4statusCoreSectionAddFunc add_section;
     J4statusCoreSectionFunc remove_section;
     J4statusCoreTriggerDisplayFunc trigger_display;
+    J4statusCoreTriggerActionFunc trigger_action;
 };
 
 

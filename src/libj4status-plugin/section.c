@@ -184,6 +184,16 @@ j4status_section_set_max_width(J4statusSection *self, gint64 max_width)
     self->max_width = max_width;
 }
 
+void
+j4status_section_set_action_callback(J4statusSection *self, J4statusSectionActionCallback callback, gpointer user_data)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(! self->freeze);
+
+    self->action.callback = callback;
+    self->action.user_data = user_data;
+}
+
 gboolean
 j4status_section_insert(J4statusSection *self)
 {

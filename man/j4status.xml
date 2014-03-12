@@ -196,6 +196,23 @@
     </refsect1>
 
     <refsect1>
+        <title>Actions</title>
+
+        <para>
+            An output plugin can provide actions to sections of j4status.
+            These actions can be triggered by anything at the discretion of the output plugin.
+            Most common triggers will be user inputs: click on a status bar or text entered in a terminal.
+        </para>
+        <para>
+            An action id is a <type>string</type> which can contain <type>letters</type>, <type>digits</type>, <literal>-</literal> (hyphen), <literal>_</literal> (underscore) or <literal>:</literal> (colon).
+            It depends on the real source of the action.
+        </para>
+        <para>
+            Mouse buttons are expected to be of the form <literal>mouse:<replaceable>button number</replaceable></literal>.
+        </para>
+    </refsect1>
+
+    <refsect1>
         <title>Exit status</title>
 
         <variablelist>

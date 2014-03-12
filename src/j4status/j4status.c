@@ -50,6 +50,7 @@ struct _J4statusCoreContext {
     GList *input_plugins;
     GHashTable *order_weights;
     GList *sections;
+    GHashTable *sections_hash;
     J4statusOutputPlugin *output_plugin;
     gulong display_handle;
     gboolean started;
@@ -112,6 +113,11 @@ _j4status_core_compare_sections(gconstpointer a_, gconstpointer b_)
 static gboolean
 _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
 {
+    if ( g_hash_table_lookup_extended(context->sections_hash, section->id, NULL, NULL) )
+        return FALSE;
+
+    g_hash_table_insert(context->sections_hash, section->id, section);
+
     if ( context->order_weights != NULL )
         section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->id));
     if ( context->loop == NULL )
@@ -132,6 +138,7 @@ void
 _j4status_core_remove_section(J4statusCoreContext *context, J4statusSection *section)
 {
     context->sections = g_list_remove_link(context->sections, section->link);
+    g_hash_table_remove(context->sections_hash, section->id);
 }
 
 static gboolean
@@ -156,6 +163,20 @@ _j4status_core_trigger_display(J4statusCoreContext *context, gboolean force)
     if ( context->started || force )
 
     context->display_handle = g_idle_add(_j4status_core_display, context);
+}
+
+static void
+_j4status_core_trigger_action(J4statusCoreContext *context, const gchar *section_id, const gchar *action_id)
+{
+    J4statusSection *section;
+    section = g_hash_table_lookup(context->sections_hash, section_id);
+    if ( section == NULL )
+        return;
+
+    if ( section->action.callback == NULL )
+        return;
+
+    section->action.callback(section, action_id, section->action.user_data);
 }
 
 static void
@@ -344,6 +365,7 @@ main(int argc, char *argv[])
         .add_section = _j4status_core_add_section,
         .remove_section = _j4status_core_remove_section,
         .trigger_display = _j4status_core_trigger_display,
+        .trigger_action = _j4status_core_trigger_action,
     };
 
 #ifdef G_OS_UNIX
@@ -369,6 +391,8 @@ main(int argc, char *argv[])
             g_hash_table_insert(context->order_weights, *id, GINT_TO_POINTER(1 + id - order));
         g_free(order);
     }
+
+    context->sections_hash = g_hash_table_new(g_str_hash, g_str_equal);
 
     context->input_plugins = j4status_plugins_get_input_plugins(&interface, input_plugins);
     if ( context->input_plugins == NULL )
@@ -406,6 +430,8 @@ main(int argc, char *argv[])
 
     if ( context->order_weights != NULL )
         g_hash_table_unref(context->order_weights);
+
+    g_hash_table_unref(context->sections_hash);
 
 end:
 #if DEBUG
