@@ -43,6 +43,7 @@ struct _J4statusPluginContext {
 
 typedef struct {
     J4statusPluginContext *context;
+    GObject *device;
     J4statusSection *section;
 } J4statusUpowerSection;
 
@@ -134,6 +135,8 @@ _j4status_upower_section_free(gpointer data)
 
     j4status_section_free(section->section);
 
+    g_object_unref(section->device);
+
     g_free(section);
 }
 
@@ -220,6 +223,7 @@ _j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gb
     J4statusUpowerSection *section;
     section = g_new0(J4statusUpowerSection, 1);
     section->context = context;
+    section->device = g_object_ref(device);
     section->section = j4status_section_new(context->core);
 
     j4status_section_set_name(section->section, name);
