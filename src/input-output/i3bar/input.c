@@ -81,7 +81,7 @@ typedef enum {
     KEY_SEPARATOR_BLOCK_WIDTH,
 
     KEY_NONE = 0
-} J4statusI3barJsonKey;
+} J4statusI3barInputJsonKey;
 
 static gchar *_j4status_i3bar_input_json_key_names[] = {
     [KEY_NONE] = "none",
@@ -105,18 +105,18 @@ static gchar *_j4status_i3bar_input_json_key_names[] = {
 
 typedef struct {
     gchar *error;
-    J4statusI3barJsonKey key;
+    J4statusI3barInputJsonKey key;
     gint64 version;
     gint stop_signal;
     gint cont_signal;
     gboolean click_events;
-} J4statusI3barHeaderParseContext;
+} J4statusI3barInputHeaderParseContext;
 
 typedef struct {
     gchar *error;
     guint array_nesting;
     gboolean in_section;
-    J4statusI3barJsonKey key;
+    J4statusI3barInputJsonKey key;
     gchar *name;
     gchar *instance;
     gchar *full_text;
@@ -142,14 +142,14 @@ typedef struct {
     yajl_handle json_handle;
     J4statusI3barSectionParseContext parse_context;
     GHashTable *sections;
-} J4statusI3barClient;
+} J4statusI3barInputClient;
 
 /* Header parsing */
 
 static int
 _j4status_i3bar_input_header_boolean(void *user_data, int value)
 {
-    J4statusI3barHeaderParseContext *context = user_data;
+    J4statusI3barInputHeaderParseContext *context = user_data;
 
     switch ( context->key )
     {
@@ -168,7 +168,7 @@ _j4status_i3bar_input_header_boolean(void *user_data, int value)
 static int
 _j4status_i3bar_input_header_integer(void *user_data, long long value)
 {
-    J4statusI3barHeaderParseContext *context = user_data;
+    J4statusI3barInputHeaderParseContext *context = user_data;
 
     switch ( context->key )
     {
@@ -193,7 +193,7 @@ _j4status_i3bar_input_header_integer(void *user_data, long long value)
 static int
 _j4status_i3bar_input_header_map_key(void *user_data, const unsigned char *value, size_t length)
 {
-    J4statusI3barHeaderParseContext *context = user_data;
+    J4statusI3barInputHeaderParseContext *context = user_data;
 
     if ( yajl_strcmp(value, length, "version") )
         context->key = KEY_VERSION;
@@ -223,7 +223,7 @@ static yajl_callbacks _j4status_i3bar_input_header_callbacks = {
 static int
 _j4status_i3bar_input_section_boolean(void *user_data, int value)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ! client->parse_context.in_section )
     {
@@ -255,7 +255,7 @@ _j4status_i3bar_input_section_boolean(void *user_data, int value)
 static int
 _j4status_i3bar_input_section_integer(void *user_data, long long value)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ! client->parse_context.in_section )
     {
@@ -287,7 +287,7 @@ _j4status_i3bar_input_section_integer(void *user_data, long long value)
 static int
 _j4status_i3bar_input_section_string(void *user_data, const unsigned char *value, size_t length)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ! client->parse_context.in_section )
     {
@@ -341,7 +341,7 @@ _j4status_i3bar_input_section_string(void *user_data, const unsigned char *value
 static int
 _j4status_i3bar_input_section_start_map(void *user_data)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( client->parse_context.in_section )
     {
@@ -357,7 +357,7 @@ _j4status_i3bar_input_section_start_map(void *user_data)
 static int
 _j4status_i3bar_input_section_map_key(void *user_data, const unsigned char *value, size_t length)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ! client->parse_context.in_section )
     {
@@ -397,7 +397,7 @@ _j4status_i3bar_input_section_map_key(void *user_data, const unsigned char *valu
 static int
 _j4status_i3bar_input_section_end_map(void *user_data)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ! client->parse_context.in_section )
         return 0;
@@ -490,7 +490,7 @@ end:
 static int
 _j4status_i3bar_input_section_start_array(void *user_data)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     if ( ++client->parse_context.array_nesting > 2 )
     {
@@ -504,7 +504,7 @@ _j4status_i3bar_input_section_start_array(void *user_data)
 static int
 _j4status_i3bar_input_section_end_array(void *user_data)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
 
     --client->parse_context.array_nesting;
 
@@ -527,7 +527,7 @@ static void _j4status_i3bar_input_client_free(gpointer data);
 static void
 _j4status_i3bar_input_client_read_callback(GObject *source_object, GAsyncResult *res, gpointer user_data)
 {
-    J4statusI3barClient *client = user_data;
+    J4statusI3barInputClient *client = user_data;
     GError *error = NULL;
 
     gchar *line;
@@ -575,11 +575,11 @@ _j4status_i3bar_input_client_read_callback(GObject *source_object, GAsyncResult 
     g_data_input_stream_read_line_async(client->stdout, G_PRIORITY_DEFAULT, client->cancellable, _j4status_i3bar_input_client_read_callback, client);
 }
 
-static J4statusI3barClient *
+static J4statusI3barInputClient *
 _j4status_i3bar_input_client_new(J4statusPluginContext *context, const gchar *client_command)
 {
     GError *error = NULL;
-    J4statusI3barClient *client = NULL;
+    J4statusI3barInputClient *client = NULL;
 
     gchar **argv = NULL;
     if ( ! g_shell_parse_argv(client_command, NULL, &argv, &error) )
@@ -588,7 +588,7 @@ _j4status_i3bar_input_client_new(J4statusPluginContext *context, const gchar *cl
         goto fail;
     }
 
-    client = g_new0(J4statusI3barClient, 1);
+    client = g_new0(J4statusI3barInputClient, 1);
     client->context = context;
     client->name = g_path_get_basename(argv[0]);
 
@@ -613,7 +613,7 @@ _j4status_i3bar_input_client_new(J4statusPluginContext *context, const gchar *cl
         goto fail;
     }
 
-    J4statusI3barHeaderParseContext header_context = {0};
+    J4statusI3barInputHeaderParseContext header_context = {0};
     yajl_handle json_handle;
     yajl_status json_state;
 
@@ -693,7 +693,7 @@ fail:
 static void
 _j4status_i3bar_input_client_free(gpointer data)
 {
-    J4statusI3barClient *client = data;
+    J4statusI3barInputClient *client = data;
 
     yajl_free(client->json_handle);
 
@@ -710,7 +710,7 @@ _j4status_i3bar_input_client_free(gpointer data)
 static void
 _j4status_i3bar_input_client_start(gpointer data, gpointer user_data)
 {
-    J4statusI3barClient *client = data;
+    J4statusI3barInputClient *client = data;
 
 #ifdef G_OS_UNIX
     killpg(client->pid, client->cont_signal);
@@ -720,7 +720,7 @@ _j4status_i3bar_input_client_start(gpointer data, gpointer user_data)
 static void
 _j4status_i3bar_input_client_stop(gpointer data, gpointer user_data)
 {
-    J4statusI3barClient *client = data;
+    J4statusI3barInputClient *client = data;
 
 #ifdef G_OS_UNIX
     killpg(client->pid, client->stop_signal);
@@ -752,7 +752,7 @@ _j4status_i3bar_input_init(J4statusCoreInterface *core)
     gchar **client_command;
     for ( client_command = clients ; *client_command != NULL ; ++client_command )
     {
-        J4statusI3barClient *client;
+        J4statusI3barInputClient *client;
         client = _j4status_i3bar_input_client_new(context, *client_command);
         if ( client != NULL )
             client->link = context->clients = g_list_prepend(context->clients, client);
