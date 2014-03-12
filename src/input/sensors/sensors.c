@@ -114,6 +114,16 @@ _j4status_sensors_update(gpointer user_data)
 }
 
 static void
+_j4status_sensors_feature_free(gpointer data)
+{
+    J4statusSensorsFeature *feature = data;
+
+    j4status_section_free(feature->section);
+
+    g_free(feature);
+}
+
+static void
 _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors_chip_name *chip, const sensors_feature *feature)
 {
     int n;
@@ -161,8 +171,10 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
 
     free(label);
 
-    j4status_section_insert(sensor_feature->section);
-    context->sections = g_list_prepend(context->sections, sensor_feature);
+    if ( j4status_section_insert(sensor_feature->section) )
+        context->sections = g_list_prepend(context->sections, sensor_feature);
+    else
+        _j4status_sensors_feature_free(sensor_feature);
 }
 
 static void
@@ -186,6 +198,8 @@ _j4status_sensors_add_sensors(J4statusPluginContext *context, const sensors_chip
         }
     }
 }
+
+static void _j4status_sensors_uninit(J4statusPluginContext *context);
 
 static J4statusPluginContext *
 _j4status_sensors_init(J4statusCoreInterface *core)
@@ -228,19 +242,15 @@ _j4status_sensors_init(J4statusCoreInterface *core)
     }
     g_strfreev(sensors);
 
+    if ( context->sections == NULL )
+    {
+        _j4status_sensors_uninit(context);
+        return NULL;
+    }
+
     g_timeout_add_seconds(2, _j4status_sensors_update, context);
 
     return context;
-}
-
-static void
-_j4status_sensors_feature_free(gpointer data)
-{
-    J4statusSensorsFeature *feature = data;
-
-    j4status_section_free(feature->section);
-
-    g_free(feature);
 }
 
 static void
