@@ -194,6 +194,20 @@ _j4status_systemd_bus_signal(GDBusProxy *proxy, gchar *sender_name, gchar *signa
     }
 }
 
+static void
+_j4status_systemd_section_free(gpointer data)
+{
+    J4statusSystemdSection *section = data;
+
+    if ( section->unit != NULL )
+        g_object_unref(section->unit);
+
+    j4status_section_free(section->section);
+    g_free(section->unit_name);
+
+    g_free(section);
+}
+
 
 static void
 _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
@@ -212,23 +226,13 @@ _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
      * loaded failed active inactive not-found listening running waiting plugged mounted exited dead masked */
     j4status_section_set_max_width(section->section, -strlen("listening"));
 
-    j4status_section_insert(section->section);
-    context->sections = g_list_prepend(context->sections, section);
+    if ( j4status_section_insert(section->section) )
+        context->sections = g_list_prepend(context->sections, section);
+    else
+        _j4status_systemd_section_free(section);
 }
 
-static void
-_j4status_systemd_section_free(gpointer data)
-{
-    J4statusSystemdSection *section = data;
-
-    if ( section->unit != NULL )
-        g_object_unref(section->unit);
-
-    j4status_section_free(section->section);
-    g_free(section->unit_name);
-
-    g_free(section);
-}
+static void _j4status_systemd_uninit(J4statusPluginContext *context);
 
 J4statusPluginContext *
 _j4status_systemd_init(J4statusCoreInterface *core)
@@ -278,6 +282,12 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     for ( unit = units ; *unit != NULL ; ++unit )
         _j4status_systemd_section_new(context, *unit);
     g_free(units);
+
+    if ( context->sections == NULL )
+    {
+        _j4status_systemd_uninit(context);
+        return NULL;
+    }
 
     g_signal_connect(context->manager, "g-signal", G_CALLBACK(_j4status_systemd_bus_signal), context);
 
