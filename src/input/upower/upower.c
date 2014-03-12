@@ -232,18 +232,23 @@ _j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gb
         j4status_section_set_label(section->section, label);
     j4status_section_set_max_width(section->section, -strlen("Chr 100.0% (00:00:00)"));
 
-    j4status_section_insert(section->section);
-
-    context->sections = g_list_prepend(context->sections, section);
+    if ( j4status_section_insert(section->section) )
+    {
+        context->sections = g_list_prepend(context->sections, section);
 
 #if UP_CHECK_VERSION(0,99,0)
-    g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
-    _j4status_upower_device_changed(device, NULL, section);
+        g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
+        _j4status_upower_device_changed(device, NULL, section);
 #else /* ! UP_CHECK_VERSION(0,99,0) */
-    g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
-    _j4status_upower_device_changed(device, section);
+        g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
+        _j4status_upower_device_changed(device, section);
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
+    }
+    else
+        _j4status_upower_section_free(section);
 }
+
+static void _j4status_upower_uninit(J4statusPluginContext *context);
 
 static J4statusPluginContext *
 _j4status_upower_init(J4statusCoreInterface *core)
@@ -287,6 +292,11 @@ _j4status_upower_init(J4statusCoreInterface *core)
         _j4status_upower_section_new(context, g_ptr_array_index(devices, i), all_devices);
     g_ptr_array_unref(devices);
 
+    if ( context->sections == NULL )
+    {
+        _j4status_upower_uninit(context);
+        return NULL;
+    }
 
     return context;
 }
