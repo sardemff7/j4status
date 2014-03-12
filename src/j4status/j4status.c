@@ -109,7 +109,7 @@ _j4status_core_compare_sections(gconstpointer a_, gconstpointer b_)
     return (a->weight - b->weight);
 }
 
-static void
+static gboolean
 _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *section)
 {
     if ( context->order_weights != NULL )
@@ -136,6 +136,7 @@ _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *sectio
         context->sections = g_list_insert_sorted(context->sections, section, _j4status_core_compare_sections);
         section->link = g_list_find(context->sections, section);
     }
+    return TRUE;
 }
 
 void

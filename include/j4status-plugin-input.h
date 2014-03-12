@@ -42,7 +42,7 @@ void j4status_section_set_label(J4statusSection *section, const gchar *label);
 void j4status_section_set_label_colour(J4statusSection *section, J4statusColour colour);
 void j4status_section_set_align(J4statusSection *section, J4statusAlign align);
 void j4status_section_set_max_width(J4statusSection *section, gint64 max_width);
-void j4status_section_insert(J4statusSection *section);
+gboolean j4status_section_insert(J4statusSection *section) G_GNUC_WARN_UNUSED_RESULT;
 
 /* API once the section is inserted in the list */
 void j4status_section_set_state(J4statusSection *section, J4statusState state);

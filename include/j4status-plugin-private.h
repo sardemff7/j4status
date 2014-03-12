@@ -52,13 +52,14 @@ struct _J4statusSection {
 
 typedef struct _J4statusCoreContext J4statusCoreContext;
 
-typedef void(*J4statusCoreFunc)(J4statusCoreContext *context);
-typedef void(*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
-typedef void(*J4statusCoreTriggerDisplayFunc)(J4statusCoreContext *context, gboolean force);
+typedef void (*J4statusCoreFunc)(J4statusCoreContext *context);
+typedef gboolean (*J4statusCoreSectionAddFunc)(J4statusCoreContext *context, J4statusSection *section);
+typedef void (*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
+typedef void (*J4statusCoreTriggerDisplayFunc)(J4statusCoreContext *context, gboolean force);
 
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
-    J4statusCoreSectionFunc add_section;
+    J4statusCoreSectionAddFunc add_section;
     J4statusCoreSectionFunc remove_section;
     J4statusCoreTriggerDisplayFunc trigger_display;
 };

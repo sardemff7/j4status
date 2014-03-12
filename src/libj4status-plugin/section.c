@@ -191,17 +191,17 @@ j4status_section_set_max_width(J4statusSection *self, gint64 max_width)
     self->max_width = max_width;
 }
 
-void
+gboolean
 j4status_section_insert(J4statusSection *self)
 {
-    g_return_if_fail(self != NULL);
-    g_return_if_fail(! self->freeze);
-    g_return_if_fail(self->name != NULL);
+    g_return_val_if_fail(self != NULL, FALSE);
+    g_return_val_if_fail(! self->freeze, FALSE);
+    g_return_val_if_fail(self->name != NULL, FALSE);
 
     _j4status_section_get_override(self);
 
-    self->freeze = TRUE;
-    self->core->add_section(self->core->context, self);
+    self->freeze = self->core->add_section(self->core->context, self);
+    return self->freeze;
 }
 
 /* API once the section is inserted in the list */
@@ -350,7 +350,7 @@ void
 j4status_section_set_cache(J4statusSection *self, gchar *cache)
 {
     g_return_if_fail(self != NULL);
-    g_return_val_if_fail(self->freeze, NULL);
+    g_return_if_fail(self->freeze);
 
     g_free(self->cache);
     self->cache = cache;
