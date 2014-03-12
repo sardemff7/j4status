@@ -183,6 +183,8 @@ _j4status_time_uninit(J4statusPluginContext *context)
 {
     g_list_free_full(context->sections, _j4status_time_section_free);
 
+    g_free(context->format);
+
     g_free(context);
 }
 
