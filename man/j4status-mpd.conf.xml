@@ -125,6 +125,8 @@
                                 <member><literal>play</literal></member>
                                 <member><literal>pause</literal></member>
                                 <member><literal>stop</literal></member>
+                                <member><literal>next</literal></member>
+                                <member><literal>previous</literal></member>
                             </simplelist>
                         </para>
                         <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the reference on <replaceable>action id</replaceable>.</para>

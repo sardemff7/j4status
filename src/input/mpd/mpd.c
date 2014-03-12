@@ -45,6 +45,8 @@ typedef enum {
     ACTION_PLAY,
     ACTION_PAUSE,
     ACTION_STOP,
+    ACTION_NEXT,
+    ACTION_PREVIOUS,
 } J4statusMpdAction;
 
 typedef struct {
@@ -140,6 +142,12 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
         break;
         case ACTION_STOP:
             command_str = "stop";
+        break;
+        case ACTION_NEXT:
+            command_str = "next";
+        break;
+        case ACTION_PREVIOUS:
+            command_str = "previous";
         break;
         }
         mpd_async_send_command(section->mpd, command_str, params[0], NULL);
@@ -398,6 +406,10 @@ _j4status_mpd_init(J4statusCoreInterface *core)
                     action = ACTION_PAUSE;
                 else if ( g_strcmp0(action_, "stop") == 0 )
                     action = ACTION_STOP;
+                else if ( g_strcmp0(action_, "next") == 0 )
+                    action = ACTION_NEXT;
+                else if ( g_strcmp0(action_, "previous") == 0 )
+                    action = ACTION_PREVIOUS;
 
                 if ( action != ACTION_NONE )
                     g_hash_table_insert(config.actions, g_strdup(action_id), GUINT_TO_POINTER(action));
