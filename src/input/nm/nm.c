@@ -372,7 +372,6 @@ _j4status_nm_device_unmonitor(gpointer key, gpointer data, gpointer user_data)
 static void
 _j4status_nm_section_attach_device(J4statusPluginContext *context, J4statusNmSection *section, NMDevice *device)
 {
-    section->device = g_object_ref(device);
 
     const gchar *name;
     const gchar *label;
@@ -438,10 +437,17 @@ _j4status_nm_section_attach_device(J4statusPluginContext *context, J4statusNmSec
     j4status_section_set_instance(section->section, section->interface);
     j4status_section_set_label(section->section, label);
 
-    j4status_section_insert(section->section);
-
-    if ( context->started )
-        _j4status_nm_device_monitor(NULL, section, NULL);
+    if ( j4status_section_insert(section->section) )
+    {
+        section->device = g_object_ref(device);
+        if ( context->started )
+            _j4status_nm_device_monitor(NULL, section, NULL);
+    }
+    else
+    {
+        j4status_section_free(section->section);
+        section->section = NULL;
+    }
 }
 
 static void
