@@ -240,6 +240,18 @@ _j4status_mpd_section_start(gpointer data, gpointer user_data)
         mpd_async_send_command(section->mpd, "noidle", NULL);
 }
 
+static void
+_j4status_mpd_section_free(gpointer data)
+{
+    J4statusMpdSection *section = data;
+
+    j4status_section_free(section->section);
+
+    g_water_mpd_source_unref(section->source);
+
+    g_free(section);
+}
+
 static J4statusMpdSection *
 _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, guint16 port)
 {
@@ -262,13 +274,19 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
     j4status_section_set_name(section->section, "mpd");
     j4status_section_set_instance(section->section, host);
 
-    j4status_section_insert(section->section);
+    if ( ! j4status_section_insert(section->section) )
+    {
+        _j4status_mpd_section_free(section);
+        return NULL;
+    }
 
     section->volume = -1;
 
     _j4status_mpd_section_command(section, COMMAND_QUERY);
     return section;
 }
+
+static void _j4status_mpd_uninit(J4statusPluginContext *context);
 
 static J4statusPluginContext *
 _j4status_mpd_init(J4statusCoreInterface *core)
@@ -320,23 +338,13 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     }
 
 
-    if ( context->sections != NULL )
-        return context;
+    if ( context->sections == NULL )
+    {
+        _j4status_mpd_uninit(context);
+        return NULL;
+    }
 
-    g_free(context);
-    return NULL;
-}
-
-static void
-_j4status_mpd_section_free(gpointer data)
-{
-    J4statusMpdSection *section = data;
-
-    j4status_section_free(section->section);
-
-    g_water_mpd_source_unref(section->source);
-
-    g_free(section);
+    return context;
 }
 
 static void
