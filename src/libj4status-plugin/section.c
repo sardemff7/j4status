@@ -120,6 +120,7 @@ j4status_section_free(J4statusSection *self)
 
     g_free(self->label);
     g_free(self->instance);
+    g_free(self->name);
 
     g_free(self->id);
 
@@ -134,7 +135,7 @@ j4status_section_set_name(J4statusSection *self, const gchar *name)
     g_return_if_fail(! self->freeze);
     g_return_if_fail(name != NULL);
 
-    self->name = name;
+    self->name = g_strdup(name);
 }
 
 void
