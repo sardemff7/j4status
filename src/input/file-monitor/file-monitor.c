@@ -133,11 +133,20 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
         j4status_section_set_label(section->section, *file);
         g_signal_connect(monitor, "changed", G_CALLBACK(_j4status_file_monitor_changed), section);
 
-        j4status_section_insert(section->section);
-        context->sections = g_list_prepend(context->sections, section);
+        if ( j4status_section_insert(section->section) )
+            context->sections = g_list_prepend(context->sections, section);
+        else
+            _j4status_file_monitor_section_free(section);
     }
     g_strfreev(files);
     g_free(dir);
+
+    if ( context->sections == NULL )
+    {
+        g_free(context);
+        g_free(dir);
+        return NULL;
+    }
 
     return context;
 
