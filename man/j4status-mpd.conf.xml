@@ -111,6 +111,25 @@
                         <para>Whether or not to show volume.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Actions=</varname>
+                        (A list of <type><replaceable>action id</replaceable> <replaceable>action</replaceable></type>)
+                    </term>
+                    <listitem>
+                        <para>
+                            <replaceable>action</replaceable> can be:
+                            <simplelist>
+                                <member><literal>toggle</literal></member>
+                                <member><literal>play</literal></member>
+                                <member><literal>pause</literal></member>
+                                <member><literal>stop</literal></member>
+                            </simplelist>
+                        </para>
+                        <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the reference on <replaceable>action id</replaceable>.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>

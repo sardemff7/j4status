@@ -39,9 +39,18 @@
 
 #define TIME_SIZE 4095
 
+typedef enum {
+    ACTION_NONE = 0,
+    ACTION_TOGGLE,
+    ACTION_PLAY,
+    ACTION_PAUSE,
+    ACTION_STOP,
+} J4statusMpdAction;
+
 typedef struct {
     gboolean show_options;
     gboolean show_volume;
+    GHashTable *actions;
 } J4statusMpdConfig;
 
 struct _J4statusPluginContext {
@@ -54,6 +63,7 @@ struct _J4statusPluginContext {
 typedef enum {
     COMMAND_IDLE,
     COMMAND_QUERY,
+    COMMAND_ACTION,
 } J4statusMpdCommand;
 
 typedef enum {
@@ -69,6 +79,7 @@ typedef struct {
     struct mpd_async *mpd;
 
     J4statusMpdCommand command;
+    J4statusMpdAction pending;
 
     gchar *current_song;
     J4statusMpdSectionState state;
@@ -83,6 +94,8 @@ typedef struct {
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command)
 {
+    if ( section->pending != ACTION_NONE )
+        command = COMMAND_ACTION;
 
     switch ( command )
     {
@@ -105,8 +118,56 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
         mpd_async_send_command(section->mpd, "currentsong", NULL);
         mpd_async_send_command(section->mpd, "command_list_end", NULL);
     break;
+    case COMMAND_ACTION:
+    {
+        const gchar *command_str = "";
+        const gchar *params[1] = {NULL};
+        switch ( section->pending )
+        {
+        case ACTION_NONE:
+            g_assert_not_reached();
+        break;
+        case ACTION_TOGGLE:
+            command_str = "pause";
+            params[0] = ( section->state == STATE_PAUSE ) ? "0" : "1";
+        break;
+        case ACTION_PLAY:
+            command_str = "play";
+        break;
+        case ACTION_PAUSE:
+            command_str = "pause";
+            params[0] = "1";
+        break;
+        case ACTION_STOP:
+            command_str = "stop";
+        break;
+        }
+        mpd_async_send_command(section->mpd, command_str, params[0], NULL);
+    }
+    break;
     }
     section->command = command;
+}
+
+static void
+_j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *action_id, gpointer user_data)
+{
+    J4statusMpdSection *section = user_data;
+    if ( section->pending != ACTION_NONE )
+        return;
+
+    switch ( section->command )
+    {
+    case COMMAND_IDLE:
+        mpd_async_send_command(section->mpd, "noidle", NULL);
+    break;
+    case COMMAND_QUERY:
+    break;
+    case COMMAND_ACTION:
+        /* Ignore */
+        return;
+    }
+    section->pending = GPOINTER_TO_UINT(g_hash_table_lookup(section->context->config.actions, action_id));
 }
 
 static void
@@ -218,6 +279,13 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
             section->volume = CLAMP(tmp, -1, 100);
         }
     break;
+    case COMMAND_ACTION:
+        if ( g_strcmp0(line, "OK") == 0 )
+        {
+            section->pending = ACTION_NONE;
+            _j4status_mpd_section_command(section, COMMAND_QUERY);
+        }
+    break;
     }
 
     return TRUE;
@@ -270,6 +338,9 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
     j4status_section_set_name(section->section, "mpd");
     j4status_section_set_instance(section->section, host);
 
+    if ( context->config.actions != NULL )
+        j4status_section_set_action_callback(section->section, _j4status_mpd_section_action_callback, section);
+
     if ( ! j4status_section_insert(section->section) )
     {
         _j4status_mpd_section_free(section);
@@ -296,12 +367,46 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     if ( key_file != NULL )
     {
         gint64 tmp;
+        gchar **strings;
+
         host = g_key_file_get_string(key_file, "MPD", "Host", NULL);
         tmp = g_key_file_get_int64(key_file, "MPD", "Port", NULL);
         port = CLAMP(tmp, 0, G_MAXUINT16);
 
         config.show_options = g_key_file_get_boolean(key_file, "MPD", "ShowOptions", NULL);
         config.show_volume = g_key_file_get_boolean(key_file, "MPD", "ShowVolume", NULL);
+        strings = g_key_file_get_string_list(key_file, "MPD", "Actions", NULL, NULL);
+        if ( strings != NULL )
+        {
+            config.actions = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+            gchar **string;
+            for ( string  = strings ; *string != NULL ; ++string )
+            {
+                gchar *action_id = *string;
+                gchar *action_;
+                action_ = g_utf8_strchr(*string, -1, ' ');
+                if ( action_ == NULL )
+                    goto next;
+                *action_++ = '\0';
+
+                J4statusMpdAction action = ACTION_NONE;
+                if ( g_strcmp0(action_, "toggle") == 0 )
+                    action = ACTION_TOGGLE;
+                else if ( g_strcmp0(action_, "play") == 0 )
+                    action = ACTION_PLAY;
+                else if ( g_strcmp0(action_, "pause") == 0 )
+                    action = ACTION_PAUSE;
+                else if ( g_strcmp0(action_, "stop") == 0 )
+                    action = ACTION_STOP;
+
+                if ( action != ACTION_NONE )
+                    g_hash_table_insert(config.actions, g_strdup(action_id), GUINT_TO_POINTER(action));
+
+            next:
+                g_free(*string);
+            }
+            g_free(strings);
+        }
         g_key_file_free(key_file);
     }
 
@@ -347,6 +452,9 @@ static void
 _j4status_mpd_uninit(J4statusPluginContext *context)
 {
     g_list_free_full(context->sections, _j4status_mpd_section_free);
+
+    if ( context->config.actions != NULL )
+        g_hash_table_unref(context->config.actions);
 
     g_free(context);
 }
