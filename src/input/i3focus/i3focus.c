@@ -30,6 +30,8 @@ _j4status_i3focus_window_callback(GObject *object, i3ipcWindowEvent *event, gpoi
     j4status_section_set_value(section, name);
 }
 
+static void _j4status_i3focus_uninit(J4statusPluginContext *context);
+
 static J4statusPluginContext *
 _j4status_i3focus_init(J4statusCoreInterface *core)
 {
@@ -69,7 +71,11 @@ _j4status_i3focus_init(J4statusCoreInterface *core)
 
     context->section = j4status_section_new(core);
     j4status_section_set_name(context->section, "i3focus");
-    j4status_section_insert(context->section);
+    if ( ! j4status_section_insert(context->section) )
+    {
+        _j4status_i3focus_uninit(context);
+        return NULL;
+    }
 
     g_signal_connect(context->connection, "window", G_CALLBACK(_j4status_i3focus_window_callback), context->section);
 
