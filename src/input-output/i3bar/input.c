@@ -1,7 +1,7 @@
 /*
  * j4status - Status line generator
  *
- * Copyright © 2012-2013 Quentin "Sardem FF7" Glidic
+ * Copyright © 2012-2014 Quentin "Sardem FF7" Glidic
  *
  * This file is part of j4status.
  *
@@ -450,9 +450,13 @@ _j4status_i3bar_input_section_end_map(void *user_data)
         j4status_section_set_align(section, client->parse_context.align);
         j4status_section_set_max_width(section, client->parse_context.max_width);
 
-        j4status_section_insert(section);
-
-        g_hash_table_insert(client->sections, g_strdup(id), section);
+        if ( j4status_section_insert(section) )
+            g_hash_table_insert(client->sections, g_strdup(id), section);
+        else
+        {
+            j4status_section_free(section);
+            goto end;
+        }
     }
 
     J4statusState state = J4STATUS_STATE_NO_STATE;
@@ -464,7 +468,7 @@ _j4status_i3bar_input_section_end_map(void *user_data)
     client->parse_context.full_text = NULL;
     j4status_section_set_colour(section, client->parse_context.colour);
 
-
+end:
     client->parse_context.in_section = FALSE;
 
     client->parse_context.key = KEY_NONE;
