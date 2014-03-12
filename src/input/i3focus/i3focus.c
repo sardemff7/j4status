@@ -25,6 +25,8 @@ static void
 _j4status_i3focus_window_callback(GObject *object, i3ipcWindowEvent *event, gpointer user_data)
 {
     J4statusSection *section = user_data;
+    if ( g_strcmp0(event->change, "focus") != 0 )
+        return;
     gchar *name;
     g_object_get(G_OBJECT(event->container), "name", &name, NULL);
     j4status_section_set_value(section, name);
