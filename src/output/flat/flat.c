@@ -33,6 +33,10 @@
 
 #include <glib.h>
 #include <glib/gprintf.h>
+#include <gio/gio.h>
+#ifdef G_OS_UNIX
+#include <gio/gunixinputstream.h>
+#endif /* G_OS_UNIX */
 
 #include <j4status-plugin-output.h>
 
@@ -42,6 +46,7 @@
 #define MAX_LINE 256
 
 struct _J4statusPluginContext {
+    J4statusCoreInterface *core;
     struct {
         J4statusColour no_state;
         J4statusColour unavailable;
@@ -50,7 +55,38 @@ struct _J4statusPluginContext {
         J4statusColour good;
     } colours;
     gboolean align;
+    GDataInputStream *in;
 };
+
+#ifdef G_OS_UNIX
+static void
+_j4status_flat_input_callback(GObject *stream, GAsyncResult *res, gpointer user_data)
+{
+    J4statusPluginContext *context = user_data;
+    GError *error = NULL;
+
+    gchar *line;
+    line = g_data_input_stream_read_line_finish(context->in, res, NULL, &error);
+    if ( line == NULL )
+    {
+        if ( error != NULL )
+            g_warning("Input error: %s", error->message);
+        g_clear_error(&error);
+        return;
+    }
+
+    gchar *action_id = line;
+    gchar *section_id = g_utf8_strchr(line, -1, ' ');
+    if ( section_id != NULL )
+    {
+        *section_id++ = '\0';
+        j4status_core_trigger_action(context->core, section_id, action_id);
+    }
+
+    g_free(line);
+    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_flat_input_callback, context);
+}
+#endif /* G_OS_UNIX */
 
 static void
 _j4status_flat_set_colour(gchar out[], J4statusColour colour, gboolean important)
@@ -178,6 +214,7 @@ _j4status_flat_init(J4statusCoreInterface *core)
     J4statusPluginContext *context;
 
     context = g_new0(J4statusPluginContext, 1);
+    context->core = core;
 
     GKeyFile *key_file;
     key_file = libj4status_config_get_key_file("Flat");
@@ -212,7 +249,16 @@ _j4status_flat_init(J4statusCoreInterface *core)
     }
 
     if ( key_file != NULL )
-    g_key_file_free(key_file);
+        g_key_file_free(key_file);
+
+#ifdef G_OS_UNIX
+    GInputStream *in;
+    in = g_unix_input_stream_new(0, FALSE);
+    context->in = g_data_input_stream_new(in);
+    g_object_unref(in);
+
+    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_flat_input_callback, context);
+#endif /* G_OS_UNIX */
 
     return context;
 }
@@ -220,6 +266,10 @@ _j4status_flat_init(J4statusCoreInterface *core)
 static void
 _j4status_flat_uninit(J4statusPluginContext *context)
 {
+#ifdef G_OS_UNIX
+    g_object_unref(context->in);
+#endif /* G_OS_UNIX */
+
     g_free(context);
 }
 

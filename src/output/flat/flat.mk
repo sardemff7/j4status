@@ -8,6 +8,7 @@ flat_la_SOURCES = \
 
 flat_la_CFLAGS = \
 	$(AM_CFLAGS) \
+	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(null)
 
@@ -19,6 +20,7 @@ flat_la_LDFLAGS = \
 flat_la_LIBADD = \
 	libj4status-plugin.la \
 	libj4status.la \
+	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)
 
