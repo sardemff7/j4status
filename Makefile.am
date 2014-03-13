@@ -26,9 +26,8 @@ CLEANFILES =
 XSLTPROC_CONDITIONS = \
 	installation
 
-AM_CFLAGS += \
+AM_CPPFLAGS += \
 	-D LOCALEDIR=\"$(localedir)\" \
-	--include config.h \
 	-I $(srcdir)/include/ \
 	-I $(builddir)/include/
 

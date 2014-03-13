@@ -74,6 +74,7 @@ vala_min_version="0.12"
 
 
 AM_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers"
+AM_CPPFLAGS=""
 AM_LDFLAGS="-no-undefined -Wl,--no-undefined"
 AM_XSLTPROCFLAGS="--nonet --stringparam man.output.quietly 1 --stringparam funcsynopsis.style ansi"
 
@@ -163,6 +164,7 @@ if test x$enable_debug = xyes; then
     AC_DEFINE([DEBUG], [1], [Activate debug mode])
 fi
 AC_SUBST(AM_CFLAGS)
+AC_SUBST(AM_CPPFLAGS)
 AC_SUBST(AM_LDFLAGS)
 AC_SUBST(AM_XSLTPROCFLAGS)
 
