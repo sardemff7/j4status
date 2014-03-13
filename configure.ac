@@ -94,6 +94,7 @@ if test x$have_gio_unix = xyes; then
     gio_unix="gio-unix-2.0"
 fi
 PKG_CHECK_MODULES(GIO, [gio-2.0 >= $gio_min_version $gio_unix])
+AC_SUBST(GDBUS_CODEGEN, `pkg-config --variable=gdbus_codegen gio-2.0`)
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= $gmodule_min_version])
 
@@ -159,6 +160,8 @@ if test x$enable_i3focus_input = xyes; then
 fi
 AM_CONDITIONAL(ENABLE_I3FOCUS_INPUT, test x$enable_i3focus_input = xyes)
 
+AC_ARG_ENABLE(mpris-input, AS_HELP_STRING([--disable-mpris-input], [Disable mpris support]), [], enable_mpris_input=yes)
+AM_CONDITIONAL(ENABLE_MPRIS_INPUT, test x$enable_mpris_input = xyes)
 
 #
 # Tests
@@ -203,6 +206,7 @@ AC_MSG_RESULT([
         systemd: $enable_systemd_input
         i3focus: $enable_i3focus_input
         i3bar: $enable_i3bar_input_output
+        Mpris: $enable_mpris_input
 
 dnl     Tests: $enable_tests
     Debug mode: $enable_debug
