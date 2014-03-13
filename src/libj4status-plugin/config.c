@@ -35,7 +35,7 @@
 #define CONFIG_LIBFILE     LIBDIR     G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
 
 static GKeyFile *
-_libj4status_config_try_dir(const gchar *filename, const gchar *section)
+_j4status_config_try_dir(const gchar *filename, const gchar *section)
 {
     GKeyFile *key_file = NULL;
     if ( g_file_test(filename, G_FILE_TEST_EXISTS) && ( ! g_file_test(filename, G_FILE_TEST_IS_DIR) ) )
@@ -62,7 +62,7 @@ _libj4status_config_try_dir(const gchar *filename, const gchar *section)
 
 
 GKeyFile *
-libj4status_config_get_key_file(const gchar *section)
+j4status_config_get_key_file(const gchar *section)
 {
     GKeyFile *key_file;
     gchar *file = NULL;
@@ -73,25 +73,25 @@ libj4status_config_get_key_file(const gchar *section)
     {
         if ( strchr(env_file, G_DIR_SEPARATOR) == NULL )
             env_file = file = g_build_filename(g_get_user_config_dir(), PACKAGE_NAME, env_file, NULL);
-        key_file = _libj4status_config_try_dir(env_file, section);
+        key_file = _j4status_config_try_dir(env_file, section);
         g_free(file);
         if ( key_file != NULL )
             return key_file;
     }
 
     file = g_build_filename(g_get_user_config_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "config", NULL);
-    key_file = _libj4status_config_try_dir(file, section);
+    key_file = _j4status_config_try_dir(file, section);
     g_free(file);
     if ( key_file != NULL )
         return key_file;
 
-    key_file = _libj4status_config_try_dir(CONFIG_SYSCONFFILE, section);
+    key_file = _j4status_config_try_dir(CONFIG_SYSCONFFILE, section);
     if ( key_file != NULL )
         return key_file;
-    key_file = _libj4status_config_try_dir(CONFIG_DATAFILE, section);
+    key_file = _j4status_config_try_dir(CONFIG_DATAFILE, section);
     if ( key_file != NULL )
         return key_file;
-    key_file = _libj4status_config_try_dir(CONFIG_LIBFILE, section);
+    key_file = _j4status_config_try_dir(CONFIG_LIBFILE, section);
     if ( key_file != NULL )
         return key_file;
 

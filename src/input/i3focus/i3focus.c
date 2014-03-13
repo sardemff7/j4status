@@ -11,7 +11,6 @@
 #include <glib-object.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 #include <i3ipc-glib/i3ipc-glib.h>
 

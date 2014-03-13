@@ -36,7 +36,6 @@ AM_XSLTPROCFLAGS += \
 	--path "$(builddir)/man/"
 
 include src/j4status/j4status.mk
-include src/libj4status/libj4status.mk
 include src/libj4status-plugin/libj4status-plugin.mk
 include src/output/flat/flat.mk
 include src/output/debug/debug.mk

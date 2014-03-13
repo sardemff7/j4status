@@ -23,7 +23,7 @@ j4status_CFLAGS = \
 	$(null)
 
 j4status_LDADD = \
-	libj4status.la \
+	libj4status-plugin.la \
 	$(GTHREAD_LIBS) \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \

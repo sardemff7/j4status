@@ -32,7 +32,6 @@
 #include <upower.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
@@ -271,7 +270,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
     gboolean all_devices = FALSE;
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("UPower");
+    key_file = j4status_config_get_key_file("UPower");
     if ( key_file != NULL )
     {
         all_devices = g_key_file_get_boolean(key_file, "UPower", "AllDevices", NULL);

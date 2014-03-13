@@ -52,6 +52,8 @@ typedef enum {
 
 #define J4STATUS_STATE_FLAGS (J4STATUS_STATE_URGENT)
 
+GKeyFile *j4status_config_get_key_file(const gchar *section);
+
 typedef struct {
     gboolean set;
     guint8 red;

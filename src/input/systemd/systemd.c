@@ -32,7 +32,6 @@
 #include <gio/gio.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 #define SYSTEMD_BUS_NAME "org.freedesktop.systemd1"
 #define SYSTEMD_OBJECT_PATH "/org/freedesktop/systemd1"
@@ -238,7 +237,7 @@ J4statusPluginContext *
 _j4status_systemd_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("systemd");
+    key_file = j4status_config_get_key_file("systemd");
     if ( key_file == NULL )
         return NULL;
 

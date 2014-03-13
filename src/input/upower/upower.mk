@@ -19,7 +19,6 @@ upower_la_LDFLAGS = \
 
 upower_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(UPOWER_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)

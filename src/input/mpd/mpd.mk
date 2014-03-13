@@ -23,7 +23,6 @@ mpd_la_LDFLAGS = \
 
 mpd_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(MPD_LIBS) \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \

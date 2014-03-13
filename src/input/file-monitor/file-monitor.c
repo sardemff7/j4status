@@ -32,7 +32,6 @@
 #include <gio/gio.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
@@ -86,7 +85,7 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
         g_warning("Couldn't create the directory to monitor '%s': %s", dir, g_strerror(errno));
         goto fail;
     }
-    key_file = libj4status_config_get_key_file("FileMonitor");
+    key_file = j4status_config_get_key_file("FileMonitor");
     if ( key_file == NULL )
         goto fail;
 

@@ -19,7 +19,6 @@ flat_la_LDFLAGS = \
 
 flat_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)

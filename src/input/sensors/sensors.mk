@@ -19,7 +19,6 @@ sensors_la_LDFLAGS = \
 
 sensors_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(LIBSENSORS_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)

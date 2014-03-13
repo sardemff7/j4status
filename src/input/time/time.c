@@ -32,7 +32,6 @@
 #include <glib/gprintf.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 #define TIME_SIZE 4095
 
@@ -122,7 +121,7 @@ _j4status_time_init(J4statusCoreInterface *core)
     gchar **formats = NULL;
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("Time");
+    key_file = j4status_config_get_key_file("Time");
     if ( key_file != NULL )
     {
         context->interval = g_key_file_get_uint64(key_file, "Time", "Interval", NULL);

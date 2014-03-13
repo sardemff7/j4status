@@ -35,7 +35,6 @@
 #include <libnm-glib/nm-device-wifi.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
@@ -513,7 +512,7 @@ static J4statusPluginContext *
 _j4status_nm_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("NetworkManager");
+    key_file = j4status_config_get_key_file("NetworkManager");
     if ( key_file == NULL )
         return NULL;
 

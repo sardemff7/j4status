@@ -29,7 +29,15 @@ libj4status_plugin_la_SOURCES = \
 	src/libj4status-plugin/utils.c \
 	src/libj4status-plugin/plugin.c \
 	src/libj4status-plugin/core.c \
+	src/libj4status-plugin/config.c \
 	src/libj4status-plugin/section.c \
+	$(null)
+
+libj4status_plugin_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
+	-D SYSCONFDIR=\"$(sysconfdir)\" \
+	-D LIBDIR=\"$(libdir)\" \
+	-D DATADIR=\"$(datadir)\" \
 	$(null)
 
 libj4status_plugin_la_CFLAGS = \
@@ -44,6 +52,5 @@ libj4status_plugin_la_LDFLAGS = \
 	$(null)
 
 libj4status_plugin_la_LIBADD = \
-	libj4status.la \
 	$(GLIB_LIBS) \
 	$(null)

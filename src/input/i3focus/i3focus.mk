@@ -20,7 +20,6 @@ i3focus_la_LDFLAGS = \
 
 i3focus_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(I3IPC_GLIB_LIBS) \
 	$(GOBJECT_LIBS) \
 	$(GLIB_LIBS) \

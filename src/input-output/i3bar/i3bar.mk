@@ -22,7 +22,6 @@ i3bar_la_LDFLAGS = \
 
 i3bar_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(YAJL_LIBS) \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \

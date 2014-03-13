@@ -31,8 +31,6 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <libj4status-config.h>
-
 #include <j4status-plugin-output.h>
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
@@ -45,7 +43,7 @@ _j4status_section_get_override(J4statusSection *self)
     g_sprintf(group, "Override %s", self->id);
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file(group);
+    key_file = j4status_config_get_key_file(group);
     if ( key_file == NULL )
         return;
 

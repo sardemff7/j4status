@@ -47,8 +47,6 @@
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-output.h>
 
-#include <libj4status-config.h>
-
 #ifdef G_OS_UNIX
 #define stream_from_fd(type, fd) g_unix_ ## type ## put_stream_new(fd, TRUE)
 #else /* ! G_OS_UNIX */
@@ -805,7 +803,7 @@ static J4statusPluginContext *
 _j4status_i3bar_input_init(J4statusCoreInterface *core)
 {
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("i3bar");
+    key_file = j4status_config_get_key_file("i3bar");
     if ( key_file == NULL )
         return NULL;
 

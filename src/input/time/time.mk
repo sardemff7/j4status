@@ -18,7 +18,6 @@ time_la_LDFLAGS = \
 
 time_la_LIBADD = \
 	libj4status-plugin.la \
-	libj4status.la \
 	$(GLIB_LIBS) \
 	$(null)
 

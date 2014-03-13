@@ -43,8 +43,6 @@
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
-#include <libj4status-config.h>
-
 #include "plugins.h"
 
 struct _J4statusCoreContext {
@@ -355,7 +353,7 @@ main(int argc, char *argv[])
     }
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("Plugins");
+    key_file = j4status_config_get_key_file("Plugins");
     if ( key_file != NULL )
     {
         if ( output_plugin == NULL )

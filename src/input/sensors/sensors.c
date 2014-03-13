@@ -35,7 +35,6 @@
 #include <sensors/sensors.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 #define MAX_CHIP_NAME_SIZE 256
 
@@ -211,7 +210,7 @@ _j4status_sensors_init(J4statusCoreInterface *core)
         return NULL;
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("Sensors");
+    key_file = j4status_config_get_key_file("Sensors");
     if ( key_file != NULL )
     {
         sensors = g_key_file_get_string_list(key_file, "Sensors", "Sensors", NULL, NULL);

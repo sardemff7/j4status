@@ -41,8 +41,6 @@
 
 #include <j4status-plugin-output.h>
 
-#include <libj4status-config.h>
-
 #define yajl_strcmp(str1, len1, str2) ( ( strlen(str2) == len1 ) && ( g_ascii_strncasecmp((const gchar *) str1, str2, len1) == 0 ) )
 
 typedef enum {
@@ -353,7 +351,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     context->colours.good        = g_strdup("#00FF00");
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("i3bar");
+    key_file = j4status_config_get_key_file("i3bar");
     if ( key_file != NULL )
     {
         _j4status_i3bar_output_update_colour(&context->colours.no_state, key_file, "NoStateColour");

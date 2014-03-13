@@ -35,7 +35,6 @@
 #include <libgwater-mpd.h>
 
 #include <j4status-plugin-input.h>
-#include <libj4status-config.h>
 
 #define TIME_SIZE 4095
 
@@ -371,7 +370,7 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     J4statusMpdConfig config = {0};
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("MPD");
+    key_file = j4status_config_get_key_file("MPD");
     if ( key_file != NULL )
     {
         gint64 tmp;

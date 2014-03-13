@@ -40,8 +40,6 @@
 
 #include <j4status-plugin-output.h>
 
-#include <libj4status-config.h>
-
 #define COLOUR_STR(n) gchar n[16] = {0}; /* strlen("\e[38;5;xxxm\e[5m\x07") */
 #define MAX_LINE 256
 
@@ -217,7 +215,7 @@ _j4status_flat_init(J4statusCoreInterface *core)
     context->core = core;
 
     GKeyFile *key_file;
-    key_file = libj4status_config_get_key_file("Flat");
+    key_file = j4status_config_get_key_file("Flat");
     if ( key_file != NULL )
         context->align = g_key_file_get_boolean(key_file, "Flat", "Align", NULL);
 
