@@ -11,8 +11,19 @@ AC_DEFUN([J4SP_INIT], [
     ])
 ])
 
+AC_DEFUN([_J4SP_PRINT_PLUGIN_SUMMARY_INTERNAL], [
+    _j4sp_plugin_status="$2"
+    AS_CASE([$1][$2],
+        [yesyes], [_j4sp_plugin_status="$_j4sp_plugin_status (Default, disable with --disable-$3)"],
+        [yesno], [_j4sp_plugin_status="$_j4sp_plugin_status (Disabled)"],
+        [nono], [_j4sp_plugin_status="$_j4sp_plugin_status (Default, enable with --enabled-$3)"],
+        [noyes], [_j4sp_plugin_status="$_j4sp_plugin_status (Enabled)"]
+    )
+    AC_MSG_RESULT([        ]m4_map_args_sep([], [], [ ], m4_shift3($@))[: $_j4sp_plugin_status])
+])
+
 AC_DEFUN([_J4SP_PRINT_PLUGIN_SUMMARY], [
-    AC_MSG_RESULT([        $1])
+    _J4SP_PRINT_PLUGIN_SUMMARY_INTERNAL(m4_unquote(m4_split([$1])))
 ])
 
 AC_DEFUN([J4SP_SUMMARY], [
@@ -44,7 +55,7 @@ AC_DEFUN([_J4SP_ADD_PLUGIN], [
 
     AS_IF([test "x$]_j4sp_enable_var[" = xyes], [$5])
 
-    m4_append([_J4SP_]m4_translit(m4_toupper([$1]), [-], [_])[_PLUGINS], [        $3: $]_j4sp_enable_var, [,])
+    m4_append([_J4SP_]m4_translit(m4_toupper([$1]), [-], [_])[_PLUGINS], [$4 $]_j4sp_enable_var[ ]_j4sp_enable_arg[ $3], [,])
 
     m4_undefine([_j4sp_enable_var])
     m4_undefine([_j4sp_enable_arg])
