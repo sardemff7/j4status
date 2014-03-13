@@ -1,0 +1,121 @@
+<?xml version='1.0' ?>
+<!DOCTYPE config SYSTEM "config.dtd">
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012-2013 Quentin "Sardem FF7" Glidic
+
+  Mpris plugin by Tony Crisci <tony@dubstepdish.com>
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status-mpris.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Tony</firstname>
+                <surname>Crisci</surname>
+                <email>tony@dubstepdish.com</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status-mpris.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status-mpris.conf</refname>
+        <refpurpose>j4status Mpris plugin configuration</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>
+            The Mpris plugin displays the artist and title from whatever you have playing in your media player in the status line.
+        </para>
+        <para>
+            The Mpris plugin uses the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
+        </para>
+    </refsynopsisdiv>
+
+    <refsect1 id="description">
+        <title>Description</title>
+
+        <para>
+            It controls the Mpris plugin behavior.
+        </para>
+    </refsect1>
+
+    <refsect1 id="sections">
+        <title>Sections</title>
+
+        <refsect2 id="section-mpris">
+            <title>Section <varname>[Mpris]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Player=</varname>
+                        (The <type>name of a media player</type>, defaults to <literal>vlc</literal>)
+                    </term>
+                    <listitem>
+                        <para>The name of a media player that implements the Mpris D-Bus Interface Specification, such as vlc, spotify, audacious, bmp, or xmms2</para>
+                        <para>The Mpris plugin will query metadata from the bus name of org.mpris.MediaPlayer2.[Player]</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+
+        </refsect2>
+    </refsect1>
+
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Displaying the current track you are listening to in Spotify</title>
+
+            <programlisting>
+[Mpris]
+Player=spotify
+            </programlisting>
+            <para>
+                Displays the track metadata in the format “ARTIST - TITLE”.
+            </para>
+            <para>
+                Here is the expected output :
+            </para>
+            <screen>
+One Direction - What Makes You Beautiful
+            </screen>
+        </example>
+
+    </refsect1>
+
+    <refsect1 id="see-also">
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>
