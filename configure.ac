@@ -97,14 +97,6 @@ PKG_CHECK_MODULES(GIO, [gio-2.0 >= $gio_min_version $gio_unix])
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= $gmodule_min_version])
 
-AC_ARG_WITH(dbusinterfacesdir, AS_HELP_STRING([--with-dbusinterfacesdir=DIR], [Directory for D-Bus interfaces files]), [], with_dbusinterfacesdir=yes)
-case "$with_dbusinterfacesdir" in
-    no|"") AC_MSG_ERROR([*** You must define dbusinterfacesdir]) ;;
-    yes) dbusinterfacesdir="`$PKG_CONFIG --variable=interfaces_dir dbus-1`" ;;
-    *) dbusinterfacesdir="$with_dbusinterfacesdir" ;;
-esac
-AC_SUBST(dbusinterfacesdir)
-
 AC_ARG_ENABLE(i3bar-input-output, AS_HELP_STRING([--disable-i3bar-input-output], [Disable i3bar JSON protocol support]), [], enable_i3bar_input_output=yes)
 if test x$enable_i3bar_input_output = xyes; then
     AC_CHECK_HEADERS([signal.h])
