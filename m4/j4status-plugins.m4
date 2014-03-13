@@ -37,8 +37,8 @@ AC_DEFUN([_J4SP_ADD_PLUGIN], [
 
     m4_case([$4],
     [always], _j4sp_enable_var[=yes],
-    [yes],    [AC_ARG_ENABLE(_j4sp_enable_arg, AS_HELP_STRING([--disable-]_j4sp_enable_arg, [Disable $3]), [], _j4sp_enable_var[=yes])],
-              [AC_ARG_ENABLE(_j4sp_enable_arg, AS_HELP_STRING([--enable-]_j4sp_enable_arg, [Enable $3]), [], _j4sp_enable_var[=no])]
+    [yes],    [AC_ARG_ENABLE(_j4sp_enable_arg, AS_HELP_STRING([--disable-]_j4sp_enable_arg, [Disable $3 plugin]), [], _j4sp_enable_var[=yes])],
+              [AC_ARG_ENABLE(_j4sp_enable_arg, AS_HELP_STRING([--enable-]_j4sp_enable_arg, [Enable $3 plugin]), [], _j4sp_enable_var[=no])]
     )
     AM_CONDITIONAL(m4_toupper(_j4sp_enable_var), [test "x$]_j4sp_enable_var[" = xyes])
 
