@@ -47,6 +47,10 @@ AC_SUBST([pkgdatadir])
 # pkg-config dirs
 PKG_INSTALLDIR
 
+# aclocal dirs
+aclocaldir='${datadir}/aclocal'
+AC_SUBST([aclocaldir])
+
 # j4status specific dirs
 pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
@@ -97,28 +101,29 @@ PKG_CHECK_MODULES(GIO, [gio-2.0 >= $gio_min_version $gio_unix])
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= $gmodule_min_version])
 
-AC_ARG_ENABLE(i3bar-input-output, AS_HELP_STRING([--disable-i3bar-input-output], [Disable i3bar JSON protocol support]), [], enable_i3bar_input_output=yes)
-if test x$enable_i3bar_input_output = xyes; then
+J4SP_INIT
+
+J4SP_ADD_OUTPUT_PLUGIN(flat, [Flat], [always])
+J4SP_ADD_OUTPUT_PLUGIN(debug, [Debug], [always])
+J4SP_ADD_INPUT_PLUGIN(time, [Time], [always])
+J4SP_ADD_INPUT_PLUGIN(file-monitor, [File monitor], [always])
+
+J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
     AC_CHECK_HEADERS([signal.h])
     PKG_CHECK_MODULES(YAJL, [yajl >= 2.0.0])
-fi
-AM_CONDITIONAL(ENABLE_I3BAR_INPUT_OUTPUT, test x$enable_i3bar_input_output = xyes)
+])
 
-AC_ARG_ENABLE(nm-input, AS_HELP_STRING([--disable-nm-input], [Disable NetworkManager support]), [], enable_nm_input=yes)
-if test x$enable_nm_input = xyes; then
+
+J4SP_ADD_INPUT_PLUGIN(nm, [NetworkManager], [yes], [
     AC_CHECK_HEADERS([netdb.h])
     PKG_CHECK_MODULES(LIBNM, [libnm-util >= 0.9 libnm-glib >= 0.9])
-fi
-AM_CONDITIONAL(ENABLE_NM_INPUT, test x$enable_nm_input = xyes)
+])
 
-AC_ARG_ENABLE(upower-input, AS_HELP_STRING([--disable-upower-input], [Disable UPower support]), [], enable_upower_input=yes)
-if test x$enable_upower_input = xyes; then
+J4SP_ADD_INPUT_PLUGIN(upower, [UPower], [yes], [
     PKG_CHECK_MODULES(UPOWER, [upower-glib])
-fi
-AM_CONDITIONAL(ENABLE_UPOWER_INPUT, test x$enable_upower_input = xyes)
+])
 
-AC_ARG_ENABLE(sensors-input, AS_HELP_STRING([--disable-sensors-input], [Disable libsensors support]), [], enable_sensors_input=yes)
-if test x$enable_sensors_input = xyes; then
+J4SP_ADD_INPUT_PLUGIN(sensors, [libsensors], [yes], [
     LIBSENSORS_CFLAGS="-I/usr/include"
     LIBSENSORS_LIBS="-lsensors"
     AC_SEARCH_LIBS([sensors_init], [sensors],
@@ -129,27 +134,20 @@ if test x$enable_sensors_input = xyes; then
         [
             AC_MSG_ERROR([*** libsensors support requested but library is missing])
         ])
-fi
-AM_CONDITIONAL(ENABLE_SENSORS_INPUT, test x$enable_sensors_input = xyes)
+])
 
-AC_ARG_ENABLE(mpd-input, AS_HELP_STRING([--enable-mpd-input], [Enable MPD support]), [], enable_mpd_input=no)
-if test x$enable_mpd_input = xyes; then
+J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
     GW_CHECK_MPD(MPD)
-fi
-AM_CONDITIONAL(ENABLE_MPD_INPUT, test x$enable_mpd_input = xyes)
+])
 
-AC_ARG_ENABLE(systemd-input, AS_HELP_STRING([--enable-systemd-input], [Enable systemd support]), [], enable_systemd_input=no)
-if test x$enable_systemd_input = xyes; then
+J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no], [
     PKG_CHECK_MODULES(SYSTEMD, [systemd])
     PKG_CHECK_MODULES(GLIB2_32, [glib-2.0 >= 2.32.0])
-fi
-AM_CONDITIONAL(ENABLE_SYSTEMD_INPUT, test x$enable_systemd_input = xyes)
+])
 
-AC_ARG_ENABLE(i3focus-input, AS_HELP_STRING([--enable-i3focus-input], [Enable i3focus support]), [], enable_i3focus_input=no)
-if test x$enable_i3focus_input = xyes; then
+J4SP_ADD_INPUT_PLUGIN(i3focus, [i3 focus event], [no], [
     PKG_CHECK_MODULES(I3IPC_GLIB, [i3ipc-glib-1.0])
-fi
-AM_CONDITIONAL(ENABLE_I3FOCUS_INPUT, test x$enable_i3focus_input = xyes)
+])
 
 
 #
@@ -179,23 +177,11 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
     ${PACKAGE_NAME} ${PACKAGE_VERSION}
+])
 
-    Output plugins:
-        Flat: yes
-        Debug: yes
-        i3bar: $enable_i3bar_input_output
+J4SP_SUMMARY
 
-    Input plugins:
-        Time: yes
-        File monitor: yes
-        NetworkManager: $enable_nm_input
-        UPower: $enable_upower_input
-        Sensors: $enable_sensors_input
-        MPD: $enable_mpd_input
-        systemd: $enable_systemd_input
-        i3focus: $enable_i3focus_input
-        i3bar: $enable_i3bar_input_output
-
+AC_MSG_RESULT([
 dnl     Tests: $enable_tests
     Debug mode: $enable_debug
 ])

@@ -16,6 +16,7 @@ pkginclude_HEADERS =
 
 man1_MANS =
 man5_MANS =
+dist_aclocal_DATA =
 pkgconfig_DATA =
 
 BUILT_SOURCES =

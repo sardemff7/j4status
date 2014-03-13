@@ -12,6 +12,10 @@ pkginclude_HEADERS += \
 	include/j4status-plugin.h \
 	$(null)
 
+dist_aclocal_DATA += \
+	m4/j4status-plugins.m4 \
+	$(null)
+
 pkgconfig_DATA += \
 	src/libj4status-plugin/libj4status-plugin.pc \
 	$(null)
