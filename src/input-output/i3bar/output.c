@@ -372,7 +372,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     yajl_gen_string(json_gen, (const unsigned char *)"version", strlen("version"));
     yajl_gen_integer(json_gen, 1);
     yajl_gen_string(json_gen, (const unsigned char *)"stop_signal", strlen("stop_signal"));
-    yajl_gen_integer(json_gen, SIGHUP);
+    yajl_gen_integer(json_gen, SIGINT);
     yajl_gen_string(json_gen, (const unsigned char *)"cont_signal", strlen("cont_signal"));
     yajl_gen_integer(json_gen, SIGHUP);
     yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
