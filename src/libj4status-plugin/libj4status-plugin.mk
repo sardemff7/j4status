@@ -10,6 +10,8 @@ lib_LTLIBRARIES += \
 
 pkginclude_HEADERS += \
 	include/j4status-plugin.h \
+	include/j4status-plugin-input.h \
+	include/j4status-plugin-output.h \
 	$(null)
 
 dist_aclocal_DATA += \
