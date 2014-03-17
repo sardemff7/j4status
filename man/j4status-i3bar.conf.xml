@@ -71,67 +71,87 @@
         <refsect2 id="section-i3bar">
             <title>Section <varname>[i3bar]</varname></title>
 
-            <variablelist>
-                <varlistentry>
-                    <term>
-                        <varname>NoStateColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>none</literal>)
-                    </term>
-                    <listitem>
-                        <para>Colour to use for sections without state.</para>
-                    </listitem>
-                </varlistentry>
+            <refsect3>
+                <title>Output plugin keys</title>
 
-                <varlistentry>
-                    <term>
-                        <varname>UnavailableColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#0000FF</literal>)
-                    </term>
-                    <listitem>
-                        <para>Colour to use for sections with unavailable state.</para>
-                    </listitem>
-                </varlistentry>
+                <variablelist>
+                    <varlistentry>
+                        <term>
+                            <varname>NoStateColour=</varname>
+                            (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>none</literal>)
+                        </term>
+                        <listitem>
+                            <para>Colour to use for sections without state.</para>
+                        </listitem>
+                    </varlistentry>
 
-                <varlistentry>
-                    <term>
-                        <varname>BadColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FF0000</literal>)
-                    </term>
-                    <listitem>
-                        <para>Colour to use for sections with bad state.</para>
-                    </listitem>
-                </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <varname>UnavailableColour=</varname>
+                            (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#0000FF</literal>)
+                        </term>
+                        <listitem>
+                            <para>Colour to use for sections with unavailable state.</para>
+                        </listitem>
+                    </varlistentry>
 
-                <varlistentry>
-                    <term>
-                        <varname>AverageColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FFFF00</literal>)
-                    </term>
-                    <listitem>
-                        <para>Colour to use for sections with average state.</para>
-                    </listitem>
-                </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <varname>BadColour=</varname>
+                            (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FF0000</literal>)
+                        </term>
+                        <listitem>
+                            <para>Colour to use for sections with bad state.</para>
+                        </listitem>
+                    </varlistentry>
 
-                <varlistentry>
-                    <term>
-                        <varname>GoodColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#00FF00</literal>)
-                    </term>
-                    <listitem>
-                        <para>Colour to use for sections with good state.</para>
-                    </listitem>
-                </varlistentry>
+                    <varlistentry>
+                        <term>
+                            <varname>AverageColour=</varname>
+                            (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FFFF00</literal>)
+                        </term>
+                        <listitem>
+                            <para>Colour to use for sections with average state.</para>
+                        </listitem>
+                    </varlistentry>
 
-                <varlistentry>
-                    <term>
-                        <varname>Align=</varname>
-                        (<type>boolean</type>, defaults to <literal>false</literal>)
-                    </term>
-                    <listitem>
-                        <para>Whether or not to pass i3bar the alignment data.</para>
-                    </listitem>
-                </varlistentry>
-            </variablelist>
+                    <varlistentry>
+                        <term>
+                            <varname>GoodColour=</varname>
+                            (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#00FF00</literal>)
+                        </term>
+                        <listitem>
+                            <para>Colour to use for sections with good state.</para>
+                        </listitem>
+                    </varlistentry>
+
+                    <varlistentry>
+                        <term>
+                            <varname>Align=</varname>
+                            (<type>boolean</type>, defaults to <literal>false</literal>)
+                        </term>
+                        <listitem>
+                            <para>Whether or not to pass i3bar the alignment data.</para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </refsect3>
+
+            <refsect3>
+                <title>Input plugin keys</title>
+
+                <variablelist>
+                    <varlistentry>
+                        <term>
+                            <varname>Clients=</varname>
+                            (A <type>list of commands</type>)
+                        </term>
+                        <listitem>
+                            <para>The list of clients to run.</para>
+                        </listitem>
+                    </varlistentry>
+                </variablelist>
+            </refsect3>
         </refsect2>
     </refsect1>
 
