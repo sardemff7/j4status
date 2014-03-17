@@ -75,7 +75,7 @@ vala_min_version="0.12"
 
 AM_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers"
 AM_CPPFLAGS=""
-AM_LDFLAGS="-no-undefined -Wl,--no-undefined"
+AM_LDFLAGS=""
 AM_XSLTPROCFLAGS="--nonet --stringparam man.output.quietly 1 --stringparam funcsynopsis.style ansi"
 
 
