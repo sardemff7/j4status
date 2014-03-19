@@ -56,6 +56,7 @@ pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
 
 GW_INIT([src/libgwater])
+NK_INIT([src/libnkutils], [GLIB], [colour/string])
 
 # Common dependencies
 glib_min_major="2"

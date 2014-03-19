@@ -31,10 +31,9 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <j4status-plugin.h>
+#include <nkutils-colour.h>
 
-static gchar _j4status_colour_hex[8];
-static gchar _j4status_colour_rgb[17];
+#include <j4status-plugin.h>
 
 void
 j4status_colour_reset(J4statusColour *colour)
@@ -45,65 +44,18 @@ j4status_colour_reset(J4statusColour *colour)
     colour->blue = 0;
 }
 
-static gboolean
-_j4status_colour_parse_internal(const gchar *sr, const gchar *sg, const gchar *sb, guint8 base, J4statusColour *colour)
-{
-    gchar *next;
-
-    colour->red = g_ascii_strtoull(sr, &next, base);
-    if ( sr == next ) return FALSE;
-    colour->green = g_ascii_strtoull(sg, &next, base);
-    if ( sg == next ) return FALSE;
-    colour->blue = g_ascii_strtoull(sb, &next, base);
-    if ( sb == next ) return FALSE;
-
-    return TRUE;
-}
-
 J4statusColour
-j4status_colour_parse(const gchar *colour)
+j4status_colour_parse(const gchar *string)
 {
     J4statusColour ret = { FALSE, 0, 0, 0 };
+    NkColour colour_;
 
-    if ( g_str_has_prefix(colour, "#") )
+    if ( nk_colour_parse(string, &colour_) )
     {
-        gchar hr[3] = {0};
-        gchar hg[3] = {0};
-        gchar hb[3] = {0};
-
-        colour += strlen("#");
-        switch ( strlen(colour) )
-        {
-        case 6: /* rrggbb */
-            hr[0] = colour[0]; hr[1] = colour[1];
-            hg[0] = colour[2]; hg[1] = colour[3];
-            hb[0] = colour[4]; hb[1] = colour[5];
-        break;
-        case 3: /* rgb */
-            hr[0] = hr[1] = colour[0];
-            hg[0] = hg[1] = colour[1];
-            hb[0] = hb[1] = colour[2];
-        break;
-        }
-        ret.set = _j4status_colour_parse_internal(hr, hg, hb, 16, &ret);
-    }
-    else if ( g_str_has_prefix(colour, "rgb(") && g_str_has_suffix(colour, ")") )
-    {
-        colour += strlen("rgb(");
-        const gchar *rr, *rg, *rb;
-        rr = colour;
-
-        colour = strchr(colour, ',');
-        do ++colour; while ( *colour == ' ' );
-
-        rg = colour;
-
-        colour = strchr(colour, ',');
-        do ++colour; while ( *colour == ' ' );
-
-        rb = colour;
-
-        ret.set = _j4status_colour_parse_internal(rr, rg, rb, 10, &ret);
+        ret.set   = TRUE;
+        ret.red   = colour_.red;
+        ret.green = colour_.green;
+        ret.blue  = colour_.blue;
     }
 
     return ret;
@@ -123,9 +75,14 @@ j4status_colour_to_hex(J4statusColour colour)
     if ( ! colour.set )
         return NULL;
 
-    g_sprintf(_j4status_colour_hex, "#%02x%02x%02x", colour.red, colour.green, colour.blue);
+    NkColour colour_ = {
+        .red   = colour.red,
+        .green = colour.green,
+        .blue  = colour.blue,
+        .alpha = 0xff
+    };
 
-    return _j4status_colour_hex;
+    return nk_colour_to_hex(&colour_);
 }
 
 const gchar *
@@ -134,7 +91,12 @@ j4status_colour_to_rgb(J4statusColour colour)
     if ( ! colour.set )
         return NULL;
 
-    g_sprintf(_j4status_colour_rgb, "rgb(%u,%u,%u)", colour.red, colour.green, colour.blue);
+    NkColour colour_ = {
+        .red   = colour.red,
+        .green = colour.green,
+        .blue  = colour.blue,
+        .alpha = 0xff
+    };
 
-    return _j4status_colour_rgb;
+    return nk_colour_to_rgba(&colour_);
 }

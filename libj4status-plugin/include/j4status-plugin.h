@@ -62,8 +62,8 @@ typedef struct {
 } J4statusColour;
 
 void j4status_colour_reset(J4statusColour *colour);
-J4statusColour j4status_colour_parse(const gchar *colour);
-J4statusColour j4status_colour_parse_length(const gchar *colour, gint size);
+J4statusColour j4status_colour_parse(const gchar *string);
+J4statusColour j4status_colour_parse_length(const gchar *string, gint size);
 const gchar *j4status_colour_to_hex(J4statusColour colour);
 const gchar *j4status_colour_to_rgb(J4statusColour colour);
 

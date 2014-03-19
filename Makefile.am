@@ -5,7 +5,7 @@
  AM_DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-debug
 
-ACLOCAL_AMFLAGS = -I m4 -I libgwater ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I m4 -I libgwater -I libnkutils ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
 bin_PROGRAMS =
@@ -13,6 +13,9 @@ noinst_LTLIBRARIES =
 lib_LTLIBRARIES =
 plugins_LTLIBRARIES =
 pkginclude_HEADERS =
+
+check_PROGRAMS =
+TESTS =
 
 man1_MANS =
 man5_MANS =

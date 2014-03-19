@@ -49,6 +49,7 @@ libj4status_plugin_la_CPPFLAGS = \
 libj4status_plugin_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	-D G_LOG_DOMAIN=\"libj4status-plugin\" \
+	$(NKUTILS_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(null)
 
@@ -58,5 +59,8 @@ libj4status_plugin_la_LDFLAGS = \
 	$(null)
 
 libj4status_plugin_la_LIBADD = \
+	$(NKUTILS_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)
+
+include libnkutils/libnkutils.mk
