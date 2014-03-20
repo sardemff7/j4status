@@ -188,7 +188,6 @@ j4status_plugins_get_input_plugin(J4statusCoreInterface *core, const gchar *name
              * Just return anything but NULL if you needs init
              * without a context.
              */
-            g_module_close(plugin->module);
             g_free(plugin);
             return NULL;
         }
