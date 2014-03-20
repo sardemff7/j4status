@@ -55,9 +55,6 @@ AC_SUBST([aclocaldir])
 pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
 
-GW_INIT([src/libgwater])
-NK_INIT([src/libnkutils], [GLIB], [colour/string])
-
 # Common dependencies
 glib_min_major="2"
 glib_min_minor="28"
@@ -85,6 +82,9 @@ if test -d .git; then
     PACKAGE_VERSION="${PACKAGE_VERSION} - `git describe --tags --always` (`git describe --tags --always --all | sed -e 's:heads/::'`)"
     AC_DEFINE_UNQUOTED([PACKAGE_VERSION], ["$PACKAGE_VERSION"], [Full version with git information])
 fi
+
+GW_INIT([src/libgwater])
+NK_INIT([src/libnkutils], [GLIB], [colour/string token/enum], [AM_DOCBOOK_CONDITIONS])
 
 AC_CHECK_HEADERS([errno.h])
 

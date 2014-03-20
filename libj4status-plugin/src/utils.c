@@ -31,9 +31,51 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
+#include <nkutils-token.h>
 #include <nkutils-colour.h>
 
 #include <j4status-plugin.h>
+
+J4statusFormatString *
+j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64 size, const gchar *default_string, guint64 *used_tokens)
+{
+    NkTokenList *token_list = NULL;
+
+    if ( string != NULL )
+        token_list = nk_token_list_parse_enum(string, tokens, size, used_tokens);
+
+    if ( token_list == NULL )
+        token_list = nk_token_list_parse_enum(g_strdup(default_string), tokens, size, used_tokens);
+
+    return token_list;
+}
+
+J4statusFormatString *
+j4status_format_string_ref(J4statusFormatString *format_string)
+{
+    if ( format_string == NULL )
+        return NULL;
+
+    return nk_token_list_ref(format_string);
+}
+
+void
+j4status_format_string_unref(J4statusFormatString *format_string)
+{
+    if ( format_string == NULL )
+        return;
+
+    nk_token_list_unref(format_string);
+}
+
+gchar *
+j4status_format_string_replace(const J4statusFormatString *format_string, J4statusFormatStringReplaceCallback callback, gconstpointer user_data)
+{
+    if ( format_string == NULL )
+        return NULL;
+
+    return nk_token_list_replace(format_string, callback, user_data);
+}
 
 void
 j4status_colour_reset(J4statusColour *colour)
