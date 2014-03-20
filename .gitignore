@@ -1,7 +1,7 @@
 /include/config.h*
 
 /j4status
-/man/config.dtd
+/man/config.ent
 /man/*.1
 /man/*.5
 *.pc

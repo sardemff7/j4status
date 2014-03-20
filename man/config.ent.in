@@ -1,7 +1,7 @@
 <!--
   j4status - Status line generator
 
-  Copyright © 2012-2013 Quentin "Sardem FF7" Glidic
+  Copyright © 2012-2014 Quentin "Sardem FF7" Glidic
 
   This file is part of j4status.
 
@@ -18,17 +18,8 @@
   You should have received a copy of the GNU General Public License
   along with j4status. If not, see <http://www.gnu.org/licenses/>.
 -->
-<!--
-    We only extend the docbook DTD to define our entities defined at configure time
--->
-<!ENTITY % refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd">
-%refentry;
-
 <!ENTITY PACKAGE_NAME "@PACKAGE_NAME@">
 <!ENTITY PACKAGE_VERSION "@PACKAGE_VERSION@">
 
 <!ENTITY sysconfdir "@sysconfdir@">
 <!ENTITY datadir "@datadir@">
-
-<!ENTITY DEFAULT_BIND_PORT "@DEFAULT_BIND_PORT@">
-<!ENTITY UNIX_SOCKET "@UNIX_SOCKET@">

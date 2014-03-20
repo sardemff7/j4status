@@ -1,25 +1,31 @@
 EXTRA_DIST += \
-	man/config.dtd.in \
+	man/config.ent.in \
 	$(man1_MANS:.1=.xml) \
 	$(man5_MANS:.5=.xml) \
 	$(null)
 
 CLEANFILES += \
-	man/config.dtd \
+	man/config.ent \
 	$(man1_MANS) \
 	$(man5_MANS) \
 	$(null)
 
-man/%.1 man/%.5: man/%.xml man/config.dtd
-	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && \
-		$(XSLTPROC) \
-		-o $(dir $@) \
-		$(AM_XSLTPROCFLAGS) \
-		--stringparam profile.condition '$(AM_DOCBOOK_CONDITIONS)' \
-		http://docbook.sourceforge.net/release/xsl/current/manpages/profile-docbook.xsl \
-		$<
+MAN_GEN_RULE = $(AM_V_GEN)$(MKDIR_P) $(dir $@) && \
+	$(XSLTPROC) \
+	-o $(dir $@) \
+	$(AM_XSLTPROCFLAGS) \
+	--stringparam profile.condition '${AM_DOCBOOK_CONDITIONS}' \
+	$(XSLTPROCFLAGS) \
+	http://docbook.sourceforge.net/release/xsl/current/manpages/profile-docbook.xsl \
+	$<
 
-man/config.dtd: man/config.dtd.in Makefile
+$(man1_MANS): %.1: %.xml $(NKUTILS_MANFILES) man/config.ent
+	$(MAN_GEN_RULE)
+
+$(man5_MANS): %.5: %.xml $(NKUTILS_MANFILES) man/config.ent
+	$(MAN_GEN_RULE)
+
+man/config.ent: man/config.ent.in Makefile
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && \
 		$(SED) \
 		-e 's:[@]sysconfdir[@]:$(sysconfdir):g' \
