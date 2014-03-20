@@ -1,3 +1,6 @@
 [submodule "libgwater"]
 	path = src/libgwater
 	url = git://github.com/sardemff7/libgwater
+[submodule "libnkutils"]
+	path = src/libnkutils
+	url = git://github.com/sardemff7/libnkutils
