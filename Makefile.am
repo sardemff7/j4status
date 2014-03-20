@@ -25,39 +25,39 @@ CLEANFILES =
 
 AM_CPPFLAGS += \
 	-D LOCALEDIR=\"$(localedir)\" \
-	-I $(srcdir)/include/ \
-	-I $(builddir)/include/
+	-I $(srcdir)/src/ \
+	-I $(builddir)/src/
 
 AM_XSLTPROCFLAGS += \
-	--path "$(srcdir)/man/" \
-	--path "$(builddir)/man/"
+	--path "$(srcdir)/src/" \
+	--path "$(builddir)/src/"
 
-include src/j4status/j4status.mk
-include src/libj4status-plugin/libj4status-plugin.mk
-include src/output/flat/flat.mk
-include src/output/debug/debug.mk
+include main/j4status.mk
+include libj4status-plugin/libj4status-plugin.mk
+include output/flat/flat.mk
+include output/debug/debug.mk
 if ENABLE_I3BAR_INPUT_OUTPUT
-include src/input-output/i3bar/i3bar.mk
+include input-output/i3bar/i3bar.mk
 endif
-include src/input/time/time.mk
-include src/input/file-monitor/file-monitor.mk
+include input/time/time.mk
+include input/file-monitor/file-monitor.mk
 if ENABLE_NM_INPUT
-include src/input/nm/nm.mk
+include input/nm/nm.mk
 endif
 if ENABLE_UPOWER_INPUT
-include src/input/upower/upower.mk
+include input/upower/upower.mk
 endif
 if ENABLE_SENSORS_INPUT
-include src/input/sensors/sensors.mk
+include input/sensors/sensors.mk
 endif
 if ENABLE_MPD_INPUT
-include src/input/mpd/mpd.mk
+include input/mpd/mpd.mk
 endif
 if ENABLE_SYSTEMD_INPUT
-include src/input/systemd/systemd.mk
+include input/systemd/systemd.mk
 endif
 
-include man/man.mk
+include src/man.mk
 
 -include local-rules.mk
 

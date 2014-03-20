@@ -1,8 +1,8 @@
 AC_PREREQ([2.65])
 AC_INIT([j4status],[0.1],[],[])
 
-AC_CONFIG_HEADERS([include/config.h])
-AC_CONFIG_SRCDIR([src/])
+AC_CONFIG_HEADERS([src/config.h])
+AC_CONFIG_SRCDIR([main/src/j4status.c])
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_AUX_DIR([.aux])
 
@@ -55,7 +55,7 @@ AC_SUBST([aclocaldir])
 pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
 
-GW_INIT([libgwater])
+GW_INIT([src/libgwater])
 
 # Common dependencies
 glib_min_major="2"
@@ -176,7 +176,7 @@ AC_SUBST(shrext_cmds)
 
 AC_CONFIG_FILES([
     Makefile
-    src/libj4status-plugin/libj4status-plugin.pc
+    libj4status-plugin/pkgconfig/libj4status-plugin.pc
 ])
 AC_OUTPUT
 

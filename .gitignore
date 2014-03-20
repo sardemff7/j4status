@@ -1,7 +1,10 @@
-/include/config.h*
+/local-rules.mk
+
+/src/config.h.in
+/src/config.h
+/src/config.ent
 
 /j4status
-/man/config.ent
-/man/*.1
-/man/*.5
+*.1
+*.5
 *.pc
