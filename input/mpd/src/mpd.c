@@ -49,8 +49,6 @@ typedef enum {
 } J4statusMpdAction;
 
 typedef struct {
-    gboolean show_options;
-    gboolean show_volume;
     GHashTable *actions;
 } J4statusMpdConfig;
 
@@ -79,6 +77,9 @@ typedef struct {
     GWaterMpdSource *source;
     struct mpd_async *mpd;
 
+    guint64 used_tokens;
+    J4statusFormatString *format;
+
     J4statusMpdCommand command;
     J4statusMpdAction pending;
 
@@ -92,6 +93,33 @@ typedef struct {
     gint8 volume;
 } J4statusMpdSection;
 
+typedef enum {
+    TOKEN_SONG,
+    TOKEN_STATE,
+    TOKEN_DATABASE,
+    TOKEN_OPTIONS,
+    TOKEN_VOLUME,
+    _TOKEN_SIZE
+} J4statusMpdFormatToken;
+
+typedef enum {
+    TOKEN_FLAG_SONG     = (1 << TOKEN_SONG),
+    TOKEN_FLAG_STATE    = (1 << TOKEN_STATE),
+    TOKEN_FLAG_DATABASE = (1 << TOKEN_DATABASE),
+    TOKEN_FLAG_OPTIONS  = (1 << TOKEN_OPTIONS),
+    TOKEN_FLAG_VOLUME   = (1 << TOKEN_VOLUME),
+} J4statusMpdFormatTokenFlag;
+
+static const gchar * const _j4status_mpd_format_tokens[_TOKEN_SIZE] = {
+    [TOKEN_SONG]     = "song",
+    [TOKEN_STATE]    = "state",
+    [TOKEN_DATABASE] = "database",
+    [TOKEN_OPTIONS]  = "options",
+    [TOKEN_VOLUME]   = "volume",
+};
+
+#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${ (<database>)}${ [<options>]}"
+
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command)
 {
@@ -102,15 +130,17 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
     {
     case COMMAND_IDLE:
     {
-        const gchar *params[2] = {NULL};
-        if ( section->context->config.show_volume )
-            params[0] = "mixer";
-        if ( section->context->config.show_options )
-        {
-            params[1] = params[0];
-            params[0] = "options";
-        }
-        mpd_async_send_command(section->mpd, "idle", "player", "update", params[0], params[1], NULL);
+        const gchar *params[4] = {NULL};
+        gsize n = 0;
+        if ( section->used_tokens & (TOKEN_FLAG_STATE | TOKEN_FLAG_SONG) )
+            params[n++] = "player";
+        if ( section->used_tokens & TOKEN_FLAG_DATABASE )
+            params[n++] = "database";
+        if ( section->used_tokens & TOKEN_FLAG_OPTIONS )
+            params[n++] = "options";
+        if ( section->used_tokens & TOKEN_FLAG_VOLUME )
+            params[n++] = "mixer";
+        mpd_async_send_command(section->mpd, "idle", params[0], params[1], params[2], params[3], NULL);
     }
     break;
     case COMMAND_QUERY:
@@ -177,49 +207,75 @@ _j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *ac
     section->pending = GPOINTER_TO_UINT(g_hash_table_lookup(section->context->config.actions, action_id));
 }
 
+const gchar *
+_j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusMpdSection *section = user_data;
+    static gchar options[5] = {0};
+    static gchar volume[4] = {0};
+    switch ( value )
+    {
+    case TOKEN_SONG:
+        return ( section->current_song != NULL ) ? section->current_song : "No song";
+    break;
+    case TOKEN_STATE:
+    {
+        const gchar *status = NULL;
+        switch ( section->state )
+        {
+        case STATE_PLAY:
+        break;
+        case STATE_PAUSE:
+            status = "Paused";
+        break;
+        case STATE_STOP:
+            status = "Stopped";
+        break;
+        }
+        return status;
+    }
+    break;
+    case TOKEN_DATABASE:
+        return section->updating ? "Updating database" : NULL;
+    break;
+    case TOKEN_OPTIONS:
+        options[0] = section->repeat ? 'r' : ' ';
+        options[1] = section->random ? 'z' : ' ';
+        options[2] = section->single ? '1' : ' ';
+        options[3] = section->consume ? '-' : ' ';
+        return options;
+    break;
+    case TOKEN_VOLUME:
+        g_sprintf(volume, "%hd", section->volume);
+        return volume;
+    break;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
 static void
 _j4status_mpd_section_update(J4statusMpdSection *section)
 {
     J4statusState state = J4STATUS_STATE_NO_STATE;
-    const gchar *status = "";
-    const gchar *song = ( section->current_song != NULL ) ? section->current_song : "No song";
-    const gchar *updating = section->updating ? " (Updating database)" : "";
-    gchar options[8] = {0};
-    gchar volume[6] = {0};
+    gchar *value;
 
     switch ( section->state )
     {
     case STATE_PLAY:
         state = J4STATUS_STATE_GOOD;
-        status = "";
     break;
     case STATE_PAUSE:
         state = J4STATUS_STATE_AVERAGE;
-        status = "[Paused] ";
     break;
     case STATE_STOP:
         state = J4STATUS_STATE_BAD;
-        status = "[Stopped] ";
     break;
     }
 
-    if ( section->context->config.show_options )
-    {
-        options[0] = ' ';
-        options[1] = '[';
-        options[2] = section->repeat ? 'r' : ' ';
-        options[3] = section->random ? 'z' : ' ';
-        options[4] = section->single ? '1' : ' ';
-        options[5] = section->consume ? '-' : ' ';
-        options[6] = ']';
-    }
+    value = j4status_format_string_replace(section->format, _j4status_mpd_format_callback, section);
 
-    if ( section->volume > 0 )
-        g_sprintf(volume, " %hd%%", section->volume);
-
-
-    gchar *value;
-    value = g_strdup_printf("%s%s%s%s%s", status, song, updating, options, volume);
     j4status_section_set_state(section->section, state);
     j4status_section_set_value(section->section, value);
 }
@@ -362,6 +418,27 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
 
     section->volume = -1;
 
+    gchar group_name[strlen("MPD ") + strlen(host) + 1];
+    g_sprintf(group_name, "MPD %s", host);
+
+    gchar *format = NULL;
+
+    GKeyFile *key_file;
+    key_file = j4status_config_get_key_file(group_name);
+    if ( key_file != NULL )
+    {
+        format = g_key_file_get_string(key_file, group_name, "Format", NULL);
+        g_key_file_free(key_file);
+    }
+
+    section->format = j4status_format_string_parse(format, _j4status_mpd_format_tokens, _TOKEN_SIZE, J4STATUS_MPD_DEFAULT_FORMAT, &section->used_tokens);
+
+    if ( section->used_tokens == 0 )
+    {
+        _j4status_mpd_section_free(section);
+        return NULL;
+    }
+
     _j4status_mpd_section_command(section, COMMAND_QUERY);
     return section;
 }
@@ -386,8 +463,6 @@ _j4status_mpd_init(J4statusCoreInterface *core)
         tmp = g_key_file_get_int64(key_file, "MPD", "Port", NULL);
         port = CLAMP(tmp, 0, G_MAXUINT16);
 
-        config.show_options = g_key_file_get_boolean(key_file, "MPD", "ShowOptions", NULL);
-        config.show_volume = g_key_file_get_boolean(key_file, "MPD", "ShowVolume", NULL);
         strings = g_key_file_get_string_list(key_file, "MPD", "Actions", NULL, NULL);
         if ( strings != NULL )
         {

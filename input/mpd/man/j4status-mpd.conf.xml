@@ -97,26 +97,6 @@
 
                 <varlistentry>
                     <term>
-                        <varname>ShowOptions=</varname>
-                        (A <type>boolean</type>, defaults to <varname>false</varname>)
-                    </term>
-                    <listitem>
-                        <para>Whether or not to show options (repeat, random, single, consume).</para>
-                    </listitem>
-                </varlistentry>
-
-                <varlistentry>
-                    <term>
-                        <varname>ShowVolume=</varname>
-                        (A <type>boolean</type>, defaults to <varname>false</varname>)
-                    </term>
-                    <listitem>
-                        <para>Whether or not to show volume.</para>
-                    </listitem>
-                </varlistentry>
-
-                <varlistentry>
-                    <term>
                         <varname>Actions=</varname>
                         (A list of <type><replaceable>action id</replaceable> <replaceable>action</replaceable></type>)
                     </term>
@@ -133,6 +113,74 @@
                             </simplelist>
                         </para>
                         <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the reference on <replaceable>action id</replaceable>.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+
+        <refsect2 id="section-mpd-host">
+            <title>Section <varname>[MPD <replaceable>host</replaceable>]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Format=</varname>
+                        (A <type>format string</type>, defaults to <literal>${song}${ (&lt;database&gt;)} [${options}]</literal>)
+                    </term>
+                    <listitem>
+                        <para><replaceable>reference</replaceable> can be:</para>
+                        <variablelist>
+                            <varlistentry>
+                                <term><literal>state</literal></term>
+                                <listitem>
+                                    <para>
+                                        The playing state of MPD. Can be
+                                        <simplelist type="inline">
+                                            <member><literal>""</literal> (empty string, when playing)</member>
+                                            <member><literal>Paused</literal></member>
+                                            <member><literal>Stopped</literal></member>
+                                        </simplelist>.
+                                        This state is also reflected using section colour if available.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>song</literal></term>
+                                <listitem>
+                                    <para>The played song name. If MPD is stopped, the song which would be played.</para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>database</literal></term>
+                                <listitem>
+                                    <para>A string indicating if the database is currently updating.</para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>song</literal></term>
+                                <listitem>
+                                    <para>The played song name. If MPD is stopped, the song which would be played.</para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>song</literal></term>
+                                <listitem>
+                                    <para>The played song name. If MPD is stopped, the song which would be played.</para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+                        <para>Here are some examples:
+                            <simplelist>
+                                <member><literal>${song}</literal></member>
+                                <member><literal>${[&lt;state&gt;] }${song}</literal></member>
+                                <member><literal>${song} ${volume}%</literal></member>
+                                <member><literal>${song} ${volume>%}</literal></member>
+                            </simplelist>
+                        </para>
                     </listitem>
                 </varlistentry>
             </variablelist>
