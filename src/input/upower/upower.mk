@@ -22,5 +22,3 @@ upower_la_LIBADD = \
 	$(UPOWER_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)
-
-XSLTPROC_CONDITIONS += enable_upower_input

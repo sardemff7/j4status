@@ -28,8 +28,6 @@ i3bar_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(null)
 
-XSLTPROC_CONDITIONS += enable_i3bar_input_output
-
 man5_MANS += \
 	man/j4status-i3bar.conf.5 \
 	$(null)

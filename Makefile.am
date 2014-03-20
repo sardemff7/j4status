@@ -23,9 +23,6 @@ BUILT_SOURCES =
 EXTRA_DIST =
 CLEANFILES =
 
-XSLTPROC_CONDITIONS = \
-	installation
-
 AM_CPPFLAGS += \
 	-D LOCALEDIR=\"$(localedir)\" \
 	-I $(srcdir)/include/ \

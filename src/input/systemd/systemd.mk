@@ -23,8 +23,6 @@ systemd_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(null)
 
-XSLTPROC_CONDITIONS += enable_systemd_input
-
 man5_MANS += \
 	man/j4status-systemd.conf.5 \
 	$(null)

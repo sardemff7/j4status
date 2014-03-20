@@ -23,8 +23,6 @@ sensors_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(null)
 
-XSLTPROC_CONDITIONS += enable_sensors_input
-
 man5_MANS += \
 	man/j4status-sensors.conf.5 \
 	$(null)

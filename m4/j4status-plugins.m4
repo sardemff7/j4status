@@ -53,7 +53,10 @@ AC_DEFUN([_J4SP_ADD_PLUGIN], [
     )
     AM_CONDITIONAL(m4_toupper(_j4sp_enable_var), [test "x$]_j4sp_enable_var[" = xyes])
 
-    AS_IF([test "x$]_j4sp_enable_var[" = xyes], [$5])
+    AS_IF([test "x$]_j4sp_enable_var[" = xyes], [
+        $5
+        [AM_DOCBOOK_CONDITIONS="${AM_DOCBOOK_CONDITIONS};]_j4sp_enable_var["]
+    ])
 
     m4_append([_J4SP_]m4_translit(m4_toupper([$1]), [-], [_])[_PLUGINS], [$4 $]_j4sp_enable_var[ ]_j4sp_enable_arg[ $3], [,])
 
