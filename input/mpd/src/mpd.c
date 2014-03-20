@@ -242,10 +242,19 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
     {
     case COMMAND_IDLE:
         if ( g_str_has_prefix(line, "changed: ") )
+        {
+            const gchar *subsystem = line + strlen("changed: ");
+            if ( g_strcmp0(subsystem, "database") == 0 )
+                section->updating = FALSE;
+            if ( g_strcmp0(subsystem, "player") == 0 )
+            {
+                g_free(section->current_song);
+                section->current_song = NULL;
+            }
             break;
+        }
         if ( g_strcmp0(line, "OK") == 0 )
             _j4status_mpd_section_command(section, section->context->started ? COMMAND_QUERY : COMMAND_IDLE);
-        section->updating = FALSE;
     break;
     case COMMAND_QUERY:
         if ( g_strcmp0(line, "OK") == 0 )
@@ -267,19 +276,16 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
         else if ( g_str_has_prefix(line, "updating_db: ") )
             section->updating = TRUE;
         else if ( g_ascii_strncasecmp(line, "Title: ", strlen("Title: ")) == 0 )
-        {
-            g_free(section->current_song);
             section->current_song = g_strdup(line + strlen("Title: "));
-        }
-        else if ( section->context->config.show_options && g_str_has_prefix(line, "repeat: ") )
+        else if ( g_str_has_prefix(line, "repeat: ") )
             section->repeat = ( line[strlen("repeat: ")] == '1');
-        else if ( section->context->config.show_options && g_str_has_prefix(line, "random: ") )
+        else if ( g_str_has_prefix(line, "random: ") )
             section->random = ( line[strlen("random: ")] == '1');
-        else if ( section->context->config.show_options && g_str_has_prefix(line, "single: ") )
+        else if ( g_str_has_prefix(line, "single: ") )
             section->single = ( line[strlen("single: ")] == '1');
-        else if ( section->context->config.show_options && g_str_has_prefix(line, "consume: ") )
+        else if ( g_str_has_prefix(line, "consume: ") )
             section->consume = ( line[strlen("consume: ")] == '1');
-        else if ( section->context->config.show_volume && g_str_has_prefix(line, "volume: ") )
+        else if ( g_str_has_prefix(line, "volume: ") )
         {
             gint64 tmp;
             tmp = g_ascii_strtoll(line + strlen("volume: "), NULL, 100);
