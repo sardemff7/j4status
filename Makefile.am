@@ -5,7 +5,7 @@
  AM_DISTCHECK_CONFIGURE_FLAGS = \
 	--disable-debug
 
-ACLOCAL_AMFLAGS = -I m4 -I libgwater -I libnkutils ${ACLOCAL_FLAGS}
+ACLOCAL_AMFLAGS = -I m4 -I src/libnkutils -I src/libgwater ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
 bin_PROGRAMS =

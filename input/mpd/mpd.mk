@@ -1,4 +1,4 @@
-include libgwater/mpd.mk
+include src/libgwater/mpd.mk
 
 plugins_LTLIBRARIES += \
 	mpd.la \

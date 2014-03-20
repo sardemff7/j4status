@@ -63,4 +63,4 @@ libj4status_plugin_la_LIBADD = \
 	$(GLIB_LIBS) \
 	$(null)
 
-include libnkutils/libnkutils.mk
+include src/libnkutils/libnkutils.mk
