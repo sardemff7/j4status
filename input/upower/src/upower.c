@@ -303,9 +303,6 @@ _j4status_upower_init(J4statusCoreInterface *core)
 static void
 _j4status_upower_uninit(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     g_list_free_full(context->sections, _j4status_upower_section_free);
 
     g_free(context);
@@ -314,18 +311,12 @@ _j4status_upower_uninit(J4statusPluginContext *context)
 static void
 _j4status_upower_start(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = TRUE;
 }
 
 static void
 _j4status_upower_stop(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = FALSE;
 }
 

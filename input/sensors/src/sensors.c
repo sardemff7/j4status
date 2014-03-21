@@ -255,9 +255,6 @@ _j4status_sensors_init(J4statusCoreInterface *core)
 static void
 _j4status_sensors_uninit(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     g_list_free_full(context->sections, _j4status_sensors_feature_free);
 
     g_free(context);
@@ -268,9 +265,6 @@ _j4status_sensors_uninit(J4statusPluginContext *context)
 static void
 _j4status_sensors_start(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = TRUE;
     _j4status_sensors_update(context);
 }
@@ -278,9 +272,6 @@ _j4status_sensors_start(J4statusPluginContext *context)
 static void
 _j4status_sensors_stop(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = FALSE;
 }
 

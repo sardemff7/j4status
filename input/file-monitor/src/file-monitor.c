@@ -159,9 +159,6 @@ fail:
 static void
 _j4status_file_monitor_uninit(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     g_list_free_full(context->sections, _j4status_file_monitor_section_free);
 
     g_free(context);

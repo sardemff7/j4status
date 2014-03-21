@@ -304,9 +304,6 @@ fail:
 static void
 _j4status_systemd_uninit(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     g_list_free_full(context->sections, _j4status_systemd_section_free);
 
     g_object_unref(context->manager);
@@ -318,9 +315,6 @@ _j4status_systemd_uninit(J4statusPluginContext *context)
 static void
 _j4status_systemd_start(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = TRUE;
     _j4status_systemd_dbus_call(context->manager, "Subscribe", NULL);
     g_list_foreach(context->sections, _j4status_systemd_section_attach_unit, context);
@@ -329,9 +323,6 @@ _j4status_systemd_start(J4statusPluginContext *context)
 static void
 _j4status_systemd_stop(J4statusPluginContext *context)
 {
-    if ( context == NULL )
-        return;
-
     context->started = FALSE;
     _j4status_systemd_dbus_call(context->manager, "Unsubscribe", NULL);
     g_list_foreach(context->sections, _j4status_systemd_section_detach_unit, context);
