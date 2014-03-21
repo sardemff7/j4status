@@ -80,7 +80,7 @@
                 <varlistentry>
                     <term>
                         <varname>NoStateColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>none</literal>)
+                        (<type>colour string</type>, defaults to <literal>"none"</literal>)
                     </term>
                     <listitem>
                         <para>Colour to use for sections without state.</para>
@@ -90,7 +90,7 @@
                 <varlistentry>
                     <term>
                         <varname>UnavailableColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#0000FF</literal>)
+                        (<type>colour string</type>, defaults to <literal>"#0000FF"</literal>)
                     </term>
                     <listitem>
                         <para>Colour to use for sections with unavailable state.</para>
@@ -100,7 +100,7 @@
                 <varlistentry>
                     <term>
                         <varname>BadColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FF0000</literal>)
+                        (<type>colour string</type>, defaults to <literal>"#FF0000"</literal>)
                     </term>
                     <listitem>
                         <para>Colour to use for sections with bad state.</para>
@@ -110,7 +110,7 @@
                 <varlistentry>
                     <term>
                         <varname>AverageColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#FFFF00</literal>)
+                        (<type>colour string</type>, defaults to <literal>"#FFFF00"</literal>)
                     </term>
                     <listitem>
                         <para>Colour to use for sections with average state.</para>
@@ -120,7 +120,7 @@
                 <varlistentry>
                     <term>
                         <varname>GoodColour=</varname>
-                        (<type>colour</type>, <type>hexadecimal #-prefixed</type> or <type>rgb(red, green, blue)</type> or <literal>none</literal>, defaults to <literal>#00FF00</literal>)
+                        (<type>colour string</type>, defaults to <literal>"#00FF00"</literal>)
                     </term>
                     <listitem>
                         <para>Colour to use for sections with good state.</para>

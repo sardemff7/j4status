@@ -125,7 +125,7 @@
                 <varlistentry>
                     <term>
                         <varname>Format=</varname>
-                        (A <type>format string</type>, defaults to <literal>${song}${ (&lt;database&gt;)} [${options}]</literal>)
+                        (A <type>format string</type>, defaults to <literal>"${song}${ (&lt;database&gt;)} [${options}]"</literal>)
                     </term>
                     <listitem>
                         <para><replaceable>reference</replaceable> can be:</para>
@@ -136,9 +136,9 @@
                                     <para>
                                         The playing state of MPD. Can be
                                         <simplelist type="inline">
-                                            <member><literal>""</literal> (empty string, when playing)</member>
-                                            <member><literal>Paused</literal></member>
-                                            <member><literal>Stopped</literal></member>
+                                            <member><literal>nothing</literal> (when playing)</member>
+                                            <member><literal>"Paused"</literal></member>
+                                            <member><literal>"Stopped"</literal></member>
                                         </simplelist>.
                                         This state is also reflected using section colour if available.
                                     </para>
@@ -175,10 +175,10 @@
                         </variablelist>
                         <para>Here are some examples:
                             <simplelist>
-                                <member><literal>${song}</literal></member>
-                                <member><literal>${[&lt;state&gt;] }${song}</literal></member>
-                                <member><literal>${song} ${volume}%</literal></member>
-                                <member><literal>${song} ${volume>%}</literal></member>
+                                <member><literal>"${song}"</literal></member>
+                                <member><literal>"${[&lt;state&gt;] }${song}"</literal></member>
+                                <member><literal>"${song} ${volume}%"</literal></member>
+                                <member><literal>"${song} ${volume>%}"</literal></member>
                             </simplelist>
                         </para>
                     </listitem>

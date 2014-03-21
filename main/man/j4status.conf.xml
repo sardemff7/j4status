@@ -91,7 +91,11 @@
             <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libnkutils-man.xml" xpointer="xpointer(id('nk-token-reference-description')/*)" />
         </refsect2>
 
-        <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libnkutils-man.xml" xpointer="nk-colour-type-description" />
+        <refsect2>
+            <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libnkutils-man.xml" xpointer="xpointer(id('nk-colour-type-description')/*)" />
+
+            <para>Can also be <literal>"none"</literal> to reset the colour.</para>
+        </refsect2>
 
         <refsect2>
             <title>Other types</title>
