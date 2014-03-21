@@ -29,12 +29,109 @@
 #endif /* HAVE_NETDB_H */
 
 #include <glib.h>
+#include <glib/gprintf.h>
+
 #include <libnm-glib/nm-client.h>
 #include <libnm-glib/nm-device.h>
 #include <libnm-glib/nm-device-ethernet.h>
 #include <libnm-glib/nm-device-wifi.h>
 
 #include <j4status-plugin-input.h>
+
+typedef enum {
+    TOKEN_UP_ETH_ADDRESSES,
+    TOKEN_UP_ETH_SPEED,
+    _TOKEN_UP_ETH_SIZE
+} J4statusNmFormatUpEthToken;
+
+typedef enum {
+    TOKEN_UP_WIFI_ADDRESSES,
+    TOKEN_UP_WIFI_STRENGTH,
+    TOKEN_UP_WIFI_SSID,
+    TOKEN_UP_WIFI_BITRATE,
+    _TOKEN_UP_WIFI_SIZE
+} J4statusNmFormatUpWiFiToken;
+
+typedef enum {
+    TOKEN_DOWN_WIFI_APS,
+    _TOKEN_DOWN_WIFI_SIZE
+} J4statusNmFormatDownWiFiToken;
+
+typedef enum {
+    TOKEN_UP_OTHER_ADDRESSES,
+    _TOKEN_UP_OTHER_SIZE
+} J4statusNmFormatUpOtherToken;
+
+typedef enum {
+    _TOKEN_DOWN_OTHER_SIZE
+} J4statusNmFormatDownOtherToken;
+
+static const gchar * const _j4status_nm_format_up_eth_tokens[_TOKEN_UP_ETH_SIZE] = {
+    [TOKEN_UP_ETH_ADDRESSES] = "addresses",
+    [TOKEN_UP_ETH_SPEED]     = "speed",
+};
+
+static const gchar * const _j4status_nm_format_up_wifi_tokens[_TOKEN_UP_WIFI_SIZE] = {
+    [TOKEN_UP_WIFI_ADDRESSES] = "addresses",
+    [TOKEN_UP_WIFI_STRENGTH]  = "strength",
+    [TOKEN_UP_WIFI_SSID]      = "ssid",
+    [TOKEN_UP_WIFI_BITRATE]   = "bitrate",
+};
+
+static const gchar * const _j4status_nm_format_down_wifi_tokens[_TOKEN_DOWN_WIFI_SIZE] = {
+    [TOKEN_DOWN_WIFI_APS] = "aps",
+};
+
+static const gchar * const _j4status_nm_format_up_other_tokens[_TOKEN_UP_OTHER_SIZE] = {
+    [TOKEN_UP_OTHER_ADDRESSES] = "addresses",
+};
+
+static const gchar * const _j4status_nm_format_down_other_tokens[_TOKEN_DOWN_OTHER_SIZE] = {
+};
+
+typedef enum {
+    TOKEN_FLAG_UP_ETH_ADDRESSES = (1 << TOKEN_UP_ETH_ADDRESSES),
+    TOKEN_FLAG_UP_ETH_SPEED     = (1 << TOKEN_UP_ETH_SPEED),
+} J4statusNmFormatUpEthTokenFlag;
+
+typedef enum {
+    TOKEN_FLAG_UP_WIFI_ADDRESSES = (1 << TOKEN_UP_WIFI_ADDRESSES),
+    TOKEN_FLAG_UP_WIFI_STRENGTH  = (1 << TOKEN_UP_WIFI_STRENGTH),
+    TOKEN_FLAG_UP_WIFI_SSID      = (1 << TOKEN_UP_WIFI_SSID),
+    TOKEN_FLAG_UP_WIFI_BITRATE   = (1 << TOKEN_UP_WIFI_BITRATE),
+} J4statusNmFormatUpWiFiTokenFlag;
+
+typedef enum {
+    TOKEN_FLAG_DOWN_WIFI_APS = (1 << TOKEN_DOWN_WIFI_APS),
+} J4statusNmFormatDownWiFiTokenFlag;
+
+typedef enum {
+    TOKEN_FLAG_UP_OTHER_ADDRESSES = (1 << TOKEN_UP_OTHER_ADDRESSES),
+} J4statusNmFormatUpOtherTokenFlag;
+
+#define J4STATUS_NM_FORMAT_UP_ETH_SPEED_SIZE (10+1+1)
+typedef struct {
+    const gchar *addresses;
+    const gchar *speed;
+} J4statusNmFormatUpEthData;
+
+#define J4STATUS_NM_FORMAT_UP_WIFI_STRENGTH_SIZE (3+1)
+#define J4STATUS_NM_FORMAT_UP_WIFI_BITRATE_SIZE (10+1+1)
+typedef struct {
+    const gchar *addresses;
+    const gchar *strength;
+    const gchar *ssid;
+    const gchar *bitrate;
+} J4statusNmFormatUpWiFiData;
+
+#define J4STATUS_NM_FORMAT_APS_SIZE (10+1)
+
+
+#define J4STATUS_NM_DEFAULT_FORMAT_UP_ETH "${addresses}${ (<speed>b/s)}"
+#define J4STATUS_NM_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength>% }${at <ssid>, }${bitrate}b/s)"
+#define J4STATUS_NM_DEFAULT_FORMAT_DOWN_WIFI "Down${ (<aps> APs)}"
+#define J4STATUS_NM_DEFAULT_FORMAT_UP_OTHER "${addresses}"
+#define J4STATUS_NM_DEFAULT_FORMAT_DOWN_OTHER "Down"
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
@@ -45,10 +142,19 @@ struct _J4statusPluginContext {
     gboolean show_unmanaged;
     gboolean hide_unavailable;
 
-    /* WiFi devices configuration */
+    /* Formats */
     struct {
-        gboolean show_available_aps_number;
-    } wifi;
+        guint64 up_eth_tokens;
+        J4statusFormatString *up_eth;
+        guint64 up_wifi_tokens;
+        J4statusFormatString *up_wifi;
+        guint64 down_wifi_tokens;
+        J4statusFormatString *down_wifi;
+        guint64 up_other_tokens;
+        J4statusFormatString *up_other;
+        guint64 down_other_tokens;
+        J4statusFormatString *down_other;
+    } formats;
 
     NMClient *nm_client;
     gboolean started;
@@ -60,6 +166,8 @@ typedef struct {
     NMDevice *device;
     J4statusSection *section;
 
+    guint64 used_tokens;
+
     gulong state_changed_handler;
 
     /* For WiFi devices */
@@ -69,6 +177,82 @@ typedef struct {
     gulong active_access_point_handler;
     gulong strength_handler;
 } J4statusNmSection;
+
+static const gchar *
+_j4status_nm_format_up_eth_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusNmFormatUpEthData *data = user_data;
+    switch ( value )
+    {
+    case TOKEN_UP_ETH_ADDRESSES:
+        return data->addresses;
+    break;
+    case TOKEN_UP_ETH_SPEED:
+        return data->speed;
+    break;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nm_format_up_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusNmFormatUpWiFiData *data = user_data;
+    switch ( value )
+    {
+    case TOKEN_UP_WIFI_ADDRESSES:
+        return data->addresses;
+    break;
+    case TOKEN_UP_WIFI_STRENGTH:
+        return data->strength;
+    break;
+    case TOKEN_UP_WIFI_SSID:
+        return data->ssid;
+    break;
+    case TOKEN_UP_WIFI_BITRATE:
+        return data->bitrate;
+    break;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nm_format_down_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    switch ( value )
+    {
+    case TOKEN_DOWN_WIFI_APS:
+        return user_data;
+    break;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nm_format_up_other_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    switch ( value )
+    {
+    case TOKEN_UP_OTHER_ADDRESSES:
+        return user_data;
+    break;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nm_format_down_other_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    return NULL;
+}
 
 static void
 _j4status_nm_device_get_addresses_ipv4(J4statusPluginContext *context, NMDevice *device, GString *addresses)
@@ -138,11 +322,15 @@ _j4status_nm_device_get_addresses_ipv6(J4statusPluginContext *context, NMDevice 
     g_string_append(addresses, " ");
 }
 
-static void
-_j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *device, GString *addresses)
+static gchar *
+_j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *device)
 {
+    GString *addresses;
+    addresses = g_string_new("");
     _j4status_nm_device_get_addresses_ipv4(context, device, addresses);
     _j4status_nm_device_get_addresses_ipv6(context, device, addresses);
+    g_string_truncate(addresses, addresses->len - 1);
+    return g_string_free(addresses, FALSE);
 }
 
 static void
@@ -169,20 +357,24 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *se
         {
         case NM_DEVICE_TYPE_WIFI:
         {
-            gchar *aps_number = NULL;
-            if ( context->wifi.show_available_aps_number )
+            const gchar *aps_number_ = NULL;
+            gchar aps_number[J4STATUS_NM_FORMAT_APS_SIZE] = {0};
+            if ( context->formats.down_wifi_tokens & TOKEN_FLAG_DOWN_WIFI_APS )
             {
                 const GPtrArray *aps;
                 aps = nm_device_wifi_get_access_points(NM_DEVICE_WIFI(device));
                 if ( aps != NULL )
-                    aps_number = g_strdup_printf(" (%u APs)", aps->len);
+                {
+                    g_sprintf(aps_number, "%u", aps->len);
+                    aps_number_ = aps_number;
+                }
             }
-            value = g_strdup_printf("Down%s", ( aps_number != NULL ) ? aps_number : "");
-            g_free(aps_number);
+
+            value = j4status_format_string_replace(context->formats.down_wifi, _j4status_nm_format_down_wifi_callback, aps_number_);
         }
         break;
         default:
-            value = g_strdup("Down");
+            value = j4status_format_string_replace(context->formats.down_other, _j4status_nm_format_down_other_callback, NULL);
         break;
         }
     break;
@@ -212,18 +404,22 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *se
     break;
     case NM_DEVICE_STATE_ACTIVATED:
     {
-        GString *addresses;
-
-        addresses = g_string_new("");
-        _j4status_nm_device_get_addresses(context, device, addresses);
+        gchar *addresses = NULL;
 
         switch ( nm_device_get_device_type(device) )
         {
         case NM_DEVICE_TYPE_WIFI:
         {
-            state = J4STATUS_STATE_AVERAGE;
+            J4statusNmFormatUpWiFiData data = {NULL};
+            gchar strength_str[J4STATUS_NM_FORMAT_UP_WIFI_STRENGTH_SIZE];
+            gchar *ssid = NULL;
+            gchar bitrate_str[J4STATUS_NM_FORMAT_UP_WIFI_BITRATE_SIZE];
 
-            gchar *ap_text = NULL;
+            if ( context->formats.up_eth_tokens & TOKEN_FLAG_UP_WIFI_ADDRESSES )
+                addresses = _j4status_nm_device_get_addresses(context, device);
+            data.addresses = addresses;
+
+            state = J4STATUS_STATE_AVERAGE;
             if ( section->ap != NULL )
             {
                 guint8 strength;
@@ -233,48 +429,77 @@ _j4status_nm_device_update(J4statusPluginContext *context, J4statusNmSection *se
                 else if ( strength < 25 )
                     state = J4STATUS_STATE_BAD;
 
-                const GByteArray *raw_ssid;
-                raw_ssid = nm_access_point_get_ssid(section->ap);
-                ap_text = g_strdup_printf("%03u%% at %.*s, ", strength, raw_ssid->len, (const gchar *)raw_ssid->data);
+                if ( context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_STRENGTH )
+                {
+                    g_sprintf(strength_str, "%u", strength);
+                    data.strength = strength_str;
+                }
+
+                if ( context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_SSID )
+                {
+                    const GByteArray *raw_ssid;
+                    raw_ssid = nm_access_point_get_ssid(section->ap);
+                    ssid = g_strndup((const gchar *)raw_ssid->data, raw_ssid->len);
+                    data.ssid = ssid;
+                }
             }
 
-            guint32 bitrate;
-            bitrate = nm_device_wifi_get_bitrate(NM_DEVICE_WIFI(device));
+            if ( context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_BITRATE )
+            {
+                guint32 bitrate;
+                bitrate = nm_device_wifi_get_bitrate(NM_DEVICE_WIFI(device)) / 1000;
+                if ( ( bitrate % 1000 ) == 0 )
+                    g_sprintf(bitrate_str, "%uG", bitrate/1000);
+                else
+                    g_sprintf(bitrate_str, "%uM", bitrate);
+                data.bitrate = bitrate_str;
+            }
 
-            value = g_strdup_printf("%s(%s%uMb/s)", addresses->str, ( ap_text != NULL ) ? ap_text : "", bitrate/1000);
+            value = j4status_format_string_replace(context->formats.up_wifi, _j4status_nm_format_up_wifi_callback, &data);
 
-            g_free(ap_text);
-            g_string_free(addresses, TRUE);
+            g_free(ssid);
         }
         break;
         case NM_DEVICE_TYPE_ETHERNET:
         {
-            state = J4STATUS_STATE_GOOD;
+            J4statusNmFormatUpEthData data = {NULL};
+            gchar speed_str[J4STATUS_NM_FORMAT_UP_ETH_SPEED_SIZE];
 
-            guint32 speed;
-            speed = nm_device_ethernet_get_speed(NM_DEVICE_ETHERNET(device));
 
-            if ( speed == 0 )
+            if ( context->formats.up_eth_tokens & TOKEN_FLAG_UP_ETH_ADDRESSES )
+                addresses = _j4status_nm_device_get_addresses(context, device);
+            data.addresses = addresses;
+
+            if ( context->formats.up_eth_tokens & TOKEN_FLAG_UP_ETH_SPEED )
             {
-                g_string_truncate(addresses, addresses->len - 1);
-                value = g_string_free(addresses, FALSE);
-            }
-            else
-            {
+                guint32 speed;
+                speed = nm_device_ethernet_get_speed(NM_DEVICE_ETHERNET(device));
+                if ( speed > 0 )
+                {
                     if ( ( speed % 1000 ) == 0 )
-                    value = g_strdup_printf("%s(%uGb/s)", addresses->str, speed/1000);
-                else
-                    value = g_strdup_printf("%s(%uMb/s)", addresses->str, speed);
-
-                g_string_free(addresses, TRUE);
+                        g_sprintf(speed_str, "%uG", speed/1000);
+                    else
+                        g_sprintf(speed_str, "%uM", speed);
+                    data.speed = speed_str;
+                }
             }
+
+            state = J4STATUS_STATE_GOOD;
+            value = j4status_format_string_replace(context->formats.up_eth, _j4status_nm_format_up_eth_callback, &data);
         }
         break;
         default:
+        {
+            if ( context->formats.up_other_tokens & TOKEN_FLAG_UP_OTHER_ADDRESSES )
+                addresses = _j4status_nm_device_get_addresses(context, device);
+
             state = J4STATUS_STATE_GOOD;
-            value = g_string_free(addresses, FALSE);
+            value = j4status_format_string_replace(context->formats.up_other, _j4status_nm_format_up_other_callback, addresses);
+
+        }
         break;
         }
+        g_free(addresses);
     }
     break;
     case NM_DEVICE_STATE_DEACTIVATING:
@@ -534,9 +759,31 @@ _j4status_nm_init(J4statusCoreInterface *core)
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
     context->hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
 
-    context->wifi.show_available_aps_number = g_key_file_get_boolean(key_file, "NetworkManager", "WiFi-ShowAvailableAPsNumber", NULL);
-
     g_key_file_free(key_file);
+
+
+    gchar *format_up_eth = NULL;
+    gchar *format_up_wifi = NULL;
+    gchar *format_down_wifi = NULL;
+    gchar *format_up_other = NULL;
+    gchar *format_down_other = NULL;
+
+    key_file = j4status_config_get_key_file("NetworkManager Formats");
+    if ( key_file != NULL )
+    {
+        format_up_eth     = g_key_file_get_string(key_file, "NetworkManager Formats", "UpEthernet", NULL);
+        format_up_wifi    = g_key_file_get_string(key_file, "NetworkManager Formats", "UpWiFi", NULL);
+        format_down_wifi  = g_key_file_get_string(key_file, "NetworkManager Formats", "DownWiFi", NULL);
+        format_up_other   = g_key_file_get_string(key_file, "NetworkManager Formats", "UpOther", NULL);
+        format_down_other = g_key_file_get_string(key_file, "NetworkManager Formats", "DownOther", NULL);
+        g_key_file_free(key_file);
+    }
+
+    context->formats.up_eth     = j4status_format_string_parse(format_up_eth,     _j4status_nm_format_up_eth_tokens,     _TOKEN_UP_ETH_SIZE,     J4STATUS_NM_DEFAULT_FORMAT_UP_ETH,     &context->formats.up_eth_tokens);
+    context->formats.up_wifi    = j4status_format_string_parse(format_up_wifi,    _j4status_nm_format_up_wifi_tokens,    _TOKEN_UP_WIFI_SIZE,    J4STATUS_NM_DEFAULT_FORMAT_UP_WIFI,    &context->formats.up_wifi_tokens);
+    context->formats.down_wifi  = j4status_format_string_parse(format_down_wifi,  _j4status_nm_format_down_wifi_tokens,  _TOKEN_DOWN_WIFI_SIZE,  J4STATUS_NM_DEFAULT_FORMAT_DOWN_WIFI,  &context->formats.down_wifi_tokens);
+    context->formats.up_other   = j4status_format_string_parse(format_up_other,   _j4status_nm_format_up_other_tokens,   _TOKEN_UP_OTHER_SIZE,   J4STATUS_NM_DEFAULT_FORMAT_UP_OTHER,   &context->formats.up_other_tokens);
+    context->formats.down_other = j4status_format_string_parse(format_down_other, _j4status_nm_format_down_other_tokens, _TOKEN_DOWN_OTHER_SIZE, J4STATUS_NM_DEFAULT_FORMAT_DOWN_OTHER, &context->formats.down_other_tokens);
 
     context->nm_client = nm_client_new();
 
