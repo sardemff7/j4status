@@ -49,6 +49,7 @@ struct _J4statusSection {
     J4statusState state;
     J4statusColour colour;
     gchar *value;
+    gchar *short_value;
 
     /* Reserved for the output plugin */
     gboolean dirty;

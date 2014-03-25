@@ -114,6 +114,7 @@ j4status_section_free(J4statusSection *self)
 
     g_free(self->cache);
 
+    g_free(self->short_value);
     g_free(self->value);
 
     g_free(self->label);
@@ -257,6 +258,21 @@ j4status_section_set_value(J4statusSection *self, gchar *value)
     self->value = value;
 }
 
+void
+j4status_section_set_short_value(J4statusSection *self, gchar *short_value)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(self->freeze);
+
+    if ( ! self->dirty )
+        self->core->trigger_display(self->core->context, FALSE);
+
+    self->dirty = TRUE;
+
+    g_free(self->short_value);
+    self->short_value = short_value;
+}
+
 
 /*
  * Output plugins API
@@ -342,6 +358,15 @@ j4status_section_get_value(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, NULL);
 
     return self->value;
+}
+
+const gchar *
+j4status_section_get_short_value(const J4statusSection *self)
+{
+    g_return_val_if_fail(self != NULL, NULL);
+    g_return_val_if_fail(self->freeze, NULL);
+
+    return self->short_value;
 }
 
 gboolean

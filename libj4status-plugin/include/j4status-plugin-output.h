@@ -46,6 +46,7 @@ gint64 j4status_section_get_max_width(const J4statusSection *section);
 J4statusState j4status_section_get_state(const J4statusSection *section);
 J4statusColour j4status_section_get_colour(const J4statusSection *section);
 const gchar *j4status_section_get_value(const J4statusSection *section);
+const gchar *j4status_section_get_short_value(const J4statusSection *section);
 
 gboolean j4status_section_is_dirty(const J4statusSection *section);
 void j4status_section_set_cache(J4statusSection *section, gchar *cache);
