@@ -119,6 +119,7 @@ typedef struct {
     gchar *name;
     gchar *instance;
     gchar *full_text;
+    gchar *short_text;
     gboolean urgent;
     J4statusColour colour;
     J4statusAlign align;
@@ -372,7 +373,7 @@ _j4status_i3bar_input_section_string(void *user_data, const unsigned char *value
         client->parse_context.full_text = g_strndup((const gchar *) value, length);
     break;
     case KEY_SHORT_TEXT:
-        /* Ignoring */
+        client->parse_context.short_text = g_strndup((const gchar *) value, length);
     break;
     case KEY_COLOUR:
         client->parse_context.colour = j4status_colour_parse_length((const gchar *) value, length);
@@ -529,6 +530,8 @@ _j4status_i3bar_input_section_end_map(void *user_data)
     j4status_section_set_state(section, state);
     j4status_section_set_value(section, client->parse_context.full_text);
     client->parse_context.full_text = NULL;
+    j4status_section_set_short_value(section, client->parse_context.short_text);
+    client->parse_context.short_text = NULL;
     j4status_section_set_colour(section, client->parse_context.colour);
 
 end:
@@ -542,6 +545,8 @@ end:
     client->parse_context.instance = NULL;
     g_free(client->parse_context.full_text);
     client->parse_context.full_text = NULL;
+    g_free(client->parse_context.short_text);
+    client->parse_context.short_text = NULL;
     client->parse_context.urgent = FALSE;
     j4status_colour_reset(&client->parse_context.colour);
     client->parse_context.align = J4STATUS_ALIGN_CENTER;

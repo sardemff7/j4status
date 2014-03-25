@@ -473,7 +473,6 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
 
             /* We use the cache for the label, since the value is on its own */
             cache = value;
-
         }
 
         yajl_gen_map_open(context->json_gen);
@@ -568,6 +567,14 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
         {
             yajl_gen_string(context->json_gen, (const unsigned char *)"color", strlen("color"));
             yajl_gen_string(context->json_gen, (const unsigned char *)colour, strlen("#000000"));
+        }
+
+        const gchar *short_value;
+        short_value = j4status_section_get_short_value(section);
+        if ( short_value != NULL )
+        {
+            yajl_gen_string(context->json_gen, (const unsigned char *)"short_text", strlen("short_text"));
+            yajl_gen_string(context->json_gen, (const unsigned char *)short_value, strlen(short_value));
         }
 
         yajl_gen_string(context->json_gen, (const unsigned char *)"full_text", strlen("full_text"));
