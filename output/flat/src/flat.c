@@ -93,7 +93,7 @@ _j4status_flat_set_colour(gchar out[], J4statusColour colour, gboolean important
     if ( colour.set )
         o = g_sprintf(out, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
     if ( important )
-        g_sprintf(out + o, "\e[5m\x07");
+        g_sprintf(out + o, "\e[5m\a");
 }
 
 static void
