@@ -39,9 +39,14 @@
 #include <j4status-plugin-input.h>
 
 typedef enum {
+    ADDRESSES_IPV4,
+    ADDRESSES_IPV6,
+    ADDRESSES_ALL,
+} J4statusNmAddresses;
+
+typedef enum {
     TOKEN_UP_ETH_ADDRESSES,
     TOKEN_UP_ETH_SPEED,
-    _TOKEN_UP_ETH_SIZE
 } J4statusNmFormatUpEthToken;
 
 typedef enum {
@@ -49,44 +54,40 @@ typedef enum {
     TOKEN_UP_WIFI_STRENGTH,
     TOKEN_UP_WIFI_SSID,
     TOKEN_UP_WIFI_BITRATE,
-    _TOKEN_UP_WIFI_SIZE
 } J4statusNmFormatUpWiFiToken;
 
 typedef enum {
     TOKEN_DOWN_WIFI_APS,
-    _TOKEN_DOWN_WIFI_SIZE
 } J4statusNmFormatDownWiFiToken;
 
 typedef enum {
     TOKEN_UP_OTHER_ADDRESSES,
-    _TOKEN_UP_OTHER_SIZE
 } J4statusNmFormatUpOtherToken;
 
-typedef enum {
-    _TOKEN_DOWN_OTHER_SIZE
-} J4statusNmFormatDownOtherToken;
+static const gchar * const _j4status_nm_addresses[] = {
+    [ADDRESSES_IPV4] = "ipv4",
+    [ADDRESSES_IPV6] = "ipv6",
+    [ADDRESSES_ALL]  = "all",
+};
 
-static const gchar * const _j4status_nm_format_up_eth_tokens[_TOKEN_UP_ETH_SIZE] = {
+static const gchar * const _j4status_nm_format_up_eth_tokens[] = {
     [TOKEN_UP_ETH_ADDRESSES] = "addresses",
     [TOKEN_UP_ETH_SPEED]     = "speed",
 };
 
-static const gchar * const _j4status_nm_format_up_wifi_tokens[_TOKEN_UP_WIFI_SIZE] = {
+static const gchar * const _j4status_nm_format_up_wifi_tokens[] = {
     [TOKEN_UP_WIFI_ADDRESSES] = "addresses",
     [TOKEN_UP_WIFI_STRENGTH]  = "strength",
     [TOKEN_UP_WIFI_SSID]      = "ssid",
     [TOKEN_UP_WIFI_BITRATE]   = "bitrate",
 };
 
-static const gchar * const _j4status_nm_format_down_wifi_tokens[_TOKEN_DOWN_WIFI_SIZE] = {
+static const gchar * const _j4status_nm_format_down_wifi_tokens[] = {
     [TOKEN_DOWN_WIFI_APS] = "aps",
 };
 
-static const gchar * const _j4status_nm_format_up_other_tokens[_TOKEN_UP_OTHER_SIZE] = {
+static const gchar * const _j4status_nm_format_up_other_tokens[] = {
     [TOKEN_UP_OTHER_ADDRESSES] = "addresses",
-};
-
-static const gchar * const _j4status_nm_format_down_other_tokens[_TOKEN_DOWN_OTHER_SIZE] = {
 };
 
 typedef enum {
@@ -141,6 +142,7 @@ struct _J4statusPluginContext {
     gboolean show_unknown;
     gboolean show_unmanaged;
     gboolean hide_unavailable;
+    J4statusNmAddresses addresses;
 
     /* Formats */
     struct {
@@ -266,13 +268,12 @@ _j4status_nm_device_get_addresses_ipv4(J4statusPluginContext *context, NMDevice 
     const GSList *address_;
     for ( address_ = nm_ip4_config_get_addresses(ip4_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
     {
+        if ( addresses->len > 0 )
+            g_string_append(addresses, ", ");
         guint32 address;
         address = nm_ip4_address_get_address(address_->data);
         g_string_append_printf(addresses, "%u.%u.%u.%u", (address >> 0) & 255, (address >> 8) & 255, (address >> 16) & 255, (address >> 24) & 255);
-        if (g_slist_next(address_) != NULL )
-            g_string_append(addresses, ", ");
     }
-    g_string_append(addresses, " ");
 }
 
 static void
@@ -287,6 +288,9 @@ _j4status_nm_device_get_addresses_ipv6(J4statusPluginContext *context, NMDevice 
     const GSList *address_;
     for ( address_ = nm_ip6_config_get_addresses(ip6_config) ; address_ != NULL ; address_ = g_slist_next(address_) )
     {
+        if ( addresses->len > 0 )
+            g_string_append(addresses, ", ");
+
         const struct in6_addr *address;
         address = nm_ip6_address_get_address(address_->data);
 
@@ -315,11 +319,7 @@ _j4status_nm_device_get_addresses_ipv6(J4statusPluginContext *context, NMDevice 
             if ( ( ! shortened ) || ( b == 0 ) )
                 g_string_append_c(addresses, ':');
         }
-
-        if (g_slist_next(address_) != NULL )
-            g_string_append(addresses, ", ");
     }
-    g_string_append(addresses, " ");
 }
 
 static gchar *
@@ -327,8 +327,15 @@ _j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *devi
 {
     GString *addresses;
     addresses = g_string_new("");
-    _j4status_nm_device_get_addresses_ipv4(context, device, addresses);
-    _j4status_nm_device_get_addresses_ipv6(context, device, addresses);
+    if ( context->addresses != ADDRESSES_IPV6 )
+        _j4status_nm_device_get_addresses_ipv4(context, device, addresses);
+    if ( context->addresses != ADDRESSES_IPV4 )
+        _j4status_nm_device_get_addresses_ipv6(context, device, addresses);
+    if ( addresses->len < 1 )
+    {
+        g_string_free(addresses, TRUE);
+        return NULL;
+    }
     g_string_truncate(addresses, addresses->len - 1);
     return g_string_free(addresses, FALSE);
 }
@@ -749,6 +756,8 @@ _j4status_nm_init(J4statusCoreInterface *core)
         return NULL;
     }
 
+    guint64 addresses = ADDRESSES_ALL;
+
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
@@ -758,6 +767,8 @@ _j4status_nm_init(J4statusCoreInterface *core)
     context->show_unknown = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnknown", NULL);
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
     context->hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
+    j4status_config_key_file_get_enum(key_file, "NetworkManager", "Addresses", _j4status_nm_addresses, G_N_ELEMENTS(_j4status_nm_addresses), &addresses);
+    context->addresses = addresses;
 
     g_key_file_free(key_file);
 
@@ -779,11 +790,11 @@ _j4status_nm_init(J4statusCoreInterface *core)
         g_key_file_free(key_file);
     }
 
-    context->formats.up_eth     = j4status_format_string_parse(format_up_eth,     _j4status_nm_format_up_eth_tokens,     _TOKEN_UP_ETH_SIZE,     J4STATUS_NM_DEFAULT_FORMAT_UP_ETH,     &context->formats.up_eth_tokens);
-    context->formats.up_wifi    = j4status_format_string_parse(format_up_wifi,    _j4status_nm_format_up_wifi_tokens,    _TOKEN_UP_WIFI_SIZE,    J4STATUS_NM_DEFAULT_FORMAT_UP_WIFI,    &context->formats.up_wifi_tokens);
-    context->formats.down_wifi  = j4status_format_string_parse(format_down_wifi,  _j4status_nm_format_down_wifi_tokens,  _TOKEN_DOWN_WIFI_SIZE,  J4STATUS_NM_DEFAULT_FORMAT_DOWN_WIFI,  &context->formats.down_wifi_tokens);
-    context->formats.up_other   = j4status_format_string_parse(format_up_other,   _j4status_nm_format_up_other_tokens,   _TOKEN_UP_OTHER_SIZE,   J4STATUS_NM_DEFAULT_FORMAT_UP_OTHER,   &context->formats.up_other_tokens);
-    context->formats.down_other = j4status_format_string_parse(format_down_other, _j4status_nm_format_down_other_tokens, _TOKEN_DOWN_OTHER_SIZE, J4STATUS_NM_DEFAULT_FORMAT_DOWN_OTHER, &context->formats.down_other_tokens);
+    context->formats.up_eth     = j4status_format_string_parse(format_up_eth,     _j4status_nm_format_up_eth_tokens,     G_N_ELEMENTS(_j4status_nm_format_up_eth_tokens),     J4STATUS_NM_DEFAULT_FORMAT_UP_ETH,     &context->formats.up_eth_tokens);
+    context->formats.up_wifi    = j4status_format_string_parse(format_up_wifi,    _j4status_nm_format_up_wifi_tokens,    G_N_ELEMENTS(_j4status_nm_format_up_wifi_tokens),    J4STATUS_NM_DEFAULT_FORMAT_UP_WIFI,    &context->formats.up_wifi_tokens);
+    context->formats.down_wifi  = j4status_format_string_parse(format_down_wifi,  _j4status_nm_format_down_wifi_tokens,  G_N_ELEMENTS(_j4status_nm_format_down_wifi_tokens),  J4STATUS_NM_DEFAULT_FORMAT_DOWN_WIFI,  &context->formats.down_wifi_tokens);
+    context->formats.up_other   = j4status_format_string_parse(format_up_other,   _j4status_nm_format_up_other_tokens,   G_N_ELEMENTS(_j4status_nm_format_up_other_tokens),   J4STATUS_NM_DEFAULT_FORMAT_UP_OTHER,   &context->formats.up_other_tokens);
+    context->formats.down_other = j4status_format_string_parse(format_down_other, NULL,                                  0,                                                   J4STATUS_NM_DEFAULT_FORMAT_DOWN_OTHER, &context->formats.down_other_tokens);
 
     context->nm_client = nm_client_new();
 

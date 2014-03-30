@@ -108,7 +108,6 @@ typedef enum {
     TOKEN_DATABASE,
     TOKEN_OPTIONS,
     TOKEN_VOLUME,
-    _TOKEN_SIZE
 } J4statusMpdFormatToken;
 
 typedef enum {
@@ -119,7 +118,7 @@ typedef enum {
     TOKEN_FLAG_VOLUME   = (1 << TOKEN_VOLUME),
 } J4statusMpdFormatTokenFlag;
 
-static const gchar * const _j4status_mpd_format_tokens[_TOKEN_SIZE] = {
+static const gchar * const _j4status_mpd_format_tokens[] = {
     [TOKEN_SONG]     = "song",
     [TOKEN_STATE]    = "state",
     [TOKEN_DATABASE] = "database",
@@ -440,7 +439,7 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
         g_key_file_free(key_file);
     }
 
-    section->format = j4status_format_string_parse(format, _j4status_mpd_format_tokens, _TOKEN_SIZE, J4STATUS_MPD_DEFAULT_FORMAT, &section->used_tokens);
+    section->format = j4status_format_string_parse(format, _j4status_mpd_format_tokens, G_N_ELEMENTS(_j4status_mpd_format_tokens), J4STATUS_MPD_DEFAULT_FORMAT, &section->used_tokens);
 
     if ( section->used_tokens == 0 )
     {
