@@ -123,6 +123,22 @@
             <variablelist>
                 <varlistentry>
                     <term>
+                        <varname>Addresses=</varname>
+                        (An <type>enumeration</type>:
+                            <simplelist type='inline'>
+                                <member><literal>"IPv4"</literal></member>
+                                <member><literal>"IPv6"</literal></member>
+                                <member><literal>"All"</literal></member>
+                            </simplelist>,
+                        defaults to <literal>"All"</literal>)
+                    </term>
+                    <listitem>
+                        <para>Which addresses to display.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>UpEthernet=</varname>
                         (<type>format string</type>, defaults to <literal>"${addresses}${ (&lt;speed&gt;b/s)}"</literal>)
                     </term>

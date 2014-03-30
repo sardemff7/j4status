@@ -84,6 +84,13 @@
         <para>For strings, a localised version may be used and will be indicated as such.</para>
 
         <refsect2>
+            <title>Enumeration</title>
+
+            <para>An <type>enumeration</type> is a <type>string</type> which can take a limited set of values. Values are case-insensitive.</para>
+            <para>Accepted values depend on the key and will be listed in the relevant key descriptions.</para>
+        </refsect2>
+
+        <refsect2>
             <title>Format strings</title>
 
             <para>A <type>format string</type> can contain references to plugin-specific data.</para>

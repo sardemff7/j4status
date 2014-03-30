@@ -756,8 +756,6 @@ _j4status_nm_init(J4statusCoreInterface *core)
         return NULL;
     }
 
-    guint64 addresses = ADDRESSES_ALL;
-
     J4statusPluginContext *context;
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
@@ -767,12 +765,11 @@ _j4status_nm_init(J4statusCoreInterface *core)
     context->show_unknown = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnknown", NULL);
     context->show_unmanaged = g_key_file_get_boolean(key_file, "NetworkManager", "ShowUnmanaged", NULL);
     context->hide_unavailable = g_key_file_get_boolean(key_file, "NetworkManager", "HideUnavailable", NULL);
-    j4status_config_key_file_get_enum(key_file, "NetworkManager", "Addresses", _j4status_nm_addresses, G_N_ELEMENTS(_j4status_nm_addresses), &addresses);
-    context->addresses = addresses;
 
     g_key_file_free(key_file);
 
 
+    guint64 addresses = ADDRESSES_ALL;
     gchar *format_up_eth = NULL;
     gchar *format_up_wifi = NULL;
     gchar *format_down_wifi = NULL;
@@ -782,6 +779,7 @@ _j4status_nm_init(J4statusCoreInterface *core)
     key_file = j4status_config_get_key_file("NetworkManager Formats");
     if ( key_file != NULL )
     {
+        j4status_config_key_file_get_enum(key_file, "NetworkManager Formats", "Addresses", _j4status_nm_addresses, G_N_ELEMENTS(_j4status_nm_addresses), &addresses);
         format_up_eth     = g_key_file_get_string(key_file, "NetworkManager Formats", "UpEthernet", NULL);
         format_up_wifi    = g_key_file_get_string(key_file, "NetworkManager Formats", "UpWiFi", NULL);
         format_down_wifi  = g_key_file_get_string(key_file, "NetworkManager Formats", "DownWiFi", NULL);
@@ -790,6 +788,7 @@ _j4status_nm_init(J4statusCoreInterface *core)
         g_key_file_free(key_file);
     }
 
+    context->addresses = addresses;
     context->formats.up_eth     = j4status_format_string_parse(format_up_eth,     _j4status_nm_format_up_eth_tokens,     G_N_ELEMENTS(_j4status_nm_format_up_eth_tokens),     J4STATUS_NM_DEFAULT_FORMAT_UP_ETH,     &context->formats.up_eth_tokens);
     context->formats.up_wifi    = j4status_format_string_parse(format_up_wifi,    _j4status_nm_format_up_wifi_tokens,    G_N_ELEMENTS(_j4status_nm_format_up_wifi_tokens),    J4STATUS_NM_DEFAULT_FORMAT_UP_WIFI,    &context->formats.up_wifi_tokens);
     context->formats.down_wifi  = j4status_format_string_parse(format_down_wifi,  _j4status_nm_format_down_wifi_tokens,  G_N_ELEMENTS(_j4status_nm_format_down_wifi_tokens),  J4STATUS_NM_DEFAULT_FORMAT_DOWN_WIFI,  &context->formats.down_wifi_tokens);
