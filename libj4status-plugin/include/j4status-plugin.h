@@ -54,6 +54,7 @@ typedef enum {
 
 GKeyFile *j4status_config_get_key_file(const gchar *section);
 gboolean j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, const gchar *key, const gchar * const *values, guint64 size, guint64 *value);
+GHashTable *j4status_config_key_file_get_actions(GKeyFile *key_file, const gchar *group_name, const gchar * const *values, guint64 size);
 
 typedef struct _NkTokenList J4statusFormatString;
 

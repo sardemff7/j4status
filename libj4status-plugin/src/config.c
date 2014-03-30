@@ -115,3 +115,43 @@ j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, c
 
     return r;
 }
+
+GHashTable *
+j4status_config_key_file_get_actions(GKeyFile *key_file, const gchar *group_name, const gchar * const *actions, guint64 size)
+{
+    gchar **strings;
+    strings = g_key_file_get_string_list(key_file, group_name, "Actions", NULL, NULL);
+    if ( strings == NULL )
+        return NULL;
+
+    GHashTable *table;
+    table = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
+
+    gchar **string;
+    for ( string  = strings ; *string != NULL ; ++string )
+    {
+        gchar *id = *string;
+        gchar *action;
+        guint64 value;
+
+        action = g_utf8_strchr(*string, -1, ' ');
+        if ( action == NULL )
+            goto next;
+        *action++ = '\0';
+
+        if ( nk_enum_parse(action, actions, size, TRUE, &value) )
+            g_hash_table_insert(table, g_strdup(id), GUINT_TO_POINTER(value));
+
+    next:
+        g_free(*string);
+    }
+    g_free(strings);
+
+    if ( g_hash_table_size(table) < 1 )
+    {
+        g_hash_table_unref(table);
+        return NULL;
+    }
+
+    return table;
+}
