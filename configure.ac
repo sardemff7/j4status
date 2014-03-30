@@ -84,7 +84,7 @@ if test -d .git; then
 fi
 
 GW_INIT([src/libgwater])
-NK_INIT([src/libnkutils], [GLIB], [colour/string token/enum], [AM_DOCBOOK_CONDITIONS])
+NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/string], [AM_DOCBOOK_CONDITIONS])
 
 AC_CHECK_HEADERS([errno.h])
 

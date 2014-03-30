@@ -30,6 +30,8 @@
 
 #include <glib.h>
 
+#include <nkutils-enum.h>
+
 #define CONFIG_SYSCONFFILE SYSCONFDIR G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
 #define CONFIG_DATAFILE    DATADIR    G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
 #define CONFIG_LIBFILE     LIBDIR     G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
@@ -96,4 +98,20 @@ j4status_config_get_key_file(const gchar *section)
         return key_file;
 
     return NULL;
+}
+
+gboolean
+j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, const gchar *key, const gchar * const *values, guint64 size, guint64 *value)
+{
+    gchar *string;
+    string = g_key_file_get_string(key_file, group_name, key, NULL);
+    if ( string == NULL )
+        return FALSE;
+
+    gboolean r;
+
+    r = nk_enum_parse(string, values, size, TRUE, value);
+    g_free(string);
+
+    return r;
 }
