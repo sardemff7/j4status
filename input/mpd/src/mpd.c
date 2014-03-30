@@ -39,14 +39,23 @@
 #define TIME_SIZE 4095
 
 typedef enum {
-    ACTION_NONE = 0,
     ACTION_TOGGLE,
     ACTION_PLAY,
     ACTION_PAUSE,
     ACTION_STOP,
     ACTION_NEXT,
     ACTION_PREVIOUS,
+    ACTION_NONE
 } J4statusMpdAction;
+
+static const gchar * const _j4status_mpd_action_list[ACTION_NONE] = {
+    [ACTION_TOGGLE]   = "toggle",
+    [ACTION_PLAY]     = "play",
+    [ACTION_PAUSE]    = "pause",
+    [ACTION_STOP]     = "stop",
+    [ACTION_NEXT]     = "next",
+    [ACTION_PREVIOUS] = "previous",
+};
 
 typedef struct {
     GHashTable *actions;
@@ -457,48 +466,13 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     if ( key_file != NULL )
     {
         gint64 tmp;
-        gchar **strings;
 
         host = g_key_file_get_string(key_file, "MPD", "Host", NULL);
         tmp = g_key_file_get_int64(key_file, "MPD", "Port", NULL);
         port = CLAMP(tmp, 0, G_MAXUINT16);
 
-        strings = g_key_file_get_string_list(key_file, "MPD", "Actions", NULL, NULL);
-        if ( strings != NULL )
-        {
-            config.actions = g_hash_table_new_full(g_str_hash, g_str_equal, g_free, NULL);
-            gchar **string;
-            for ( string  = strings ; *string != NULL ; ++string )
-            {
-                gchar *action_id = *string;
-                gchar *action_;
-                action_ = g_utf8_strchr(*string, -1, ' ');
-                if ( action_ == NULL )
-                    goto next;
-                *action_++ = '\0';
+        config.actions = j4status_config_key_file_get_actions(key_file, "MPD", _j4status_mpd_action_list, ACTION_NONE);
 
-                J4statusMpdAction action = ACTION_NONE;
-                if ( g_strcmp0(action_, "toggle") == 0 )
-                    action = ACTION_TOGGLE;
-                else if ( g_strcmp0(action_, "play") == 0 )
-                    action = ACTION_PLAY;
-                else if ( g_strcmp0(action_, "pause") == 0 )
-                    action = ACTION_PAUSE;
-                else if ( g_strcmp0(action_, "stop") == 0 )
-                    action = ACTION_STOP;
-                else if ( g_strcmp0(action_, "next") == 0 )
-                    action = ACTION_NEXT;
-                else if ( g_strcmp0(action_, "previous") == 0 )
-                    action = ACTION_PREVIOUS;
-
-                if ( action != ACTION_NONE )
-                    g_hash_table_insert(config.actions, g_strdup(action_id), GUINT_TO_POINTER(action));
-
-            next:
-                g_free(*string);
-            }
-            g_free(strings);
-        }
         g_key_file_free(key_file);
     }
 
