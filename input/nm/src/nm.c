@@ -336,7 +336,6 @@ _j4status_nm_device_get_addresses(J4statusPluginContext *context, NMDevice *devi
         g_string_free(addresses, TRUE);
         return NULL;
     }
-    g_string_truncate(addresses, addresses->len - 1);
     return g_string_free(addresses, FALSE);
 }
 
