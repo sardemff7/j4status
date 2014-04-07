@@ -61,17 +61,27 @@ struct _J4statusCoreContext {
 static void
 _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
 {
-    GDataOutputStream *debug_stream = user_data;
+    GDataOutputStream *stream = user_data;
 
     g_log_default_handler(log_domain, log_level, message, NULL);
 
-    gchar *full_message;
-    gchar *log_domain_message = NULL;
+    const gchar *prg_name;
+    gchar pid[128];
+    prg_name = g_get_prgname();
+    g_sprintf(pid, "%lu", (gulong) getpid());
+
+    g_data_output_stream_put_string(stream, "(", NULL, NULL);
+    if ( prg_name != NULL )
+    {
+        g_data_output_stream_put_string(stream, prg_name, NULL, NULL);
+        g_data_output_stream_put_string(stream, ":", NULL, NULL);
+    }
+    else
+        g_data_output_stream_put_string(stream, "process:", NULL, NULL);
+    g_data_output_stream_put_string(stream, pid, NULL, NULL);
+    g_data_output_stream_put_string(stream, ")", NULL, NULL);
+
     const gchar *log_level_message = "";
-
-    if ( log_domain != NULL )
-        log_domain_message = g_strconcat(" [", log_domain, "]", NULL);
-
     switch ( log_level & G_LOG_LEVEL_MASK )
     {
         case G_LOG_LEVEL_ERROR:
@@ -93,13 +103,18 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
             log_level_message = "DEBUG";
         break;
     }
+    g_data_output_stream_put_string(stream, log_level_message, NULL, NULL);
 
-    full_message = g_strconcat(log_level_message, ( log_domain_message != NULL ) ? log_domain_message : "", ": ", message, "\n", NULL);
+    if ( log_domain != NULL )
+    {
+        g_data_output_stream_put_string(stream, " [", NULL, NULL);
+        g_data_output_stream_put_string(stream, log_level_message, NULL, NULL);
+        g_data_output_stream_put_string(stream, "]", NULL, NULL);
+    }
 
-    g_data_output_stream_put_string(debug_stream, full_message, NULL, NULL);
-
-    g_free(log_domain_message);
-    g_free(full_message);
+    g_data_output_stream_put_string(stream, ": ", NULL, NULL);
+    g_data_output_stream_put_string(stream, message, NULL, NULL);
+    g_data_output_stream_put_byte(stream, '\n', NULL, NULL);
 }
 
 #endif /* ! DEBUG */
