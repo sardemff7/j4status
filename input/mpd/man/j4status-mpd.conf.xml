@@ -98,7 +98,7 @@
                 <varlistentry>
                     <term>
                         <varname>Actions=</varname>
-                        (A list of <type><replaceable>action id</replaceable> <replaceable>action</replaceable></type>)
+                        (A <type>list of action bindings</type>)
                     </term>
                     <listitem>
                         <para>
