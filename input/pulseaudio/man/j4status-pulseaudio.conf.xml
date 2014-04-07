@@ -1,0 +1,138 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % config SYSTEM "config.ent">
+%config;
+]>
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012-2014 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status-pulseaudio.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status-pulseaudio.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status-pulseaudio.conf</refname>
+        <refpurpose>j4status PulseAudio plugin configuration</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>
+            Configuration for the PulseAudio plugin
+        </para>
+        <para>
+            The PulseAudio plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
+        </para>
+    </refsynopsisdiv>
+
+    <refsect1 id="description">
+        <title>Description</title>
+
+        <para>
+            It controls the PulseAudio plugin behavior.
+        </para>
+    </refsect1>
+
+    <refsect1 id="sections">
+        <title>Sections</title>
+
+        <refsect2 id="section-pulseaudio">
+            <title>Section <varname>[PulseAudio]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Increment=</varname>
+                        (A <type>volume</type> (a <type>percentage</type>), defaults to <varname>5</varname>)
+                    </term>
+                    <listitem>
+                        <para>The volume increment to use for <literal>"raise"</literal> and <literal>"lower"</literal> actions.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Volume=</varname>
+                        (A <type>volume</type> (a <type>percentage</type>), defaults to <varname>100</varname>)
+                    </term>
+                    <listitem>
+                        <para>The volume to use for the <literal>"set"</literal> action.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>UnlimitedVolume=</varname>
+                        (A <type>boolean</type>, defaults to <varname>false</varname>)
+                    </term>
+                    <listitem>
+                        <para>Whether to block volume to 100% or not for <literal>"raise"</literal> and <literal>"lower"</literal> actions.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Actions=</varname>
+                        (A <type>list of action bindings</type>)
+                    </term>
+                    <listitem>
+                        <para>
+                            <replaceable>action</replaceable> can be:
+                            <simplelist>
+                                <member><literal>raise</literal></member>
+                                <member><literal>lower</literal></member>
+                                <member><literal>set</literal></member>
+                                <member><literal>mute toggle</literal></member>
+                                <member><literal>next</literal></member>
+                                <member><literal>previous</literal></member>
+                            </simplelist>
+                        </para>
+                        <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the reference on <replaceable>action id</replaceable>.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+    </refsect1>
+
+    <refsect1 id="see-also">
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>

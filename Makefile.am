@@ -56,6 +56,9 @@ endif
 if ENABLE_MPD_INPUT
 include input/mpd/mpd.mk
 endif
+if ENABLE_PULSEAUDIO_INPUT
+include input/pulseaudio/pulseaudio.mk
+endif
 if ENABLE_SYSTEMD_INPUT
 include input/systemd/systemd.mk
 endif
