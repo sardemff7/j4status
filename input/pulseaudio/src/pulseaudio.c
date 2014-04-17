@@ -183,23 +183,28 @@ _j4status_pulseaudio_sink_info_callback(pa_context *con, const pa_sink_info *i, 
 static void
 _j4status_pulseaudio_context_state_callback(pa_context *con, void *user_data)
 {
-    pa_context_state_t state = pa_context_get_state(con);
+    J4statusPluginContext *context = user_data;
+    pa_context_state_t state = pa_context_get_state(context->context);
     pa_operation *op;
 
     switch ( state )
     {
     case PA_CONTEXT_FAILED:
-        g_warning("Connection to PulseAudio failed: %s", g_strerror(pa_context_errno(con)));
+        g_warning("Connection to PulseAudio failed: %s", g_strerror(pa_context_errno(context->context)));
     break;
     case PA_CONTEXT_READY:
-        op = pa_context_subscribe(con, PA_SUBSCRIPTION_MASK_SINK, NULL, user_data);
+        op = pa_context_subscribe(context->context, PA_SUBSCRIPTION_MASK_SINK, NULL, user_data);
         if ( op != NULL )
             pa_operation_unref(op);
-        op = pa_context_get_sink_info_list(con, _j4status_pulseaudio_sink_info_callback, user_data);
+        op = pa_context_get_sink_info_list(context->context, _j4status_pulseaudio_sink_info_callback, user_data);
         if ( op != NULL )
             pa_operation_unref(op);
     break;
     case PA_CONTEXT_TERMINATED:
+        pa_context_unref(context->context);
+        pa_glib_mainloop_free(context->pa_loop);
+
+        g_free(context);
     break;
     default:
     break;
@@ -368,6 +373,8 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
 
     context->sections = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, _j4status_pulseaudio_section_free);
 
+    pa_context_connect(context->context, NULL, 0, NULL);
+
     return context;
 }
 
@@ -375,22 +382,6 @@ static void
 _j4status_pulseaudio_uninit(J4statusPluginContext *context)
 {
     g_hash_table_unref(context->sections);
-
-    pa_context_unref(context->context);
-    pa_glib_mainloop_free(context->pa_loop);
-
-    g_free(context);
-}
-
-static void
-_j4status_pulseaudio_start(J4statusPluginContext *context)
-{
-    pa_context_connect(context->context, NULL, 0, NULL);
-}
-
-static void
-_j4status_pulseaudio_stop(J4statusPluginContext *context)
-{
     pa_context_disconnect(context->context);
 }
 
@@ -399,7 +390,4 @@ j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_pulseaudio_init);
     libj4status_input_plugin_interface_add_uninit_callback(interface, _j4status_pulseaudio_uninit);
-
-    libj4status_input_plugin_interface_add_start_callback(interface, _j4status_pulseaudio_start);
-    libj4status_input_plugin_interface_add_stop_callback(interface, _j4status_pulseaudio_stop);
 }
