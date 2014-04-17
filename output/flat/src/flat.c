@@ -141,25 +141,29 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                 }
                 _j4status_flat_set_colour(colour_str, colour, urgent);
 
-                gint64 max_width;
-                max_width = j4status_section_get_max_width(section);
-
                 gsize s = 1, l = 0, r = 0;
-                if ( max_width < 0 )
+
+                if ( context->align )
                 {
-                    s = -max_width;
-                    switch ( j4status_section_get_align(section) )
+                    gint64 max_width;
+                    max_width = j4status_section_get_max_width(section);
+
+                    if ( max_width < 0 )
                     {
-                    case J4STATUS_ALIGN_CENTER:
-                        l = s / 2;
-                        r = ( s + 1 ) / 2;
-                    break;
-                    case J4STATUS_ALIGN_LEFT:
-                        r = s;
-                    break;
-                    case J4STATUS_ALIGN_RIGHT:
-                        l = s;
-                    break;
+                        s = -max_width;
+                        switch ( j4status_section_get_align(section) )
+                        {
+                        case J4STATUS_ALIGN_CENTER:
+                            l = s / 2;
+                            r = ( s + 1 ) / 2;
+                        break;
+                        case J4STATUS_ALIGN_LEFT:
+                            r = s;
+                        break;
+                        case J4STATUS_ALIGN_RIGHT:
+                            l = s;
+                        break;
+                        }
                     }
                 }
                 gchar align_left[s], align_right[s];
