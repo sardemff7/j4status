@@ -136,6 +136,16 @@
                         <para>Whether or not to align sections.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>UseColours=</varname>
+                        (<type>boolean</type>, defaults to <literal>false</literal>)
+                    </term>
+                    <listitem>
+                        <para>Whether or not to use colours.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>

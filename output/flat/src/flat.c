@@ -214,12 +214,18 @@ _j4status_flat_init(J4statusCoreInterface *core)
     context = g_new0(J4statusPluginContext, 1);
     context->core = core;
 
+    gboolean use_colours = FALSE;
+
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("Flat");
     if ( key_file != NULL )
+    {
         context->align = g_key_file_get_boolean(key_file, "Flat", "Align", NULL);
+        use_colours = g_key_file_get_boolean(key_file, "Flat", "UseColours", NULL);
+    }
 
     if (
+        use_colours &&
 #ifdef G_OS_UNIX
         isatty(1) &&
 #endif /* G_OS_UNIX */
