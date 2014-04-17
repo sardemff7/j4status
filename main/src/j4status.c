@@ -53,8 +53,9 @@ struct _J4statusCoreContext {
     GList *sections;
     GHashTable *sections_hash;
     J4statusOutputPlugin *output_plugin;
-    gulong display_handle;
     gboolean started;
+    gulong display_handle;
+    gboolean should_display;
 };
 
 #if DEBUG
@@ -163,6 +164,7 @@ _j4status_core_display(gpointer user_data)
     J4statusCoreContext *context = user_data;
 
     context->display_handle = 0;
+    context->should_display = FALSE;
 
     context->output_plugin->interface.print(context->output_plugin->context, context->sections);
     fflush(stdout);
@@ -177,8 +179,9 @@ _j4status_core_trigger_display(J4statusCoreContext *context, gboolean force)
         return;
 
     if ( context->started || force )
-
-    context->display_handle = g_idle_add(_j4status_core_display, context);
+        context->display_handle = g_idle_add(_j4status_core_display, context);
+    else
+        context->should_display = TRUE;
 }
 
 static void
@@ -208,8 +211,8 @@ _j4status_core_start(J4statusCoreContext *context)
         if ( input_plugin->interface.start != NULL )
             input_plugin->interface.start(input_plugin->context);
     }
-
-    _j4status_core_trigger_display(context, FALSE);
+    if ( context->should_display && ( context->display_handle == 0 ) )
+        context->display_handle = g_idle_add(_j4status_core_display, context);
 }
 
 static void
