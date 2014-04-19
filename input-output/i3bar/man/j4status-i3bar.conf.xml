@@ -137,6 +137,16 @@
                             <para>Whether or not to pass i3bar the alignment data.</para>
                         </listitem>
                     </varlistentry>
+
+                    <varlistentry>
+                        <term>
+                            <varname>NoClickEvents=</varname>
+                            (<type>boolean</type>, defaults to <literal>false</literal>)
+                        </term>
+                        <listitem>
+                            <para>Whether or not to disable actions/click events support.</para>
+                        </listitem>
+                    </varlistentry>
                 </variablelist>
             </refsect3>
 

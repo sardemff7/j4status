@@ -350,6 +350,8 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     context->colours.average     = g_strdup("#FFFF00");
     context->colours.good        = g_strdup("#00FF00");
 
+    gboolean no_click_events = FALSE;
+
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("i3bar");
     if ( key_file != NULL )
@@ -360,6 +362,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
         _j4status_i3bar_output_update_colour(&context->colours.average, key_file, "AverageColour");
         _j4status_i3bar_output_update_colour(&context->colours.good, key_file, "GoodColour");
         context->align = g_key_file_get_boolean(key_file, "i3bar", "Align", NULL);
+        no_click_events = g_key_file_get_boolean(key_file, "i3bar", "NoClickEvents", NULL);
         g_key_file_free(key_file);
     }
 
@@ -373,8 +376,11 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     yajl_gen_integer(json_gen, SIGINT);
     yajl_gen_string(json_gen, (const unsigned char *)"cont_signal", strlen("cont_signal"));
     yajl_gen_integer(json_gen, SIGHUP);
-    yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
-    yajl_gen_bool(json_gen, 1);
+    if ( ! no_click_events )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
+        yajl_gen_bool(json_gen, 1);
+    }
     yajl_gen_map_close(json_gen);
 
     const unsigned char *buffer;
@@ -390,12 +396,15 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     yajl_gen_clear(context->json_gen);
 
 #ifdef G_OS_UNIX
-    GInputStream *in;
-    in = g_unix_input_stream_new(0, FALSE);
-    context->in = g_data_input_stream_new(in);
-    g_object_unref(in);
+    if ( ! no_click_events )
+    {
+        GInputStream *in;
+        in = g_unix_input_stream_new(0, FALSE);
+        context->in = g_data_input_stream_new(in);
+        g_object_unref(in);
 
-    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
+        g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
+    }
 #endif /* G_OS_UNIX */
 
     context->json_handle = yajl_alloc(&_j4status_i3bar_output_click_events_callbacks, NULL, context);
