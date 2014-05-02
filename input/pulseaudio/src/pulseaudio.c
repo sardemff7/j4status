@@ -38,9 +38,8 @@
 /*
  * We use either the PulseAudio format
  * ore a more compact one.
- * Verbose pa_cvolume is the longest version.
  */
-#define J4STATUS_PULSEAUDIO_VOLUME_SPRINTF_MAX PA_CVOLUME_SNPRINT_VERBOSE_MAX
+#define J4STATUS_PULSEAUDIO_VOLUME_SPRINTF_MAX PA_CVOLUME_SNPRINT_MAX
 
 #define J4STATUS_PULSEAUDIO_VOLUME_PERCENT(v) ( ( (v) / 100.0 ) * PA_VOLUME_NORM )
 

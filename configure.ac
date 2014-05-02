@@ -140,7 +140,7 @@ J4SP_ADD_INPUT_PLUGIN(sensors, [libsensors], [yes], [
 ])
 
 J4SP_ADD_INPUT_PLUGIN(pulseaudio, [PULSEAUDIO], [yes], [
-    PKG_CHECK_MODULES(PULSE, [libpulse libpulse-mainloop-glib])
+    PKG_CHECK_MODULES(PULSE, [libpulse >= 0.9.16 libpulse-mainloop-glib])
 ])
 
 J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
