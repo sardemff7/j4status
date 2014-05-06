@@ -185,7 +185,7 @@ _j4status_core_trigger_display(J4statusCoreContext *context, gboolean force)
 }
 
 static void
-_j4status_core_trigger_action(J4statusCoreContext *context, const gchar *section_id, const gchar *action_id)
+_j4status_core_trigger_action(J4statusCoreContext *context, const gchar *section_id, const gchar *event_id)
 {
     J4statusSection *section;
     section = g_hash_table_lookup(context->sections_hash, section_id);
@@ -195,7 +195,7 @@ _j4status_core_trigger_action(J4statusCoreContext *context, const gchar *section
     if ( section->action.callback == NULL )
         return;
 
-    section->action.callback(section, action_id, section->action.user_data);
+    section->action.callback(section, event_id, section->action.user_data);
 }
 
 static void

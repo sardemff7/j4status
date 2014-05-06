@@ -122,7 +122,7 @@
                                 <member><literal>previous</literal></member>
                             </simplelist>
                         </para>
-                        <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> for the reference on <replaceable>action id</replaceable>.</para>
+                        <para>See <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry> and <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry> for the reference on <replaceable>event id</replaceable> and <type>action bindings</type>.</para>
                     </listitem>
                 </varlistentry>
             </variablelist>

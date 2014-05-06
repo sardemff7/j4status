@@ -25,7 +25,7 @@
 
 #include <j4status-plugin.h>
 
-typedef void (*J4statusSectionActionCallback)(J4statusSection *section, const gchar *action_id, gpointer user_data);
+typedef void (*J4statusSectionActionCallback)(J4statusSection *section, const gchar *event_id, gpointer user_data);
 
 typedef struct _J4statusInputPluginInterface J4statusInputPluginInterface;
 

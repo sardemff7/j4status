@@ -216,16 +216,16 @@ _j4status_i3bar_output_click_events_end_map(void *user_data)
         return 0;
     }
 
-    gchar *section_id, *action_id;
+    gchar *section_id, *event_id;
     if ( instance != NULL )
         section_id = g_strdup_printf("%s:%s", name, instance);
     else
         section_id = g_strdup(name);
-    action_id = g_strdup_printf("mouse:%jd", context->parse_context.button);
+    event_id = g_strdup_printf("mouse:%jd", context->parse_context.button);
 
-    j4status_core_trigger_action(context->core, section_id, action_id);
+    j4status_core_trigger_action(context->core, section_id, event_id);
 
-    g_free(action_id);
+    g_free(event_id);
     g_free(section_id);
 
     context->parse_context.in_event = FALSE;

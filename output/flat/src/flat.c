@@ -73,12 +73,12 @@ _j4status_flat_input_callback(GObject *stream, GAsyncResult *res, gpointer user_
         return;
     }
 
-    gchar *action_id = line;
+    gchar *event_id = line;
     gchar *section_id = g_utf8_strchr(line, -1, ' ');
     if ( section_id != NULL )
     {
         *section_id++ = '\0';
-        j4status_core_trigger_action(context->core, section_id, action_id);
+        j4status_core_trigger_action(context->core, section_id, event_id);
     }
 
     g_free(line);

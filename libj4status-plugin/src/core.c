@@ -31,7 +31,7 @@
 #include <j4status-plugin-private.h>
 
 void
-j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *action_id)
+j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *event_id)
 {
-    return core->trigger_action(core->context, section_id, action_id);
+    return core->trigger_action(core->context, section_id, event_id);
 }

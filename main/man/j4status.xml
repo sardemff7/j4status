@@ -207,11 +207,11 @@
             Most common triggers will be user inputs: click on a status bar or text entered in a terminal.
         </para>
         <para>
-            An action id is a <type>string</type> which can contain <type>letters</type>, <type>digits</type>, <literal>-</literal> (hyphen), <literal>_</literal> (underscore) or <literal>:</literal> (colon).
+            An event id is a <type>string</type> which can contain <type>letters</type>, <type>digits</type>, <literal>-</literal> (hyphen), <literal>_</literal> (underscore) or <literal>:</literal> (colon).
             It depends on the real source of the action.
         </para>
         <para>
-            Mouse buttons are expected to be of the form <literal>mouse:<replaceable>button number</replaceable></literal>.
+            Mouse button events are expected to be of the form <literal>mouse:<replaceable>button number</replaceable></literal>.
         </para>
     </refsect1>
 

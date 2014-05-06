@@ -165,15 +165,15 @@ _j4status_i3bar_input_client_write(J4statusI3barInputClient *client)
         }
 }
 static void
-_j4status_i3bar_input_client_action_callback(J4statusSection *section, const gchar *action_id, gpointer user_data)
+_j4status_i3bar_input_client_action_callback(J4statusSection *section, const gchar *event_id, gpointer user_data)
 {
     J4statusI3barInputClient *client = user_data;
 
-    if ( ! g_str_has_prefix(action_id, "mouse:") )
+    if ( ! g_str_has_prefix(event_id, "mouse:") )
         return;
 
     gint64 button;
-    button = g_ascii_strtoll(action_id + strlen("mouse:"), NULL, 10);
+    button = g_ascii_strtoll(event_id + strlen("mouse:"), NULL, 10);
     if ( button < 1 )
         return;
 

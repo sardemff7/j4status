@@ -195,7 +195,7 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
 }
 
 static void
-_j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *action_id, gpointer user_data)
+_j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *event_id, gpointer user_data)
 {
     J4statusMpdSection *section = user_data;
     if ( section->pending != ACTION_NONE )
@@ -212,7 +212,7 @@ _j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *ac
         /* Ignore */
         return;
     }
-    section->pending = GPOINTER_TO_UINT(g_hash_table_lookup(section->context->config.actions, action_id));
+    section->pending = GPOINTER_TO_UINT(g_hash_table_lookup(section->context->config.actions, event_id));
 }
 
 const gchar *
