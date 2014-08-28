@@ -40,7 +40,12 @@
 
 #include <j4status-plugin-output.h>
 
-#define COLOUR_STR(n) gchar n[16] = {0}; /* strlen("\e[38;5;xxxm\e[5m\x07") */
+typedef struct {
+    gchar start[16];
+    gchar end[5];
+} ColourStr;
+
+#define COLOUR_STR(n) ColourStr n = { .start = { '\0' }, .end = { '\e', '[', '0', 'm', '\0' } }; /* strlen("\e[38;5;xxxm\e[5m\x07") */
 #define MAX_LINE 256
 
 struct _J4statusPluginContext {
@@ -87,13 +92,15 @@ _j4status_flat_input_callback(GObject *stream, GAsyncResult *res, gpointer user_
 #endif /* G_OS_UNIX */
 
 static void
-_j4status_flat_set_colour(gchar out[], J4statusColour colour, gboolean important)
+_j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean important)
 {
     gsize o = 0;
     if ( colour.set )
-        o = g_sprintf(out, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
+        o = g_sprintf(out->start, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
     if ( important )
-        g_sprintf(out + o, "\e[5m\a");
+        g_sprintf(out->start + o, "\e[5m\a");
+    else if ( ! colour.set )
+        out->end[0] = '\0';
 }
 
 static void
@@ -139,7 +146,7 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                     colour = context->colours.good;
                 break;
                 }
-                _j4status_flat_set_colour(colour_str, colour, urgent);
+                _j4status_flat_set_colour(&colour_str, colour, urgent);
 
                 gsize s = 1, l = 0, r = 0;
 
@@ -175,12 +182,12 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                 if ( label != NULL )
                 {
                     COLOUR_STR(label_colour_str);
-                    _j4status_flat_set_colour(label_colour_str, j4status_section_get_label_colour(section), FALSE);
+                    _j4status_flat_set_colour(&label_colour_str, j4status_section_get_label_colour(section), FALSE);
 
-                    new_cache = g_strdup_printf("\e[0m%s%s\e[0m: %s%s%s\e[0m%s", label_colour_str, label, align_left, colour_str, value, align_right);
+                    new_cache = g_strdup_printf("%s%s%s: %s%s%s%s%s", label_colour_str.start, label, label_colour_str.end, align_left, colour_str.start, value, colour_str.end, align_right);
                 }
                 else
-                    new_cache = g_strdup_printf("%s\e[0m%s%s\e[0m%s", align_left, colour_str, value, align_right);
+                    new_cache = g_strdup_printf("%s%s%s%s%s", align_left, colour_str.start, value, colour_str.end, align_right);
             }
             j4status_section_set_cache(section, new_cache);
             cache = new_cache;
