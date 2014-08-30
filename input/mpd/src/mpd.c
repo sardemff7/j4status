@@ -69,6 +69,7 @@ struct _J4statusPluginContext {
 };
 
 typedef enum {
+    COMMAND_PASSWORD,
     COMMAND_IDLE,
     COMMAND_QUERY,
     COMMAND_ACTION,
@@ -129,13 +130,22 @@ static const gchar * const _j4status_mpd_format_tokens[] = {
 #define J4STATUS_MPD_DEFAULT_FORMAT "${song}${ (<database>)}${ [<options>]}"
 
 static void
-_j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command)
+_j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command, ...)
 {
+    va_list args;
+    va_start(args, command);
+
     if ( section->pending != ACTION_NONE )
         command = COMMAND_ACTION;
 
     switch ( command )
     {
+    case COMMAND_PASSWORD:
+    {
+        const gchar *password = va_arg(args, const gchar *);
+        mpd_async_send_command(section->mpd, "password", password, NULL);
+    }
+    break;
     case COMMAND_IDLE:
     {
         const gchar *params[4] = {NULL};
@@ -192,6 +202,8 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
     break;
     }
     section->command = command;
+
+    va_end(args);
 }
 
 static void
@@ -203,6 +215,8 @@ _j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *ev
 
     switch ( section->command )
     {
+    case COMMAND_PASSWORD:
+    break;
     case COMMAND_IDLE:
         mpd_async_send_command(section->mpd, "noidle", NULL);
     break;
@@ -304,6 +318,10 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
 
     switch ( section->command )
     {
+    case COMMAND_PASSWORD:
+        if ( g_strcmp0(line, "OK") == 0 )
+            _j4status_mpd_section_command(section, COMMAND_QUERY);
+    break;
     case COMMAND_IDLE:
         if ( g_str_has_prefix(line, "changed: ") )
         {
@@ -394,7 +412,7 @@ _j4status_mpd_section_free(gpointer data)
 }
 
 static J4statusMpdSection *
-_j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, guint16 port)
+_j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, guint16 port, const gchar *password)
 {
     J4statusMpdSection *section;
     GError *error = NULL;
@@ -448,7 +466,10 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
         return NULL;
     }
 
-    _j4status_mpd_section_command(section, COMMAND_QUERY);
+    if ( password != NULL )
+        _j4status_mpd_section_command(section, COMMAND_PASSWORD, password);
+    else
+        _j4status_mpd_section_command(section, COMMAND_QUERY);
     return section;
 }
 
@@ -459,6 +480,7 @@ _j4status_mpd_init(J4statusCoreInterface *core)
 {
     gchar *host = NULL;
     guint16 port = 0;
+    gchar *password = NULL;
     J4statusMpdConfig config = {0};
 
     GKeyFile *key_file;
@@ -470,6 +492,7 @@ _j4status_mpd_init(J4statusCoreInterface *core)
         host = g_key_file_get_string(key_file, "MPD", "Host", NULL);
         tmp = g_key_file_get_int64(key_file, "MPD", "Port", NULL);
         port = CLAMP(tmp, 0, G_MAXUINT16);
+        password = g_key_file_get_string(key_file, "MPD", "Password", NULL);
 
         config.actions = j4status_config_key_file_get_actions(key_file, "MPD", _j4status_mpd_action_list, ACTION_NONE);
 
@@ -477,7 +500,19 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     }
 
     if ( host == NULL )
-        host = g_strdup(g_getenv("MPD_HOST"));
+    {
+        const gchar *host_env = g_getenv("MPD_HOST");
+        if ( host_env == NULL )
+            return NULL;
+
+        const gchar *password_env = g_utf8_strchr(host_env, -1, '@');
+        if ( password_env != NULL )
+        {
+            password = g_strndup(host_env, password_env - host_env);
+            host_env = password_env + strlen("@");
+        }
+        host = g_strdup(host_env);
+    }
     if ( port == 0 )
     {
         const gchar *port_env = g_getenv("MPD_PORT");
@@ -488,8 +523,6 @@ _j4status_mpd_init(J4statusCoreInterface *core)
             port = CLAMP(tmp, 0, G_MAXUINT16);
         }
     }
-    if ( host == NULL )
-        return NULL;
 
     J4statusPluginContext *context;
 
@@ -499,11 +532,12 @@ _j4status_mpd_init(J4statusCoreInterface *core)
 
     {
         J4statusMpdSection *section;
-        section = _j4status_mpd_section_new(context, host, port);
+        section = _j4status_mpd_section_new(context, host, port, password);
         if ( section != NULL )
             context->sections = g_list_prepend(context->sections, section);
     }
 
+    g_free(password);
     g_free(host);
 
 

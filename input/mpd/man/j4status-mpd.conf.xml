@@ -94,6 +94,15 @@
                         <para>The port to use to connect to MPD using TCP/IP.</para>
                     </listitem>
                 </varlistentry>
+                <varlistentry>
+                    <term>
+                        <varname>Password=</varname>
+                        (A <type>string</type>, defaults to the pre-<literal>'@'</literal> part of <varname>$MPD_HOST</varname>)
+                    </term>
+                    <listitem>
+                        <para>The MPD password.</para>
+                    </listitem>
+                </varlistentry>
 
                 <varlistentry>
                     <term>
