@@ -248,8 +248,8 @@ _j4status_flat_init(J4statusCoreInterface *core)
         context->colours.bad.set = TRUE;
         context->colours.bad.red = 0xff;
         context->colours.average.set = TRUE;
+        context->colours.average.red = 0xff;
         context->colours.average.green = 0xff;
-        context->colours.average.blue = 0xff;
         context->colours.good.set = TRUE;
         context->colours.good.green = 0xff;
 
