@@ -401,6 +401,7 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
 
     section = g_new0(J4statusMpdSection, 1);
     section->context = context;
+    section->pending = ACTION_NONE;
 
     section->source = g_water_mpd_source_new(NULL, host, port, _j4status_mpd_section_line_callback, section, NULL, &error);
     if ( section->source == NULL )
