@@ -200,10 +200,6 @@ _j4status_pulseaudio_context_state_callback(pa_context *con, void *user_data)
             pa_operation_unref(op);
     break;
     case PA_CONTEXT_TERMINATED:
-        pa_context_unref(context->context);
-        pa_glib_mainloop_free(context->pa_loop);
-
-        g_free(context);
     break;
     default:
     break;
@@ -380,8 +376,14 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
 static void
 _j4status_pulseaudio_uninit(J4statusPluginContext *context)
 {
-    g_hash_table_unref(context->sections);
     pa_context_disconnect(context->context);
+
+    g_hash_table_unref(context->sections);
+
+    pa_context_unref(context->context);
+    pa_glib_mainloop_free(context->pa_loop);
+
+    g_free(context);
 }
 
 void
