@@ -504,6 +504,8 @@ _j4status_mpd_init(J4statusCoreInterface *core)
             context->sections = g_list_prepend(context->sections, section);
     }
 
+    g_free(host);
+
 
     if ( context->sections == NULL )
     {
