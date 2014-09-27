@@ -6,6 +6,10 @@ systemd_la_SOURCES = \
 	input/systemd/src/systemd.c \
 	$(null)
 
+systemd_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-systemd\" \
+	$(null)
+
 systemd_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(GIO_CFLAGS) \

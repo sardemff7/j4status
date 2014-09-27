@@ -6,6 +6,10 @@ flat_la_SOURCES = \
 	output/flat/src/flat.c \
 	$(null)
 
+flat_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-flat\" \
+	$(null)
+
 flat_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(GIO_CFLAGS) \

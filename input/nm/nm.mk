@@ -6,6 +6,10 @@ nm_la_SOURCES = \
 	input/nm/src/nm.c \
 	$(null)
 
+nm_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-nm\" \
+	$(null)
+
 nm_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(LIBNM_CFLAGS) \

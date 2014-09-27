@@ -8,6 +8,10 @@ mpd_la_SOURCES = \
 	input/mpd/src/mpd.c \
 	$(null)
 
+mpd_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-mpd\" \
+	$(null)
+
 mpd_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(MPD_CFLAGS) \

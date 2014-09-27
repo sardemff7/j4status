@@ -11,6 +11,10 @@ pulseaudio_la_SOURCES = \
 	input/pulseaudio/src/pulseaudio.c \
 	$(null)
 
+pulseaudio_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-pulseaudio\" \
+	$(null)
+
 pulseaudio_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(PULSE_CFLAGS) \

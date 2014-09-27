@@ -6,6 +6,10 @@ time_la_SOURCES = \
 	input/time/src/time.c \
 	$(null)
 
+time_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-time\" \
+	$(null)
+
 time_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(GLIB_CFLAGS) \

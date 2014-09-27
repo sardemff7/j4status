@@ -6,6 +6,10 @@ upower_la_SOURCES = \
 	input/upower/src/upower.c \
 	$(null)
 
+upower_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-upower\" \
+	$(null)
+
 upower_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(UPOWER_CFLAGS) \

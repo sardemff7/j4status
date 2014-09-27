@@ -7,6 +7,10 @@ i3bar_la_SOURCES = \
 	input-output/i3bar/src/output.c \
 	$(null)
 
+i3bar_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-i3bar\" \
+	$(null)
+
 i3bar_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(YAJL_CFLAGS) \

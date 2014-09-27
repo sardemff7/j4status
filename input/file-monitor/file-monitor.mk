@@ -6,6 +6,10 @@ file_monitor_la_SOURCES = \
 	input/file-monitor/src/file-monitor.c \
 	$(null)
 
+file_monitor_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-file-monitor\" \
+	$(null)
+
 file_monitor_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(GIO_CFLAGS) \

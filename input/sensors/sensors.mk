@@ -6,6 +6,10 @@ sensors_la_SOURCES = \
 	input/sensors/src/sensors.c \
 	$(null)
 
+sensors_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-sensors\" \
+	$(null)
+
 sensors_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(LIBSENSORS_CFLAGS) \

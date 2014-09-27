@@ -6,6 +6,10 @@ debug_la_SOURCES = \
 	output/debug/src/debug.c \
 	$(null)
 
+debug_la_CPPFLAGS = \
+	-D G_LOG_DOMAIN=\"j4status-debug\" \
+	$(null)
+
 debug_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(GLIB_CFLAGS) \
