@@ -745,13 +745,17 @@ _j4status_nm_init(J4statusCoreInterface *core)
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("NetworkManager");
     if ( key_file == NULL )
+    {
+        g_warning("No configuration section found, aborting");
         return NULL;
+    }
 
     gchar **interfaces;
     interfaces = g_key_file_get_string_list(key_file, "NetworkManager", "Interfaces", NULL, NULL);
     if ( interfaces == NULL )
     {
         g_key_file_free(key_file);
+        g_warning("No interfaces to monitor, aborting");
         return NULL;
     }
 
