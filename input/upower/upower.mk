@@ -7,6 +7,7 @@ upower_la_SOURCES = \
 	$(null)
 
 upower_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-upower\" \
 	$(null)
 

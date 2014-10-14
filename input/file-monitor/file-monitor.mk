@@ -7,6 +7,7 @@ file_monitor_la_SOURCES = \
 	$(null)
 
 file_monitor_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-file-monitor\" \
 	$(null)
 

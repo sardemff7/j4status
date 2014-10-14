@@ -8,6 +8,7 @@ i3bar_la_SOURCES = \
 	$(null)
 
 i3bar_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-i3bar\" \
 	$(null)
 

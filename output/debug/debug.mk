@@ -7,6 +7,7 @@ debug_la_SOURCES = \
 	$(null)
 
 debug_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-debug\" \
 	$(null)
 

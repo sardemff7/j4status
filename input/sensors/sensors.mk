@@ -7,6 +7,7 @@ sensors_la_SOURCES = \
 	$(null)
 
 sensors_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-sensors\" \
 	$(null)
 

@@ -9,6 +9,7 @@ mpd_la_SOURCES = \
 	$(null)
 
 mpd_la_CPPFLAGS = \
+	$(AM_CPPFLAGS) \
 	-D G_LOG_DOMAIN=\"j4status-mpd\" \
 	$(null)
 
