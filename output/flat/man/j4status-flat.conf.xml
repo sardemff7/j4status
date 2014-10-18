@@ -129,6 +129,16 @@
 
                 <varlistentry>
                     <term>
+                        <varname>LabelSeparator=</varname>
+                        (<type>string</type>, defaults to <literal>": "</literal>)
+                    </term>
+                    <listitem>
+                        <para>The separator between label and value.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>Align=</varname>
                         (<type>boolean</type>, defaults to <literal>false</literal>)
                     </term>

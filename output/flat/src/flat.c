@@ -50,6 +50,7 @@ typedef struct {
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
+    gchar *label_separator;
     struct {
         J4statusColour no_state;
         J4statusColour unavailable;
@@ -184,7 +185,7 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
                     COLOUR_STR(label_colour_str);
                     _j4status_flat_set_colour(&label_colour_str, j4status_section_get_label_colour(section), FALSE);
 
-                    new_cache = g_strdup_printf("%s%s%s: %s%s%s%s%s", label_colour_str.start, label, label_colour_str.end, align_left, colour_str.start, value, colour_str.end, align_right);
+                    new_cache = g_strdup_printf("%s%s%s%s%s%s%s%s%s", label_colour_str.start, label, label_colour_str.end, context->label_separator, align_left, colour_str.start, value, colour_str.end, align_right);
                 }
                 else
                     new_cache = g_strdup_printf("%s%s%s%s%s", align_left, colour_str.start, value, colour_str.end, align_right);
@@ -232,6 +233,7 @@ _j4status_flat_init(J4statusCoreInterface *core)
     if ( key_file != NULL )
     {
         context->align = g_key_file_get_boolean(key_file, "Flat", "Align", NULL);
+        context->label_separator = g_key_file_get_string(key_file, "Flat", "LabelSeparator", NULL);
         use_colours = g_key_file_get_boolean(key_file, "Flat", "UseColours", NULL);
     }
 
@@ -263,6 +265,9 @@ _j4status_flat_init(J4statusCoreInterface *core)
         }
     }
 
+    if ( context->label_separator == NULL )
+        context->label_separator = g_strdup(": ");
+
     if ( key_file != NULL )
         g_key_file_free(key_file);
 
@@ -284,6 +289,8 @@ _j4status_flat_uninit(J4statusPluginContext *context)
 #ifdef G_OS_UNIX
     g_object_unref(context->in);
 #endif /* G_OS_UNIX */
+
+    g_free(context->label_separator);
 
     g_free(context);
 }
