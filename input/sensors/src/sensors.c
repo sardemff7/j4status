@@ -243,6 +243,7 @@ _j4status_sensors_init(J4statusCoreInterface *core)
 
     if ( context->sections == NULL )
     {
+        g_message("Missing configuration: No sensor to monitor, aborting");
         _j4status_sensors_uninit(context);
         return NULL;
     }
