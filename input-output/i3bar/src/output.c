@@ -415,6 +415,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
 static void
 _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 {
+    yajl_free(context->json_handle);
     yajl_gen_free(context->json_gen);
 
     g_free(context);
