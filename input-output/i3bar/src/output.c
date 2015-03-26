@@ -422,16 +422,9 @@ _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 }
 
 static void
-_j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
+_j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSection *section)
 {
     yajl_gen json_gen = context->json_gen;
-
-    yajl_gen_array_open(json_gen);
-    GList *section_;
-    J4statusSection *section;
-    for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
-    {
-        section = section_->data;
 
         const gchar *label;
         label = j4status_section_get_label(section);
@@ -463,7 +456,7 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
         else
             cache = j4status_section_get_cache(section);
         if ( cache == NULL )
-            continue;
+            return;
 
         if ( ( label != NULL ) && ( label_colour != NULL ) )
         {
@@ -593,6 +586,20 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
         yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
 
         yajl_gen_map_close(json_gen);
+}
+
+static void
+_j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
+{
+    yajl_gen json_gen = context->json_gen;
+
+    yajl_gen_array_open(json_gen);
+    GList *section_;
+    J4statusSection *section;
+    for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
+    {
+        section = section_->data;
+        _j4status_i3bar_output_print_section(context, section);
     }
     yajl_gen_array_close(json_gen);
 
