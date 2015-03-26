@@ -810,12 +810,16 @@ _j4status_i3bar_input_init(J4statusCoreInterface *core)
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("i3bar");
     if ( key_file == NULL )
+    {
+        g_message("Missing configuration: No section, aborting");
         return NULL;
+    }
 
     gchar **clients;
     clients = g_key_file_get_string_list(key_file, "i3bar", "Clients", NULL, NULL);
     if ( clients == NULL )
     {
+        g_message("Missing configuration: Empty list of clients to monitor, aborting");
         g_key_file_free(key_file);
         return NULL;
     }
