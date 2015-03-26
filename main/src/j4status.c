@@ -136,7 +136,11 @@ _j4status_core_add_section(J4statusCoreContext *context, J4statusSection *sectio
     g_hash_table_insert(context->sections_hash, section->id, section);
 
     if ( context->order_weights != NULL )
+    {
         section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->id));
+        if ( section->weight == 0 )
+            section->weight = GPOINTER_TO_INT(g_hash_table_lookup(context->order_weights, section->name));
+    }
     if ( context->loop == NULL )
     {
         /* We are not started, thus sort has yet to happen */
