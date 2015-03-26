@@ -148,7 +148,6 @@ J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
 ])
 
 J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no], [
-    PKG_CHECK_MODULES(SYSTEMD, [systemd])
     PKG_CHECK_MODULES(GLIB2_32, [glib-2.0 >= 2.32.0])
 ])
 
