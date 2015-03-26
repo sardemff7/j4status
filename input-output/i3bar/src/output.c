@@ -29,7 +29,6 @@
 #endif /* HAVE_STRING_H */
 
 #include <glib.h>
-#include <glib/gprintf.h>
 #include <glib-object.h>
 #include <gio/gio.h>
 #ifdef G_OS_UNIX
@@ -386,13 +385,13 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     const unsigned char *buffer;
     size_t length;
     yajl_gen_get_buf(json_gen, &buffer, &length);
-    g_printf("%s\n", buffer);
+    g_print("%s\n", buffer);
     yajl_gen_free(json_gen);
 
     context->json_gen = yajl_gen_alloc(NULL);
     yajl_gen_array_open(context->json_gen);
     yajl_gen_get_buf(context->json_gen, &buffer, &length);
-    g_printf("%s\n", buffer);
+    g_print("%s\n", buffer);
     yajl_gen_clear(context->json_gen);
 
 #ifdef G_OS_UNIX
@@ -606,7 +605,7 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
     const unsigned char *buffer;
     size_t length;
     yajl_gen_get_buf(json_gen, &buffer, &length);
-    g_printf("%s\n", buffer);
+    g_print("%s\n", buffer);
     yajl_gen_clear(json_gen);
 }
 
