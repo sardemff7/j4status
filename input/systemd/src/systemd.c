@@ -239,12 +239,16 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("systemd");
     if ( key_file == NULL )
+    {
+        g_message("Missing configuration: No section, aborting");
         return NULL;
+    }
 
     gchar **units;
     units = g_key_file_get_string_list(key_file, "systemd", "Units", NULL, NULL);
     if ( units == NULL )
     {
+        g_message("Missing configuration: Empty list of units to monitor, aborting");
         g_key_file_free(key_file);
         return NULL;
     }
