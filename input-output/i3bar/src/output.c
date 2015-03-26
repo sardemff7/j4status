@@ -388,11 +388,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     g_print("%s\n", buffer);
     yajl_gen_free(json_gen);
 
-    context->json_gen = yajl_gen_alloc(NULL);
-    yajl_gen_array_open(context->json_gen);
-    yajl_gen_get_buf(context->json_gen, &buffer, &length);
-    g_print("%s\n", buffer);
-    yajl_gen_clear(context->json_gen);
+    g_print("[[]\n");
 
 #ifdef G_OS_UNIX
     if ( ! no_click_events )
@@ -415,15 +411,16 @@ static void
 _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 {
     yajl_free(context->json_handle);
-    yajl_gen_free(context->json_gen);
 
     g_free(context);
 }
 
 static void
-_j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSection *section)
+_j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusSection *section)
 {
-    yajl_gen json_gen = context->json_gen;
+    yajl_gen json_gen;
+
+    json_gen = yajl_gen_alloc(NULL);
 
     const gchar *label;
     label = j4status_section_get_label(section);
@@ -431,42 +428,28 @@ _j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSec
     label_colour = j4status_colour_to_hex(j4status_section_get_label_colour(section));
 
     const gchar *value;
+    gchar *labelled_value = NULL;
     value = j4status_section_get_value(section);
-
-    const gchar *cache;
-    if ( j4status_section_is_dirty(section) )
-    {
-        gchar *new_cache = NULL;
-        if ( value != NULL )
-        {
-            if ( label != NULL )
-            {
-                if ( label_colour != NULL )
-                    new_cache = g_strdup_printf("%s: ", label);
-                else
-                    new_cache = g_strdup_printf("%s: %s", label, value);
-            }
-            else
-                new_cache = g_strdup(value);
-        }
-        j4status_section_set_cache(section, new_cache);
-        cache = new_cache;
-    }
-    else
-        cache = j4status_section_get_cache(section);
-    if ( cache == NULL )
-        return;
 
     if ( ( label != NULL ) && ( label_colour != NULL ) )
     {
-        /* We create a fake section with just the label */
+        gchar *label_with_sep;
+        label_with_sep = g_strdup_printf("%s: ", label);
+
+        /*
+         * We create a fake section with just the label
+         * so we open an array to have yajl generate a
+         * comma between the two sections
+         */
+        yajl_gen_array_open(json_gen);
+        yajl_gen_clear(json_gen); /* We need the comma alone */
         yajl_gen_map_open(json_gen);
 
         yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
         yajl_gen_string(json_gen, (const unsigned char *)label_colour, strlen("#000000"));
 
         yajl_gen_string(json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-        yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
+        yajl_gen_string(json_gen, (const unsigned char *)label_with_sep, strlen(label_with_sep));
 
         yajl_gen_string(json_gen, (const unsigned char *)"separator", strlen("separator"));
         yajl_gen_bool(json_gen, FALSE);
@@ -475,9 +458,10 @@ _j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSec
 
         yajl_gen_map_close(json_gen);
 
-        /* We use the cache for the label, since the value is on its own */
-        cache = value;
+        g_free(label_with_sep);
     }
+    else if ( label != NULL )
+        value = labelled_value = g_strdup_printf("%s: %s", label, value);
 
     yajl_gen_map_open(json_gen);
 
@@ -582,31 +566,47 @@ _j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSec
     }
 
     yajl_gen_string(json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-    yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
+    yajl_gen_string(json_gen, (const unsigned char *)value, strlen(value));
+    g_free(labelled_value);
 
     yajl_gen_map_close(json_gen);
+
+    const unsigned char *buffer;
+    size_t length;
+    yajl_gen_get_buf(json_gen, &buffer, &length);
+
+    j4status_section_set_cache(section, g_strdup((const gchar *)buffer));
+
+    yajl_gen_free(json_gen);
 }
 
 static void
 _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
 {
-    yajl_gen json_gen = context->json_gen;
-
-    yajl_gen_array_open(json_gen);
+    g_print(",[");
+    gboolean first = TRUE;
     GList *section_;
     J4statusSection *section;
     for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
     {
-        section = section_->data;
-        _j4status_i3bar_output_print_section(context, section);
-    }
-    yajl_gen_array_close(json_gen);
 
-    const unsigned char *buffer;
-    size_t length;
-    yajl_gen_get_buf(json_gen, &buffer, &length);
-    g_print("%s\n", buffer);
-    yajl_gen_clear(json_gen);
+        section = section_->data;
+        if ( j4status_section_is_dirty(section) )
+            _j4status_i3bar_output_process_section(context, section);
+
+        const gchar *cache;
+        cache = j4status_section_get_cache(section);
+        if ( cache == NULL )
+            continue;
+
+        if ( first )
+            first = FALSE;
+        else
+            g_print(",");
+        g_print("%s", cache);
+    }
+
+    g_print("]\n");
 }
 
 void
