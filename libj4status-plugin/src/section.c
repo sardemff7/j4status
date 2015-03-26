@@ -36,7 +36,7 @@
 #include <j4status-plugin-private.h>
 #include <j4status-plugin.h>
 
-static void
+static gboolean
 _j4status_section_get_override(J4statusSection *self)
 {
     gchar group[strlen("Override ") + strlen(self->id) + 1];
@@ -45,9 +45,19 @@ _j4status_section_get_override(J4statusSection *self)
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file(group);
     if ( key_file == NULL )
-        return;
+        return TRUE;
+
+    gboolean insert = FALSE;
 
     GError *error = NULL;
+
+    gboolean disable;
+    disable = g_key_file_get_boolean(key_file, group, "Disable", &error);
+    if ( ( error == NULL ) && disable )
+        goto end;
+    g_clear_error(&error);
+
+    insert = TRUE;
 
     gchar *label;
     label = g_key_file_get_string(key_file, group, "Label", NULL);
@@ -85,6 +95,10 @@ _j4status_section_get_override(J4statusSection *self)
     if ( error == NULL )
         self->max_width = max_width;
     g_clear_error(&error);
+
+end:
+    g_key_file_free(key_file);
+    return insert;
 }
 
 /*
@@ -206,7 +220,8 @@ j4status_section_insert(J4statusSection *self)
     else
         self->id = g_strdup(self->name);
 
-    _j4status_section_get_override(self);
+    if ( ! _j4status_section_get_override(self) )
+        return FALSE;
 
     self->freeze = self->core->add_section(self->core->context, self);
     return self->freeze;

@@ -168,6 +168,16 @@
             <variablelist>
                 <varlistentry>
                     <term>
+                        <varname>Disable=</varname>
+                        (<type>boolean</type>)
+                    </term>
+                    <listitem>
+                        <para>If <literal>true</literal>, the section will not be used.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>Label=</varname>
                         (<type>string</type>)
                     </term>
