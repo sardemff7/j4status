@@ -87,12 +87,18 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
     }
     key_file = j4status_config_get_key_file("FileMonitor");
     if ( key_file == NULL )
+    {
+        g_message("Missing configuration: No section, aborting");
         goto fail;
+    }
 
     gchar **files;
     files = g_key_file_get_string_list(key_file, "FileMonitor", "Files", NULL, NULL);
     if ( files == NULL )
+    {
+        g_message("Missing configuration: Empty list of files to monitor, aborting");
         goto fail;
+    }
 
     g_key_file_free(key_file);
 
@@ -103,6 +109,7 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
     gchar **file;
     for ( file = files ; *file != NULL ; ++file )
     {
+        GError *error = NULL;
         GFile *g_file;
         GFileMonitor *monitor;
 
@@ -116,10 +123,14 @@ _j4status_file_monitor_init(J4statusCoreInterface *core)
             g_file = g_file_new_for_path(filename);
             g_free(filename);
         }
-        monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, NULL);
+        monitor = g_file_monitor_file(g_file, G_FILE_MONITOR_NONE, NULL, &error);
         g_object_unref(g_file);
         if ( monitor == NULL )
+        {
+            g_warning("Couldn't monitor file '%s': %s", *file, error->message);
+            g_clear_error(&error);
             continue;
+        }
 
         J4statusFileMonitorSection *section;
         section = g_new0(J4statusFileMonitorSection, 1);
