@@ -426,166 +426,166 @@ _j4status_i3bar_output_print_section(J4statusPluginContext *context, J4statusSec
 {
     yajl_gen json_gen = context->json_gen;
 
-        const gchar *label;
-        label = j4status_section_get_label(section);
-        const gchar *label_colour;
-        label_colour = j4status_colour_to_hex(j4status_section_get_label_colour(section));
+    const gchar *label;
+    label = j4status_section_get_label(section);
+    const gchar *label_colour;
+    label_colour = j4status_colour_to_hex(j4status_section_get_label_colour(section));
 
-        const gchar *value;
-        value = j4status_section_get_value(section);
+    const gchar *value;
+    value = j4status_section_get_value(section);
 
-        const gchar *cache;
-        if ( j4status_section_is_dirty(section) )
+    const gchar *cache;
+    if ( j4status_section_is_dirty(section) )
+    {
+        gchar *new_cache = NULL;
+        if ( value != NULL )
         {
-            gchar *new_cache = NULL;
-            if ( value != NULL )
+            if ( label != NULL )
             {
-                if ( label != NULL )
-                {
-                    if ( label_colour != NULL )
-                        new_cache = g_strdup_printf("%s: ", label);
-                    else
-                        new_cache = g_strdup_printf("%s: %s", label, value);
-                }
+                if ( label_colour != NULL )
+                    new_cache = g_strdup_printf("%s: ", label);
                 else
-                    new_cache = g_strdup(value);
-            }
-            j4status_section_set_cache(section, new_cache);
-            cache = new_cache;
-        }
-        else
-            cache = j4status_section_get_cache(section);
-        if ( cache == NULL )
-            return;
-
-        if ( ( label != NULL ) && ( label_colour != NULL ) )
-        {
-            /* We create a fake section with just the label */
-            yajl_gen_map_open(json_gen);
-
-            yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
-            yajl_gen_string(json_gen, (const unsigned char *)label_colour, strlen("#000000"));
-
-            yajl_gen_string(json_gen, (const unsigned char *)"full_text", strlen("full_text"));
-            yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
-
-            yajl_gen_string(json_gen, (const unsigned char *)"separator", strlen("separator"));
-            yajl_gen_bool(json_gen, FALSE);
-            yajl_gen_string(json_gen, (const unsigned char *)"separator_block_width", strlen("separator_block_width"));
-            yajl_gen_integer(json_gen, 0);
-
-            yajl_gen_map_close(json_gen);
-
-            /* We use the cache for the label, since the value is on its own */
-            cache = value;
-        }
-
-        yajl_gen_map_open(json_gen);
-
-        const gchar *name;
-        name = j4status_section_get_name(section);
-        if ( name != NULL )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"name", strlen("name"));
-            yajl_gen_string(json_gen, (const unsigned char *)name, strlen(name));
-        }
-
-        const gchar *instance;
-        instance = j4status_section_get_instance(section);
-        if ( instance != NULL )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"instance", strlen("instance"));
-            yajl_gen_string(json_gen, (const unsigned char *)instance, strlen(instance));
-        }
-
-        gint64 max_width;
-        max_width = j4status_section_get_max_width(section);
-        if ( context->align && ( max_width != 0 ) )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"min_width", strlen("min_width"));
-            if ( max_width < 0 )
-            {
-                gsize l = - max_width + 1;
-                if ( ( label != NULL ) && ( label_colour == NULL ) )
-                    l += strlen(label);
-                gchar max_value[l];
-                memset(max_value, 'm', l);
-                max_value[l] ='\0';
-                yajl_gen_string(json_gen, (const unsigned char *)max_value, l);
+                    new_cache = g_strdup_printf("%s: %s", label, value);
             }
             else
-                yajl_gen_integer(json_gen, max_width);
-
-            const gchar *align = NULL;
-            switch ( j4status_section_get_align(section) )
-            {
-            case J4STATUS_ALIGN_LEFT:
-                align = "left";
-            break;
-            case J4STATUS_ALIGN_RIGHT:
-                align = "right";
-            break;
-            case J4STATUS_ALIGN_CENTER:
-            break;
-            }
-            if ( align != NULL )
-            {
-                yajl_gen_string(json_gen, (const unsigned char *)"align", strlen("align"));
-                yajl_gen_string(json_gen, (const unsigned char *)align, strlen(align));
-            }
+                new_cache = g_strdup(value);
         }
+        j4status_section_set_cache(section, new_cache);
+        cache = new_cache;
+    }
+    else
+        cache = j4status_section_get_cache(section);
+    if ( cache == NULL )
+        return;
 
-        J4statusState state = j4status_section_get_state(section);
-        const gchar *colour = NULL;
-        switch ( state & ~J4STATUS_STATE_FLAGS )
-        {
-        case J4STATUS_STATE_NO_STATE:
-            colour = context->colours.no_state;
-        break;
-        case J4STATUS_STATE_UNAVAILABLE:
-            colour = context->colours.unavailable;
-        break;
-        case J4STATUS_STATE_BAD:
-            colour = context->colours.bad;
-        break;
-        case J4STATUS_STATE_AVERAGE:
-            colour = context->colours.average;
-        break;
-        case J4STATUS_STATE_GOOD:
-            colour = context->colours.good;
-        break;
-        case J4STATUS_STATE_URGENT:
-        break;
-        }
-        if ( state & J4STATUS_STATE_URGENT )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"urgent", strlen("urgent"));
-            yajl_gen_bool(json_gen, TRUE);
-        }
+    if ( ( label != NULL ) && ( label_colour != NULL ) )
+    {
+        /* We create a fake section with just the label */
+        yajl_gen_map_open(json_gen);
 
-        const gchar *forced_colour;
-        forced_colour = j4status_colour_to_hex(j4status_section_get_colour(section));
-        if ( forced_colour != NULL )
-            colour = forced_colour;
-
-        if ( colour != NULL )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
-            yajl_gen_string(json_gen, (const unsigned char *)colour, strlen("#000000"));
-        }
-
-        const gchar *short_value;
-        short_value = j4status_section_get_short_value(section);
-        if ( short_value != NULL )
-        {
-            yajl_gen_string(json_gen, (const unsigned char *)"short_text", strlen("short_text"));
-            yajl_gen_string(json_gen, (const unsigned char *)short_value, strlen(short_value));
-        }
+        yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
+        yajl_gen_string(json_gen, (const unsigned char *)label_colour, strlen("#000000"));
 
         yajl_gen_string(json_gen, (const unsigned char *)"full_text", strlen("full_text"));
         yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
 
+        yajl_gen_string(json_gen, (const unsigned char *)"separator", strlen("separator"));
+        yajl_gen_bool(json_gen, FALSE);
+        yajl_gen_string(json_gen, (const unsigned char *)"separator_block_width", strlen("separator_block_width"));
+        yajl_gen_integer(json_gen, 0);
+
         yajl_gen_map_close(json_gen);
+
+        /* We use the cache for the label, since the value is on its own */
+        cache = value;
+    }
+
+    yajl_gen_map_open(json_gen);
+
+    const gchar *name;
+    name = j4status_section_get_name(section);
+    if ( name != NULL )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"name", strlen("name"));
+        yajl_gen_string(json_gen, (const unsigned char *)name, strlen(name));
+    }
+
+    const gchar *instance;
+    instance = j4status_section_get_instance(section);
+    if ( instance != NULL )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"instance", strlen("instance"));
+        yajl_gen_string(json_gen, (const unsigned char *)instance, strlen(instance));
+    }
+
+    gint64 max_width;
+    max_width = j4status_section_get_max_width(section);
+    if ( context->align && ( max_width != 0 ) )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"min_width", strlen("min_width"));
+        if ( max_width < 0 )
+        {
+            gsize l = - max_width + 1;
+            if ( ( label != NULL ) && ( label_colour == NULL ) )
+                l += strlen(label);
+            gchar max_value[l];
+            memset(max_value, 'm', l);
+            max_value[l] ='\0';
+            yajl_gen_string(json_gen, (const unsigned char *)max_value, l);
+        }
+        else
+            yajl_gen_integer(json_gen, max_width);
+
+        const gchar *align = NULL;
+        switch ( j4status_section_get_align(section) )
+        {
+        case J4STATUS_ALIGN_LEFT:
+            align = "left";
+        break;
+        case J4STATUS_ALIGN_RIGHT:
+            align = "right";
+        break;
+        case J4STATUS_ALIGN_CENTER:
+        break;
+        }
+        if ( align != NULL )
+        {
+            yajl_gen_string(json_gen, (const unsigned char *)"align", strlen("align"));
+            yajl_gen_string(json_gen, (const unsigned char *)align, strlen(align));
+        }
+    }
+
+    J4statusState state = j4status_section_get_state(section);
+    const gchar *colour = NULL;
+    switch ( state & ~J4STATUS_STATE_FLAGS )
+    {
+    case J4STATUS_STATE_NO_STATE:
+        colour = context->colours.no_state;
+    break;
+    case J4STATUS_STATE_UNAVAILABLE:
+        colour = context->colours.unavailable;
+    break;
+    case J4STATUS_STATE_BAD:
+        colour = context->colours.bad;
+    break;
+    case J4STATUS_STATE_AVERAGE:
+        colour = context->colours.average;
+    break;
+    case J4STATUS_STATE_GOOD:
+        colour = context->colours.good;
+    break;
+    case J4STATUS_STATE_URGENT:
+    break;
+    }
+    if ( state & J4STATUS_STATE_URGENT )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"urgent", strlen("urgent"));
+        yajl_gen_bool(json_gen, TRUE);
+    }
+
+    const gchar *forced_colour;
+    forced_colour = j4status_colour_to_hex(j4status_section_get_colour(section));
+    if ( forced_colour != NULL )
+        colour = forced_colour;
+
+    if ( colour != NULL )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
+        yajl_gen_string(json_gen, (const unsigned char *)colour, strlen("#000000"));
+    }
+
+    const gchar *short_value;
+    short_value = j4status_section_get_short_value(section);
+    if ( short_value != NULL )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"short_text", strlen("short_text"));
+        yajl_gen_string(json_gen, (const unsigned char *)short_value, strlen(short_value));
+    }
+
+    yajl_gen_string(json_gen, (const unsigned char *)"full_text", strlen("full_text"));
+    yajl_gen_string(json_gen, (const unsigned char *)cache, strlen(cache));
+
+    yajl_gen_map_close(json_gen);
 }
 
 static void
