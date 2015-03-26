@@ -247,6 +247,28 @@ Zones=Europe/Paris;
 Interfaces=eth0;wlan0;
             </programlisting>
         </example>
+
+        <example condition="website">
+            <title>Overriding labels to use symbols</title>
+
+            <para>You will need a font with proper symbol support</para>
+            <programlisting>
+[Override pulseaudio:alsa_output.pci-0000_00_1b.0.analog-stereo]
+Label=🔊
+
+[Override nm-wifi:wlp1s0]
+Label=📶
+
+[Override time:local]
+Label=🕗
+
+[Override upower-battery:BAT0]
+Label=🔋
+
+            </programlisting>
+
+            <para>Thanks to Philipp A. for this real-life example.</para>
+        </example>
     </refsect1>
 
     <refsect1 id="see-also">
