@@ -746,7 +746,7 @@ _j4status_nm_init(J4statusCoreInterface *core)
     key_file = j4status_config_get_key_file("NetworkManager");
     if ( key_file == NULL )
     {
-        g_warning("No configuration section found, aborting");
+        g_message("Missing configuration: No section, aborting");
         return NULL;
     }
 
@@ -754,8 +754,8 @@ _j4status_nm_init(J4statusCoreInterface *core)
     interfaces = g_key_file_get_string_list(key_file, "NetworkManager", "Interfaces", NULL, NULL);
     if ( interfaces == NULL )
     {
+        g_message("Missing configuration: Empty list of interfaces to monitor, aborting");
         g_key_file_free(key_file);
-        g_warning("No interfaces to monitor, aborting");
         return NULL;
     }
 
