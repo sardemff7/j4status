@@ -418,6 +418,16 @@ _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 static void
 _j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusSection *section)
 {
+    const gchar *value;
+    gchar *labelled_value = NULL;
+    value = j4status_section_get_value(section);
+
+    if ( value == NULL )
+    {
+        j4status_section_set_cache(section, NULL);
+        return;
+    }
+
     yajl_gen json_gen;
 
     json_gen = yajl_gen_alloc(NULL);
@@ -427,9 +437,6 @@ _j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusS
     const gchar *label_colour;
     label_colour = j4status_colour_to_hex(j4status_section_get_label_colour(section));
 
-    const gchar *value;
-    gchar *labelled_value = NULL;
-    value = j4status_section_get_value(section);
 
     if ( ( label != NULL ) && ( label_colour != NULL ) )
     {
