@@ -326,8 +326,8 @@ j4status_section_get_align(const J4statusSection *self)
 gint64
 j4status_section_get_max_width(const J4statusSection *self)
 {
-    g_return_val_if_fail(self != NULL, NULL);
-    g_return_val_if_fail(self->freeze, NULL);
+    g_return_val_if_fail(self != NULL, 0);
+    g_return_val_if_fail(self->freeze, 0);
 
     return self->max_width;
 }
@@ -373,7 +373,7 @@ gboolean
 j4status_section_is_dirty(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, TRUE);
-    g_return_val_if_fail(self->freeze, NULL);
+    g_return_val_if_fail(self->freeze, TRUE);
 
     return self->dirty;
 }
