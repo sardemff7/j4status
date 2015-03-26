@@ -283,6 +283,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
     devices = up_client_get_devices(context->up_client);
     if ( devices == NULL )
     {
+        g_warning("No devices to monitor, aborting");
         g_object_unref(context->up_client);
         g_free(context);
         return NULL;
@@ -293,6 +294,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
 
     if ( context->sections == NULL )
     {
+        g_message("Missing configuration: No device to monitor, aborting");
         _j4status_upower_uninit(context);
         return NULL;
     }
