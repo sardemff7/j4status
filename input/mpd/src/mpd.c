@@ -424,6 +424,8 @@ _j4status_mpd_section_new(J4statusPluginContext *context, const gchar *host, gui
     section->source = g_water_mpd_source_new(NULL, host, port, _j4status_mpd_section_line_callback, section, NULL, &error);
     if ( section->source == NULL )
     {
+        g_warning("Couldn't connecto to MPD '%s:%u': %s", host, port, error->message);
+        g_clear_error(&error);
         g_free(section);
         return NULL;
     }
@@ -503,7 +505,10 @@ _j4status_mpd_init(J4statusCoreInterface *core)
     {
         const gchar *host_env = g_getenv("MPD_HOST");
         if ( host_env == NULL )
+        {
+            g_message("Missing configuration: No MPD to connect to, aborting");
             return NULL;
+        }
 
         const gchar *password_env = g_utf8_strchr(host_env, -1, '@');
         if ( password_env != NULL )
