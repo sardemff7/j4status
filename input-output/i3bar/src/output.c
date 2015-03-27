@@ -29,6 +29,7 @@
 #endif /* HAVE_STRING_H */
 
 #include <glib.h>
+#include <glib/gprintf.h>
 #include <glib-object.h>
 #include <gio/gio.h>
 #ifdef G_OS_UNIX
@@ -385,10 +386,10 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     const unsigned char *buffer;
     size_t length;
     yajl_gen_get_buf(json_gen, &buffer, &length);
-    g_print("%s\n", buffer);
+    g_printf("%s\n", buffer);
     yajl_gen_free(json_gen);
 
-    g_print("[[]\n");
+    g_printf("[[]\n");
 
 #ifdef G_OS_UNIX
     if ( ! no_click_events )
@@ -613,7 +614,7 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
         g_print("%s", cache);
     }
 
-    g_print("]\n");
+    g_printf("]\n");
 }
 
 void

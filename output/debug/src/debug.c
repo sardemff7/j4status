@@ -25,6 +25,7 @@
 #endif /* HAVE_CONFIG_H */
 
 #include <glib.h>
+#include <glib/gprintf.h>
 
 #include <j4status-plugin-output.h>
 
@@ -73,7 +74,7 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             state_s = "good";
         break;
         }
-        g_print("--"
+        g_printf("--"
             "\nName: %s"
             "\nInstance: %s"
             "\nLabel: %s"

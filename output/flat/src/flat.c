@@ -200,10 +200,10 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
         if ( first )
             first = FALSE;
         else
-            g_print(" | ");
-        g_print("%s", cache);
+            g_printf(" | ");
+        g_printf("%s", cache);
     }
-    g_print("\n");
+    g_printf("\n");
 }
 
 static void
