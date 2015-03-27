@@ -8,3 +8,7 @@ before_install:
 install: sudo apt-get install -y autoconf automake xsltproc docbook-xsl libglib2.0-dev libyajl-dev libsensors4-dev libnm-util-dev libnm-glib-dev libupower-glib-dev libpulse-dev libmpdclient-dev
 before_script: autoreconf -fi
 script: ./configure --disable-silent-rules --enable-debug --enable-mpd-input --enable-systemd-input && make && make check
+
+
+notifications:
+    email: false
