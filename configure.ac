@@ -15,8 +15,7 @@ AC_ARG_VAR([XSLTPROC], [The xsltproc executable])
 AC_PROG_CC
 AC_PROG_CC_C99
 AM_PROG_CC_C_O
-AC_CHECK_HEADER([locale.h],[AC_DEFINE([HAVE_LOCALE_H],
-                                      [1], [Found locale.h header])])
+AC_CHECK_HEADERS([locale.h])
 AC_CHECK_FUNCS([setlocale])
 
 AC_PROG_SED
