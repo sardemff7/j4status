@@ -30,8 +30,14 @@
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
+#ifdef HAVE_LOCALE_H
+#include <locale.h>
+#endif /* HAVE_LOCALE_H */
 
 #include <glib.h>
+#ifdef ENABLE_NLS
+#include <glib/gi18n.h>
+#endif /* ENABLE_NLS */
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #ifdef G_OS_UNIX
@@ -293,8 +299,8 @@ main(int argc, char *argv[])
     g_setenv("G_MESSAGES_DEBUG", "all", FALSE);
 #endif /* ! DEBUG */
 
-#if ENABLE_NLS
     setlocale(LC_ALL, "");
+#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 #endif /* ENABLE_NLS */
