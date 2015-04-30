@@ -205,6 +205,7 @@ _j4status_sensors_init(J4statusCoreInterface *core)
 {
     gchar **sensors = NULL;
     gboolean show_details = FALSE;
+    guint64 interval = 0;
 
     if ( sensors_init(NULL) != 0 )
         return NULL;
@@ -215,6 +216,7 @@ _j4status_sensors_init(J4statusCoreInterface *core)
     {
         sensors = g_key_file_get_string_list(key_file, "Sensors", "Sensors", NULL, NULL);
         show_details = g_key_file_get_boolean(key_file, "Sensors", "ShowDetails", NULL);
+        interval = g_key_file_get_uint64(key_file, "Sensors", "Interval", NULL);
         g_key_file_free(key_file);
     }
 
@@ -248,7 +250,7 @@ _j4status_sensors_init(J4statusCoreInterface *core)
         return NULL;
     }
 
-    g_timeout_add_seconds(2, _j4status_sensors_update, context);
+    g_timeout_add_seconds(MAX(2, interval), _j4status_sensors_update, context);
 
     return context;
 }

@@ -77,6 +77,17 @@
             <variablelist>
                 <varlistentry>
                     <term>
+                        <varname>Interval=</varname>
+                        (A <type>number of seconds</type>, defaults to <literal>2</literal>)
+                    </term>
+                    <listitem>
+                        <para>The number of seconds between each update.</para>
+                        <para>Minimum of <literal>2</literal> because libsensors does not update more often.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>Sensors=</varname>
                         (<type>list of sensor names</type>, defaults to <literal>empty</literal>)
                     </term>
