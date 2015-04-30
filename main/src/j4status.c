@@ -412,6 +412,9 @@ main(int argc, char *argv[])
 
     g_unix_signal_add(SIGINT, _j4status_core_signal_int, context);
     g_unix_signal_add(SIGHUP, _j4status_core_signal_hup, context);
+
+    /* Ignore SIGPIPE as it is useless */
+    signal(SIGPIPE, SIG_IGN);
 #endif /* G_OS_UNIX */
 
     context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
