@@ -357,8 +357,23 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
         }
         else if ( g_str_has_prefix(line, "updating_db: ") )
             section->updating = TRUE;
+        else if ( g_ascii_strncasecmp(line, "file: ", strlen("file: ")) == 0 )
+        {
+            if ( section->current_song == NULL )
+            {
+                section->current_song = g_path_get_basename(line + strlen("file: "));
+
+                gchar *ext;
+                ext = g_utf8_strchr(section->current_song, -1, '.');
+                if ( ext != NULL )
+                    *ext = '\0';
+            }
+        }
         else if ( g_ascii_strncasecmp(line, "Title: ", strlen("Title: ")) == 0 )
+        {
+            g_free(section->current_song);
             section->current_song = g_strdup(line + strlen("Title: "));
+        }
         else if ( g_str_has_prefix(line, "repeat: ") )
             section->repeat = ( line[strlen("repeat: ")] == '1');
         else if ( g_str_has_prefix(line, "random: ") )
