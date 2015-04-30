@@ -101,6 +101,51 @@
         </refsect2>
     </refsect1>
 
+    <refsect1>
+        <title>Examples</title>
+
+        <example>
+            <title>Only monitor one chip</title>
+
+            <programlisting>
+[Sensors]
+Sensors=coretemp-isa-0000;
+            </programlisting>
+        </example>
+
+        <example>
+            <title>Only monitor two features on one chip</title>
+
+            <programlisting>
+[Sensors]
+Sensors=coretemp-isa-0000;
+
+# Disable the first feature, named “Physical id 0” on my computer
+[Override sensors:coretemp-isa-0000/temp1]
+Disable=true
+            </programlisting>
+        </example>
+
+        <example>
+            <title>Full filtering and renaming</title>
+
+            <programlisting>
+[Sensors]
+Sensors=coretemp-isa-0000;
+
+# Disable the first feature, named “Physical id 0” on my computer
+[Override sensors:coretemp-isa-0000/temp1]
+Disable=true
+
+# Put a nice label for the two CPU
+[Override sensors:coretemp-isa-0000/temp2]
+Label=🌡
+[Override sensors:coretemp-isa-0000/temp3]
+Label=🌡
+            </programlisting>
+        </example>
+    </refsect1>
+
     <refsect1 id="see-also">
         <title>See Also</title>
         <para>
