@@ -107,7 +107,7 @@
         <refsect2>
             <title>List of <type>action bindings</type></title>
 
-            <para>An <type>action binding</type> is a string composed of an <type>event id</type> (see <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>) and an <type>action id</type> seperated by a space.</para>
+            <para>Individual <type>action bindings</type> are separated by ";". An <type>action binding</type> is a string composed of an <type>event id</type> (see <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>) and an <type>action id</type> seperated by a space.</para>
             <para>The <type>action id</type> is specific to a plugin supporting actions and will be listed in the relevant key description.</para>
         </refsect2>
 
