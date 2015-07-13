@@ -82,6 +82,7 @@
         <para>Each key can be of a specified type. Basic types are <type>integer</type>, <type>boolean</type> or <type>string</type>, sometimes constrained like <type>milliseconds</type> or <type>percentage</type>.</para>
         <para>For positives numeric types, <literal>-1</literal> may be allowed to mean <literal>infinity</literal>.</para>
         <para>For strings, a localised version may be used and will be indicated as such.</para>
+        <para>For lists, items are separated by a semicolon (<literal>';'</literal>). You can optionally end the list with a semicolon too.</para>
 
         <refsect2>
             <title>Enumeration</title>
