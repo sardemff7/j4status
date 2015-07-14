@@ -89,7 +89,14 @@
                 </varlistentry>
                 <varlistentry condition="website;enable_i3bar_input_output">
                     <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                    <listitem><para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para></listitem>
+                    <listitem>
+                        <para>which implements the <ulink url="http://i3wm.org/docs/i3bar-protocol.html">i3bar JSON protocol</ulink></para>
+
+                        <para>
+                            j4status is using <literal>SIGINT</literal> and <literal>SIGHUP</literal>, which is known to cause issues with shells like dash which does not exec command passed using <literal><option>-c</option></literal>.
+                            In order to make it work, you will have to put <literal>"status_command exec j4status"</literal> (not the <literal>"exec"</literal>) in your i3 config.
+                        </para>
+                    </listitem>
                 </varlistentry>
             </variablelist>
         </refsect2>
