@@ -84,6 +84,7 @@ struct _J4statusPluginContext {
     } colours;
     gboolean align;
     yajl_gen json_gen;
+    gsize last_len;
     GDataInputStream *in;
     yajl_handle json_handle;
     J4statusI3barOutputClickEventsParseContext parse_context;
@@ -386,10 +387,13 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     const unsigned char *buffer;
     size_t length;
     yajl_gen_get_buf(json_gen, &buffer, &length);
-    g_printf("%s\n", buffer);
+
+    gchar header[length + strlen("\n[[]\n") + 1];
+
+    g_sprintf(header, "%s\n[[]\n", buffer);
     yajl_gen_free(json_gen);
 
-    g_printf("[[]\n");
+    g_printf("%s", header);
 
 #ifdef G_OS_UNIX
     if ( ! no_click_events )
@@ -591,7 +595,8 @@ _j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusS
 static void
 _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
 {
-    g_print(",[");
+    GString *line = g_string_sized_new(context->last_len);
+    g_string_append_c(g_string_append_c(line, ','), '[');
     gboolean first = TRUE;
     GList *section_;
     J4statusSection *section;
@@ -610,11 +615,15 @@ _j4status_i3bar_output_print(J4statusPluginContext *context, GList *sections)
         if ( first )
             first = FALSE;
         else
-            g_print(",");
-        g_print("%s", cache);
+            g_string_append_c(line, ',');
+        g_string_append(line, cache);
     }
 
-    g_printf("]\n");
+    g_string_append_c(g_string_append_c(line, ']'), '\n');
+    context->last_len = line->len;
+
+    g_printf("%s", line->str);
+    g_string_free(line, TRUE);
 }
 
 void
