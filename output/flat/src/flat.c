@@ -59,6 +59,7 @@ struct _J4statusPluginContext {
         J4statusColour good;
     } colours;
     gboolean align;
+    gsize last_len;
     GDataInputStream *in;
 };
 
@@ -107,6 +108,7 @@ _j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean import
 static void
 _j4status_flat_print(J4statusPluginContext *context, GList *sections)
 {
+    GString *line = g_string_sized_new(context->last_len);
     GList *section_;
     J4statusSection *section;
     gboolean first = TRUE;
@@ -200,10 +202,14 @@ _j4status_flat_print(J4statusPluginContext *context, GList *sections)
         if ( first )
             first = FALSE;
         else
-            g_printf(" | ");
-        g_printf("%s", cache);
+            g_string_append(line, " | ");
+        g_string_append(line, cache);
     }
-    g_printf("\n");
+    g_string_append_c(line, '\n');
+    context->last_len = line->len;
+
+    g_printf("%s", line->str);
+    g_string_free(line, TRUE);
 }
 
 static void
