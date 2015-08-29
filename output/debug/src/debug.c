@@ -40,6 +40,9 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
     {
         section = section_->data;
 
+        if ( ! j4status_section_is_dirty(section) )
+            goto print;
+
         const gchar *align = NULL;
         switch ( j4status_section_get_align(section) )
         {
@@ -74,7 +77,9 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             state_s = "good";
         break;
         }
-        g_printf("--"
+
+        gchar *cache;
+        cache = g_strdup_printf("--"
             "\nName: %s"
             "\nInstance: %s"
             "\nLabel: %s"
@@ -97,6 +102,12 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
             j4status_colour_to_hex(j4status_section_get_colour(section)),
             j4status_section_get_value(section));
+
+        j4status_section_set_cache(section, cache);
+
+
+    print:
+        g_printf("%s", j4status_section_get_cache(section));
     }
 }
 
