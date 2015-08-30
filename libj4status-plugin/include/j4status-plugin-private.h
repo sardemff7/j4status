@@ -61,14 +61,14 @@ typedef struct _J4statusCoreContext J4statusCoreContext;
 typedef void (*J4statusCoreFunc)(J4statusCoreContext *context);
 typedef gboolean (*J4statusCoreSectionAddFunc)(J4statusCoreContext *context, J4statusSection *section);
 typedef void (*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
-typedef void (*J4statusCoreTriggerDisplayFunc)(J4statusCoreContext *context, gboolean force);
+typedef void (*J4statusCoreTriggerGenerateFunc)(J4statusCoreContext *context, gboolean force);
 typedef void (*J4statusCoreTriggerActionFunc)(J4statusCoreContext *context, const gchar *section_id, const gchar *event_id);
 
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
     J4statusCoreSectionAddFunc add_section;
     J4statusCoreSectionFunc remove_section;
-    J4statusCoreTriggerDisplayFunc trigger_display;
+    J4statusCoreTriggerGenerateFunc trigger_generate;
     J4statusCoreTriggerActionFunc trigger_action;
 };
 

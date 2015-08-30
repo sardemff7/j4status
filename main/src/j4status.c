@@ -62,6 +62,7 @@ struct _J4statusCoreContext {
     gboolean started;
     gulong display_handle;
     gboolean should_display;
+    gchar *line;
 };
 
 #if DEBUG
@@ -169,31 +170,30 @@ _j4status_core_remove_section(J4statusCoreContext *context, J4statusSection *sec
 }
 
 static gboolean
-_j4status_core_display(gpointer user_data)
+_j4status_core_generate(gpointer user_data)
 {
     J4statusCoreContext *context = user_data;
 
     context->display_handle = 0;
     context->should_display = FALSE;
 
-    gchar *line;
-    line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
-    g_printf("%s", line);
-    g_free(line);
-    fflush(stdout);
+    g_free(context->line);
+    context->line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
 
+    g_printf("%s", context->line);
+    fflush(stdout);
 
     return FALSE;
 }
 
 static void
-_j4status_core_trigger_display(J4statusCoreContext *context, gboolean force)
+_j4status_core_trigger_generate(J4statusCoreContext *context, gboolean force)
 {
     if ( context->display_handle > 0 )
         return;
 
     if ( context->started || force )
-        context->display_handle = g_idle_add(_j4status_core_display, context);
+        context->display_handle = g_idle_add(_j4status_core_generate, context);
     else
         context->should_display = TRUE;
 }
@@ -226,7 +226,7 @@ _j4status_core_start(J4statusCoreContext *context)
             input_plugin->interface.start(input_plugin->context);
     }
     if ( context->should_display && ( context->display_handle == 0 ) )
-        context->display_handle = g_idle_add(_j4status_core_display, context);
+        context->display_handle = g_idle_add(_j4status_core_generate, context);
 }
 
 static void
@@ -407,7 +407,7 @@ main(int argc, char *argv[])
         .context = context,
         .add_section = _j4status_core_add_section,
         .remove_section = _j4status_core_remove_section,
-        .trigger_display = _j4status_core_trigger_display,
+        .trigger_generate = _j4status_core_trigger_generate,
         .trigger_action = _j4status_core_trigger_action,
     };
 
