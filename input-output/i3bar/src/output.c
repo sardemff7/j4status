@@ -83,7 +83,6 @@ struct _J4statusPluginContext {
         gchar *good;
     } colours;
     gboolean align;
-    yajl_gen json_gen;
     gsize last_len;
     GDataInputStream *in;
     yajl_handle json_handle;
