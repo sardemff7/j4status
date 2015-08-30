@@ -34,6 +34,8 @@
 static void
 _j4status_debug_print(J4statusPluginContext *context, GList *sections)
 {
+    GString *line = g_string_new("");
+    gboolean first = TRUE;
     GList *section_;
     J4statusSection *section;
     for ( section_ = sections ; section_ != NULL ; section_ = g_list_next(section_) )
@@ -91,7 +93,7 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             "\nUrgent: %s"
             "\nColour: %s"
             "\nValue: %s"
-            "\n--\n",
+            "\n--",
             j4status_section_get_name(section),
             j4status_section_get_instance(section),
             j4status_section_get_label(section),
@@ -105,10 +107,16 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
 
         j4status_section_set_cache(section, cache);
 
-
     print:
-        g_printf("%s", j4status_section_get_cache(section));
+        g_string_append(line, j4status_section_get_cache(section));
+        if ( first )
+            first = FALSE;
+        else
+            g_string_append_c(line, '\n');
     }
+
+    g_printf("%s", line->str);
+    g_string_free(line, TRUE);
 }
 
 void
