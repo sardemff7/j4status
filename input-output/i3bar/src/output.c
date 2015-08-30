@@ -414,6 +414,11 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
 static void
 _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 {
+#ifdef G_OS_UNIX
+    if ( context->in != NULL )
+        g_object_unref(context->in);
+#endif /* G_OS_UNIX */
+
     yajl_free(context->json_handle);
 
     g_free(context);
