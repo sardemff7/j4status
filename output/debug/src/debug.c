@@ -31,8 +31,8 @@
 
 #define BOOL_TO_S(bool) ((bool) ? "yes" : "no")
 
-static void
-_j4status_debug_print(J4statusPluginContext *context, GList *sections)
+static gchar *
+_j4status_debug_generate(J4statusPluginContext *context, GList *sections)
 {
     GString *line = g_string_new("");
     gboolean first = TRUE;
@@ -115,12 +115,11 @@ _j4status_debug_print(J4statusPluginContext *context, GList *sections)
             g_string_append_c(line, '\n');
     }
 
-    g_printf("%s", line->str);
-    g_string_free(line, TRUE);
+    return g_string_free(line, FALSE);
 }
 
 void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
-    libj4status_output_plugin_interface_add_print_callback(interface, _j4status_debug_print);
+    libj4status_output_plugin_interface_add_generate_callback(interface, _j4status_debug_generate);
 }

@@ -74,10 +74,10 @@ struct _J4statusCoreInterface {
 
 
 struct _J4statusOutputPluginInterface {
-    J4statusPluginInitFunc   init;
-    J4statusPluginSimpleFunc uninit;
+    J4statusPluginInitFunc     init;
+    J4statusPluginSimpleFunc   uninit;
 
-    J4statusPluginPrintFunc print;
+    J4statusPluginGenerateFunc generate;
 };
 
 struct _J4statusInputPluginInterface {

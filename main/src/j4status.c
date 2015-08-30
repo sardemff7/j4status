@@ -176,8 +176,12 @@ _j4status_core_display(gpointer user_data)
     context->display_handle = 0;
     context->should_display = FALSE;
 
-    context->output_plugin->interface.print(context->output_plugin->context, context->sections);
+    gchar *line;
+    line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
+    g_printf("%s", line);
+    g_free(line);
     fflush(stdout);
+
 
     return FALSE;
 }

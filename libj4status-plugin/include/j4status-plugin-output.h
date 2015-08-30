@@ -27,7 +27,7 @@
 
 void j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *event_id);
 
-typedef void(*J4statusPluginPrintFunc)(J4statusPluginContext *context, GList *sections);
+typedef gchar *(*J4statusPluginGenerateFunc)(J4statusPluginContext *context, GList *sections);
 
 typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
@@ -35,7 +35,7 @@ typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, init, Init);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, uninit, Simple);
-LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, print, Print);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, generate, Generate);
 
 const gchar *j4status_section_get_name(const J4statusSection *section);
 const gchar *j4status_section_get_instance(const J4statusSection *section);
