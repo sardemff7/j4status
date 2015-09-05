@@ -58,7 +58,7 @@ AC_SUBST([pluginsdir])
 
 # Common dependencies
 glib_min_major="2"
-glib_min_minor="28"
+glib_min_minor="40"
 glib_min_version="${glib_min_major}.${glib_min_minor}"
 gio_min_version="$glib_min_version"
 
@@ -163,9 +163,7 @@ J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
     GW_CHECK_MPD(MPD)
 ])
 
-J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no], [
-    PKG_CHECK_MODULES(GLIB2_32, [glib-2.0 >= 2.32.0])
-])
+J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no])
 
 # Features defaulting to enable
 # They more or less provide i3status features
