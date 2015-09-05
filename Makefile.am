@@ -21,6 +21,7 @@ man1_MANS =
 man5_MANS =
 dist_aclocal_DATA =
 pkgconfig_DATA =
+systemduserunit_DATA =
 
 BUILT_SOURCES =
 EXTRA_DIST =
@@ -64,6 +65,7 @@ include input/systemd/systemd.mk
 endif
 
 include src/man.mk
+include src/units.mk
 
 -include local-rules.mk
 

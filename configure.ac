@@ -105,6 +105,21 @@ PKG_CHECK_MODULES(GIO, [gio-2.0 >= $gio_min_version $gio_unix])
 
 PKG_CHECK_MODULES(GMODULE, [gmodule-2.0 >= $gmodule_min_version])
 
+AC_ARG_ENABLE(systemd, AS_HELP_STRING([--enable-systemd], [Enable systemd activation support]), [], enable_systemd=no)
+AC_ARG_WITH(systemduserunitdir, AS_HELP_STRING([--with-systemduserunitdir=DIR], [Directory for systemd user unit files]), [], with_systemduserunitdir=yes)
+if test x$enable_systemd = xyes; then
+    case "$with_systemduserunitdir" in
+        no|"") AC_MSG_ERROR([*** You must define systemduserunitdir when compiling systemd support]) ;;
+        yes) systemduserunitdir="`$PKG_CONFIG --variable=systemduserunitdir systemd`" ;;
+        *) systemduserunitdir="$with_systemduserunitdir" ;;
+    esac
+    AC_CHECK_HEADERS([sys/socket.h])
+    PKG_CHECK_MODULES(SYSTEMD, [libsystemd >= 209],, [PKG_CHECK_MODULES(SYSTEMD, [libsystemd-daemon])])
+    AC_DEFINE([ENABLE_SYSTEMD], [1], [Enable systemd activation support])
+    AC_SUBST(systemduserunitdir)
+fi
+AM_CONDITIONAL(ENABLE_SYSTEMD, test x$enable_systemd = xyes)
+
 J4SP_INIT
 
 J4SP_ADD_OUTPUT_PLUGIN(flat, [Flat], [always])
@@ -187,6 +202,9 @@ AC_OUTPUT
 
 AC_MSG_RESULT([
     ${PACKAGE_NAME} ${PACKAGE_VERSION}
+
+    UNIX socket support: ${have_gio_unix}
+    systemd socket support: ${enable_systemd}
 ])
 
 J4SP_SUMMARY

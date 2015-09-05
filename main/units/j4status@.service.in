@@ -1,0 +1,9 @@
+[Unit]
+Description=j4status %I output to socket
+
+[Service]
+Sockets=j4status@%i.socket
+ExecStart=@bindir@/j4status --config %i
+
+[Install]
+Also=j4status@%i.socket

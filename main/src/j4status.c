@@ -24,9 +24,6 @@
 #include <config.h>
 #endif /* HAVE_CONFIG_H */
 
-#ifdef HAVE_STRING_H
-#include <string.h>
-#endif /* HAVE_STRING_H */
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif /* HAVE_UNISTD_H */
@@ -50,6 +47,9 @@
 #include <j4status-plugin-private.h>
 
 #include "plugins.h"
+#include "io.h"
+
+#include "j4status.h"
 
 struct _J4statusCoreContext {
     guint interval;
@@ -63,6 +63,7 @@ struct _J4statusCoreContext {
     gulong display_handle;
     gboolean should_display;
     gchar *line;
+    J4statusIOContext *io;
 };
 
 #if DEBUG
@@ -177,11 +178,9 @@ _j4status_core_generate(gpointer user_data)
     context->display_handle = 0;
     context->should_display = FALSE;
 
-    g_free(context->line);
-    context->line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
-
-    g_printf("%s", context->line);
-    fflush(stdout);
+    gchar *line;
+    line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
+    j4status_io_update_line(context->io, line);
 
     return FALSE;
 }
@@ -244,8 +243,8 @@ _j4status_core_stop(J4statusCoreContext *context)
     context->started = FALSE;
 }
 
-static void
-_j4status_core_quit(J4statusCoreContext *context)
+void
+j4status_core_quit(J4statusCoreContext *context)
 {
     if ( context->started )
         _j4status_core_stop(context);
@@ -257,7 +256,7 @@ _j4status_core_quit(J4statusCoreContext *context)
 static gboolean
 _j4status_core_source_quit(gpointer user_data)
 {
-    _j4status_core_quit(user_data);
+    j4status_core_quit(user_data);
     return FALSE;
 }
 
@@ -266,7 +265,7 @@ static gboolean
 _j4status_core_signal_int(gpointer user_data)
 {
     if ( isatty(0) )
-        _j4status_core_quit(user_data);
+        j4status_core_quit(user_data);
     else
         _j4status_core_stop(user_data);
     return TRUE;
@@ -290,6 +289,8 @@ main(int argc, char *argv[])
     gboolean print_version = FALSE;
     gboolean one_shot = FALSE;
     gchar *output_plugin = NULL;
+    gchar **servers_desc = NULL;
+    gchar **streams_desc = NULL;
     gchar **input_plugins = NULL;
     gchar **order = NULL;
     gchar *config = NULL;
@@ -346,12 +347,14 @@ main(int argc, char *argv[])
 
     GOptionEntry entries[] =
     {
-        { "output",   'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
-        { "input",    'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
-        { "order",    'O', 0, G_OPTION_ARG_STRING_ARRAY, &order,         "Order of sections, specified once a section (see man)", "<section id>" },
-        { "one-shot", '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
-        { "config",   'c', 0, G_OPTION_ARG_STRING,       &config,        "Config file to use", "<config>" },
-        { "version",  'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
+        { "output",     'o', 0, G_OPTION_ARG_STRING,       &output_plugin, "Output plugin to use", "<plugin>" },
+        { "listen",     'l', 0, G_OPTION_ARG_STRING_ARRAY, &servers_desc,  "Socket to listen on, will create a stream on connection (may be specified several times)", "<listen description>" },
+        { "stream",     't', 0, G_OPTION_ARG_STRING_ARRAY, &streams_desc,  "Stream to read from/write to (may be specified several times)", "<stream description>" },
+        { "input",      'i', 0, G_OPTION_ARG_STRING_ARRAY, &input_plugins, "Input plugins to use (may be specified several times)", "<plugin>" },
+        { "order",      'O', 0, G_OPTION_ARG_STRING_ARRAY, &order,         "Order of sections, specified once a section (see man)", "<section id>" },
+        { "one-shot",   '1', 0, G_OPTION_ARG_NONE,         &one_shot,      "Tells j4status to stop right after starting",           NULL },
+        { "config",     'c', 0, G_OPTION_ARG_STRING,       &config,        "Config file to use", "<config>" },
+        { "version",    'V', 0, G_OPTION_ARG_NONE,         &print_version, "Print version",        NULL },
         { NULL }
     };
 
@@ -421,6 +424,15 @@ main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
 #endif /* G_OS_UNIX */
 
+    /* Creating input/output stream */
+    context->io = j4status_io_new(context, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
+    if ( context->io == NULL )
+    {
+        g_warning("Couldn't create input/output streams");
+        retval = 2;
+        goto end;
+    }
+
     context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
     if ( context->output_plugin == NULL )
     {
@@ -459,6 +471,7 @@ main(int argc, char *argv[])
     context->loop = g_main_loop_new(NULL, FALSE);
     g_main_loop_run(context->loop);
     g_main_loop_unref(context->loop);
+    context->loop = NULL;
 
     GList *input_plugin_;
     J4statusInputPlugin *input_plugin;
@@ -473,6 +486,8 @@ main(int argc, char *argv[])
         context->output_plugin->interface.uninit(context->output_plugin->context);
         fflush(stdout);
     }
+
+    j4status_io_free(context->io);
 
     if ( context->order_weights != NULL )
         g_hash_table_unref(context->order_weights);

@@ -151,6 +151,22 @@
             </varlistentry>
 
             <varlistentry>
+                <term><option>-l</option></term>
+                <term><option>--listen=<replaceable class="parameter">stream specification</replaceable></option></term>
+                <listitem>
+                    <para>Specify the output plugin</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><option>-s</option></term>
+                <term><option>--stream=<replaceable class="parameter">stream specification</replaceable></option></term>
+                <listitem>
+                    <para></para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
                 <term><option>-i</option></term>
                 <term><option>--input=<replaceable class="parameter">plugin</replaceable></option></term>
                 <listitem>
@@ -237,6 +253,13 @@
                 <term><literal>1</literal></term>
                 <listitem>
                     <para>Failed to parse command line paramaters.</para>
+                </listitem>
+            </varlistentry>
+
+            <varlistentry>
+                <term><literal>2</literal></term>
+                <listitem>
+                    <para>Failed to create input/output stream.</para>
                 </listitem>
             </varlistentry>
 

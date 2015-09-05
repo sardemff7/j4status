@@ -1,0 +1,9 @@
+[Unit]
+Description=j4status stream socket
+
+[Socket]
+Service=j4status@%i.service
+ListenStream=%t/@PACKAGE_NAME@/%i
+
+[Install]
+WantedBy=sockets.target
