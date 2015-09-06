@@ -59,7 +59,6 @@ struct _J4statusIOContext {
 typedef struct {
     J4statusIOContext *io;
     guint tries;
-    gboolean from_server;
     GSocketAddress *address;
     GSocketConnection *connection;
     GDataOutputStream *out;
