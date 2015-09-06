@@ -30,10 +30,6 @@
 
 #include <glib.h>
 #include <glib/gprintf.h>
-#include <gio/gio.h>
-#ifdef G_OS_UNIX
-#include <gio/gunixinputstream.h>
-#endif /* G_OS_UNIX */
 
 #include <j4status-plugin-output.h>
 
@@ -57,38 +53,19 @@ struct _J4statusPluginContext {
     } colours;
     gboolean align;
     gsize last_len;
-    GDataInputStream *in;
 };
 
-#ifdef G_OS_UNIX
 static void
-_j4status_flat_input_callback(GObject *stream, GAsyncResult *res, gpointer user_data)
+_j4status_flat_action(J4statusPluginContext *context, gchar *action_description)
 {
-    J4statusPluginContext *context = user_data;
-    GError *error = NULL;
-
-    gchar *line;
-    line = g_data_input_stream_read_line_finish(context->in, res, NULL, &error);
-    if ( line == NULL )
-    {
-        if ( error != NULL )
-            g_warning("Input error: %s", error->message);
-        g_clear_error(&error);
-        return;
-    }
-
-    gchar *event_id = line;
-    gchar *section_id = g_utf8_strchr(line, -1, ' ');
+    gchar *event_id = action_description;
+    gchar *section_id = g_utf8_strchr(action_description, -1, ' ');
     if ( section_id != NULL )
     {
         *section_id++ = '\0';
         j4status_core_trigger_action(context->core, section_id, event_id);
     }
-
-    g_free(line);
-    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_flat_input_callback, context);
 }
-#endif /* G_OS_UNIX */
 
 static void
 _j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean important)
@@ -270,25 +247,12 @@ _j4status_flat_init(J4statusCoreInterface *core)
     if ( key_file != NULL )
         g_key_file_free(key_file);
 
-#ifdef G_OS_UNIX
-    GInputStream *in;
-    in = g_unix_input_stream_new(0, FALSE);
-    context->in = g_data_input_stream_new(in);
-    g_object_unref(in);
-
-    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_flat_input_callback, context);
-#endif /* G_OS_UNIX */
-
     return context;
 }
 
 static void
 _j4status_flat_uninit(J4statusPluginContext *context)
 {
-#ifdef G_OS_UNIX
-    g_object_unref(context->in);
-#endif /* G_OS_UNIX */
-
     g_free(context->label_separator);
 
     g_free(context);
@@ -301,4 +265,5 @@ j4status_output_plugin(J4statusOutputPluginInterface *interface)
     libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_flat_uninit);
 
     libj4status_output_plugin_interface_add_generate_callback(interface, _j4status_flat_generate);
+    libj4status_output_plugin_interface_add_action_callback(interface, _j4status_flat_action);
 }

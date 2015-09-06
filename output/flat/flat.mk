@@ -13,7 +13,6 @@ flat_la_CPPFLAGS = \
 
 flat_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(null)
 
@@ -24,7 +23,6 @@ flat_la_LDFLAGS = \
 
 flat_la_LIBADD = \
 	libj4status-plugin.la \
-	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)
 
