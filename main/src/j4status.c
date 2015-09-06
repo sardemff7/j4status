@@ -427,20 +427,20 @@ main(int argc, char *argv[])
     signal(SIGPIPE, SIG_IGN);
 #endif /* G_OS_UNIX */
 
+    context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
+    if ( context->output_plugin == NULL )
+    {
+        g_warning("No usable output plugin, tried '%s'", output_plugin);
+        retval = 10;
+        goto end;
+    }
+
     /* Creating input/output stream */
     context->io = j4status_io_new(context, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
     if ( context->io == NULL )
     {
         g_warning("Couldn't create input/output streams");
         retval = 2;
-        goto end;
-    }
-
-    context->output_plugin = j4status_plugins_get_output_plugin(&interface, output_plugin);
-    if ( context->output_plugin == NULL )
-    {
-        g_warning("No usable output plugin, tried '%s'", output_plugin);
-        retval = 10;
         goto end;
     }
 
