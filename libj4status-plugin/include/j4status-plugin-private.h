@@ -78,6 +78,7 @@ struct _J4statusOutputPluginInterface {
     J4statusPluginSimpleFunc   uninit;
 
     J4statusPluginGenerateFunc generate;
+    J4statusPluginActionFunc   action;
 };
 
 struct _J4statusInputPluginInterface {

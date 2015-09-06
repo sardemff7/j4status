@@ -185,6 +185,13 @@ _j4status_core_generate(gpointer user_data)
     return FALSE;
 }
 
+void
+j4status_core_action(J4statusCoreContext *context, gchar *action_description)
+{
+    if ( context->output_plugin->interface.action != NULL )
+        context->output_plugin->interface.action(context->output_plugin->context, action_description);
+}
+
 static void
 _j4status_core_trigger_generate(J4statusCoreContext *context, gboolean force)
 {

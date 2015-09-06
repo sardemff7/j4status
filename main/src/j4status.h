@@ -25,6 +25,7 @@
 
 #include "types.h"
 
+void j4status_core_action(J4statusCoreContext *context, gchar *action_description);
 void j4status_core_quit(J4statusCoreContext *context);
 
 #endif /* __J4STATUS_J4STATUS_H__ */
