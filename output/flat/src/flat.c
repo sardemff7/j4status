@@ -27,9 +27,6 @@
 #ifdef HAVE_STRING_H
 #include <string.h>
 #endif /* HAVE_STRING_H */
-#ifdef HAVE_UNISTD_H
-#include <unistd.h>
-#endif /* HAVE_UNISTD_H */
 
 #include <glib.h>
 #include <glib/gprintf.h>
@@ -244,9 +241,6 @@ _j4status_flat_init(J4statusCoreInterface *core)
 
     if (
         use_colours &&
-#ifdef G_OS_UNIX
-        isatty(1) &&
-#endif /* G_OS_UNIX */
         ( g_str_has_suffix(g_getenv("TERM"), "-256color") || g_str_has_suffix(g_getenv("TERM"), "-256colour") )
         )
     {
