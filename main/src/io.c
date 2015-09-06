@@ -96,6 +96,21 @@ _j4status_io_stream_connect(J4statusIOStream *self)
 }
 
 static void
+_j4status_io_stream_reconnect_maybe(J4statusIOStream *self)
+{
+    if ( self->connection == NULL )
+        /* Not a socket stream */
+        return;
+
+    if ( self->address != NULL )
+        /* Client stream */
+        _j4status_io_stream_connect(self);
+    else
+        /* Server stream */
+        _j4status_io_remove_stream(self->io, self);
+}
+
+static void
 _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer user_data)
 {
     J4statusIOStream *self = user_data;
@@ -236,17 +251,7 @@ _j4status_io_stream_put_line(J4statusIOStream *self, const gchar *line)
         g_warning("Couldn't write line: %s", error->message);
     g_clear_error(&error);
 
-    if ( self->connection == NULL )
-        /* Not a socket stream */
-        return;
-
-    if ( self->address != NULL )
-        /* Client stream */
-        _j4status_io_stream_connect(self);
-    else
-        /* Server stream */
-        _j4status_io_remove_stream(self->io, self);
-    return;
+    _j4status_io_stream_reconnect_maybe(self);
 }
 
 static gboolean
