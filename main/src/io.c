@@ -477,7 +477,7 @@ j4status_io_new(J4statusCoreContext *core, const gchar * const *servers_desc, co
     if ( _j4status_io_has_stream(self) )
         return self;
 
-    g_free(self);
+    j4status_io_free(self);
     return NULL;
 }
 
@@ -497,6 +497,8 @@ j4status_io_free(J4statusIOContext *self)
 
     if ( self->server != NULL )
         g_object_unref(self->server);
+
+    g_free(self->line);
 
     g_free(self);
 }
