@@ -66,14 +66,33 @@ typedef struct {
 
 #define MAX_TRIES 3
 
+static void _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer user_data);
 static void _j4status_io_remove_stream(J4statusIOContext *io, J4statusIOStream *stream);
-static void _j4status_io_stream_connect(J4statusIOStream *stream);
 
 static void
 _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *connection)
 {
     self->connection = connection;
-    self->out = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(self->connection)));;
+    self->out = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(self->connection)));
+}
+
+static void
+_j4status_io_stream_connect(J4statusIOStream *self)
+{
+    if ( self->connection != NULL )
+    {
+        g_object_unref(self->out);
+        g_object_unref(self->connection);
+        self->connection = NULL;
+        self->out = NULL;
+    }
+
+
+    GSocketClient *client;
+    client = g_socket_client_new();
+
+    g_socket_client_connect_async(client, G_SOCKET_CONNECTABLE(self->address), NULL, _j4status_io_stream_connect_callback, self);
+    g_object_unref(client);
 }
 
 static void
@@ -96,25 +115,6 @@ _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer u
     }
     else
         _j4status_io_stream_set_connection(self, connection);
-}
-
-static void
-_j4status_io_stream_connect(J4statusIOStream *self)
-{
-    if ( self->connection != NULL )
-    {
-        g_object_unref(self->out);
-        g_object_unref(self->connection);
-        self->connection = NULL;
-        self->out = NULL;
-    }
-
-
-    GSocketClient *client;
-    client = g_socket_client_new();
-
-    g_socket_client_connect_async(client, G_SOCKET_CONNECTABLE(self->address), NULL, _j4status_io_stream_connect_callback, self);
-    g_object_unref(client);
 }
 
 static J4statusIOStream *
