@@ -272,13 +272,15 @@ _j4status_io_stream_free(gpointer data)
 }
 
 static void
-_j4status_io_stream_put_line(J4statusIOStream *self, const gchar *line)
+_j4status_io_stream_put_line(J4statusIOStream *self, const gchar *string)
 {
-    if ( ( self->out == NULL ) || ( line == NULL ) )
+    if ( string == NULL )
+        return;
+    if ( self->out == NULL )
         return;
 
     GError *error = NULL;
-    if ( g_data_output_stream_put_string(self->out, line, NULL, &error) )
+    if ( g_data_output_stream_put_string(self->out, string, NULL, &error) )
         return;
 
     /*
