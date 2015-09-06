@@ -220,7 +220,7 @@ _j4status_io_stream_free(gpointer data)
 static void
 _j4status_io_stream_put_line(J4statusIOStream *self, const gchar *line)
 {
-    if ( self->out == NULL )
+    if ( ( self->out == NULL ) || ( line == NULL ) )
         return;
 
     GError *error = NULL;
