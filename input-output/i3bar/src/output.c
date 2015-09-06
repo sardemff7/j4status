@@ -340,6 +340,22 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
         g_key_file_free(key_file);
     }
 
+    context->json_handle = yajl_alloc(&_j4status_i3bar_output_click_events_callbacks, NULL, context);
+
+    return context;
+}
+
+static void
+_j4status_i3bar_output_uninit(J4statusPluginContext *context)
+{
+    yajl_free(context->json_handle);
+
+    g_free(context);
+}
+
+static gchar *
+_j4status_i3bar_output_generate_header(J4statusPluginContext *context)
+{
     yajl_gen json_gen;
     json_gen = yajl_gen_alloc(NULL);
 
@@ -361,24 +377,12 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     size_t length;
     yajl_gen_get_buf(json_gen, &buffer, &length);
 
-    gchar header[length + strlen("\n[[]\n") + 1];
+    gchar *header;
 
-    g_sprintf(header, "%s\n[[]\n", buffer);
+    header = g_strdup_printf("%s\n[[]\n", buffer);
     yajl_gen_free(json_gen);
 
-    g_printf("%s", header);
-
-    context->json_handle = yajl_alloc(&_j4status_i3bar_output_click_events_callbacks, NULL, context);
-
-    return context;
-}
-
-static void
-_j4status_i3bar_output_uninit(J4statusPluginContext *context)
-{
-    yajl_free(context->json_handle);
-
-    g_free(context);
+    return header;
 }
 
 static void
@@ -592,6 +596,7 @@ j4status_output_plugin(J4statusOutputPluginInterface *interface)
     libj4status_output_plugin_interface_add_init_callback(interface, _j4status_i3bar_output_init);
     libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_i3bar_output_uninit);
 
+    libj4status_output_plugin_interface_add_generate_header_callback(interface, _j4status_i3bar_output_generate_header);
     libj4status_output_plugin_interface_add_generate_line_callback(interface, _j4status_i3bar_output_generate_line);
     libj4status_output_plugin_interface_add_action_callback(interface, _j4status_i3bar_ouput_action);
 }
