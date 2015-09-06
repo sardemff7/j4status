@@ -31,10 +31,6 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 #include <glib-object.h>
-#include <gio/gio.h>
-#ifdef G_OS_UNIX
-#include <gio/gunixinputstream.h>
-#endif /* ! G_OS_UNIX */
 
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
@@ -84,7 +80,7 @@ struct _J4statusPluginContext {
     } colours;
     gboolean align;
     gsize last_len;
-    GDataInputStream *in;
+    gboolean no_click_events;
     yajl_handle json_handle;
     J4statusI3barOutputClickEventsParseContext parse_context;
 };
@@ -275,52 +271,32 @@ static yajl_callbacks _j4status_i3bar_output_click_events_callbacks = {
     .yajl_end_array   = _j4status_i3bar_output_click_events_end_array,
 };
 
-#ifdef G_OS_UNIX
 static void
-_j4status_i3bar_ouput_input_callback(GObject *stream, GAsyncResult *res, gpointer user_data)
+_j4status_i3bar_ouput_action(J4statusPluginContext *context, gchar *line)
 {
-    J4statusPluginContext *context = user_data;
-    GError *error = NULL;
-
-    gchar *line;
-    gsize length;
-    line = g_data_input_stream_read_line_finish(context->in, res, &length, &error);
-    if ( line == NULL )
-    {
-        if ( error != NULL )
-            g_warning("Input error: %s", error->message);
-        g_clear_error(&error);
-        return;
-    }
-
+    gsize length = strlen(line);
     yajl_status json_state;
 
     json_state = yajl_parse(context->json_handle, (const unsigned char *) line, length);
 
-    if ( json_state != yajl_status_ok )
-    {
-        g_free(context->parse_context.name);
-        g_free(context->parse_context.instance);
-
-        if ( json_state == yajl_status_error )
-        {
-            unsigned char *str_error;
-            str_error = yajl_get_error(context->json_handle, 0, (const unsigned char *) line, length);
-            g_warning("Couldn't parse section from i3bar: %s", str_error);
-            yajl_free_error(context->json_handle, str_error);
-        }
-        else if ( json_state == yajl_status_client_canceled )
-        {
-            g_warning("i3bar JSON protocol error: %s", context->parse_context.error);
-            g_free(context->parse_context.error);
-        }
+    if ( json_state == yajl_status_ok )
         return;
-    }
+    g_free(context->parse_context.name);
+    g_free(context->parse_context.instance);
 
-    g_free(line);
-    g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
+    if ( json_state == yajl_status_error )
+    {
+        unsigned char *str_error;
+        str_error = yajl_get_error(context->json_handle, 0, (const unsigned char *) line, length);
+        g_warning("Couldn't parse section from i3bar: %s", str_error);
+        yajl_free_error(context->json_handle, str_error);
+    }
+    else if ( json_state == yajl_status_client_canceled )
+    {
+        g_warning("i3bar JSON protocol error: %s", context->parse_context.error);
+        g_free(context->parse_context.error);
+    }
 }
-#endif /* G_OS_UNIX */
 
 static void
 _j4status_i3bar_output_update_colour(gchar **colour, GKeyFile *key_file, gchar *name)
@@ -350,8 +326,6 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     context->colours.average     = g_strdup("#FFFF00");
     context->colours.good        = g_strdup("#00FF00");
 
-    gboolean no_click_events = FALSE;
-
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("i3bar");
     if ( key_file != NULL )
@@ -362,7 +336,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
         _j4status_i3bar_output_update_colour(&context->colours.average, key_file, "AverageColour");
         _j4status_i3bar_output_update_colour(&context->colours.good, key_file, "GoodColour");
         context->align = g_key_file_get_boolean(key_file, "i3bar", "Align", NULL);
-        no_click_events = g_key_file_get_boolean(key_file, "i3bar", "NoClickEvents", NULL);
+        context->no_click_events = g_key_file_get_boolean(key_file, "i3bar", "NoClickEvents", NULL);
         g_key_file_free(key_file);
     }
 
@@ -376,7 +350,7 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
     yajl_gen_integer(json_gen, SIGINT);
     yajl_gen_string(json_gen, (const unsigned char *)"cont_signal", strlen("cont_signal"));
     yajl_gen_integer(json_gen, SIGHUP);
-    if ( ! no_click_events )
+    if ( ! context->no_click_events )
     {
         yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
         yajl_gen_bool(json_gen, 1);
@@ -394,18 +368,6 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
 
     g_printf("%s", header);
 
-#ifdef G_OS_UNIX
-    if ( ! no_click_events )
-    {
-        GInputStream *in;
-        in = g_unix_input_stream_new(0, FALSE);
-        context->in = g_data_input_stream_new(in);
-        g_object_unref(in);
-
-        g_data_input_stream_read_line_async(context->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_ouput_input_callback, context);
-    }
-#endif /* G_OS_UNIX */
-
     context->json_handle = yajl_alloc(&_j4status_i3bar_output_click_events_callbacks, NULL, context);
 
     return context;
@@ -414,11 +376,6 @@ _j4status_i3bar_output_init(J4statusCoreInterface *core)
 static void
 _j4status_i3bar_output_uninit(J4statusPluginContext *context)
 {
-#ifdef G_OS_UNIX
-    if ( context->in != NULL )
-        g_object_unref(context->in);
-#endif /* G_OS_UNIX */
-
     yajl_free(context->json_handle);
 
     g_free(context);
@@ -636,4 +593,5 @@ j4status_output_plugin(J4statusOutputPluginInterface *interface)
     libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_i3bar_output_uninit);
 
     libj4status_output_plugin_interface_add_generate_callback(interface, _j4status_i3bar_output_generate);
+    libj4status_output_plugin_interface_add_action_callback(interface, _j4status_i3bar_ouput_action);
 }
