@@ -485,10 +485,7 @@ main(int argc, char *argv[])
     }
 
     if ( context->output_plugin->interface.uninit != NULL )
-    {
         context->output_plugin->interface.uninit(context->output_plugin->context);
-        fflush(stdout);
-    }
 
     j4status_io_free(context->io);
 
