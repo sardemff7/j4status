@@ -341,6 +341,29 @@ _j4status_io_server_add(J4statusIOContext *self, const gchar *server_desc)
 {
     GSocketAddress *address = NULL;
     const gchar *path = NULL;
+
+    if ( g_str_has_prefix(server_desc, "tcp:") )
+    {
+        const gchar *uri = server_desc + strlen("tcp:");
+        gchar *port_str = g_utf8_strrchr(server_desc, -1, ':');
+        if ( port_str == NULL )
+            /* No port, illegal stream description */
+            return;
+
+        *port_str = '\0';
+        ++port_str;
+
+        guint64 port;
+        port = g_ascii_strtoull(port_str, NULL, 10);
+        if ( port > 65535 )
+            return;
+
+        GInetAddress *inet_address;
+        inet_address = g_inet_address_new_from_string(uri);
+
+        address = g_inet_socket_address_new(inet_address, port);
+    }
+
 #ifdef G_OS_UNIX
     if ( g_str_has_prefix(server_desc, "unix:") )
     {
