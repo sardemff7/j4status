@@ -215,8 +215,6 @@ _j4status_io_stream_free(gpointer data)
     if ( self->address != NULL )
         g_object_unref(self->address);
 
-    _j4status_io_remove_stream(self->io, self);
-
     g_slice_free(J4statusIOStream, self);
 }
 
@@ -464,6 +462,7 @@ static void
 _j4status_io_remove_stream(J4statusIOContext *self, J4statusIOStream *stream)
 {
     self->streams = g_list_remove(self->streams, stream);
+    _j4status_io_stream_free(stream);
     if ( ! _j4status_io_has_stream(self) )
         j4status_core_quit(self->core);
 }
