@@ -51,6 +51,7 @@
 
 struct _J4statusIOContext {
     J4statusCoreContext *core;
+    gchar *header;
     gchar *line;
     GSocketService *server;
     GList *streams;
@@ -64,6 +65,7 @@ typedef struct {
     GSocketConnection *connection;
     GDataOutputStream *out;
     GDataInputStream *in;
+    gboolean header_sent;
 } J4statusIOStream;
 
 #define MAX_TRIES 3
@@ -71,6 +73,7 @@ typedef struct {
 static void _j4status_io_stream_read_callback(GObject *stream, GAsyncResult *res, gpointer user_data);
 static void _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer user_data);
 static void _j4status_io_remove_stream(J4statusIOContext *io, J4statusIOStream *stream);
+static void _j4status_io_stream_put_header(J4statusIOStream *stream, const gchar *header);
 
 static void
 _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *connection)
@@ -78,6 +81,8 @@ _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *co
     self->connection = connection;
     self->out = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(self->connection)));
     self->in = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(self->connection)));
+    if ( ! self->header_sent )
+        _j4status_io_stream_put_header(self, self->io->header);
     g_data_input_stream_read_line_async(self->in, G_PRIORITY_DEFAULT, NULL, _j4status_io_stream_read_callback, self);
 }
 
@@ -271,17 +276,17 @@ _j4status_io_stream_free(gpointer data)
     g_slice_free(J4statusIOStream, self);
 }
 
-static void
-_j4status_io_stream_put_line(J4statusIOStream *self, const gchar *string)
+static gboolean
+_j4status_io_stream_put_string(J4statusIOStream *self, const gchar *string)
 {
     if ( string == NULL )
-        return;
+        return TRUE;
     if ( self->out == NULL )
-        return;
+        return FALSE;
 
     GError *error = NULL;
     if ( g_data_output_stream_put_string(self->out, string, NULL, &error) )
-        return;
+        return TRUE;
 
     /*
      * We do not output on broken pipe
@@ -293,6 +298,21 @@ _j4status_io_stream_put_line(J4statusIOStream *self, const gchar *string)
     g_clear_error(&error);
 
     _j4status_io_stream_reconnect_maybe(self);
+
+    return FALSE;
+}
+
+static void
+_j4status_io_stream_put_header(J4statusIOStream *self, const gchar *line)
+{
+    self->header_sent = _j4status_io_stream_put_string(self, line);
+}
+
+static void
+_j4status_io_stream_put_line(J4statusIOStream *self, const gchar *line)
+{
+    if ( self->header_sent )
+        _j4status_io_stream_put_string(self, line);
 }
 
 static gboolean
@@ -450,11 +470,12 @@ _j4status_io_has_stream(J4statusIOContext *self)
 }
 
 J4statusIOContext *
-j4status_io_new(J4statusCoreContext *core, const gchar * const *servers_desc, const gchar * const *streams_desc)
+j4status_io_new(J4statusCoreContext *core, gchar *header, const gchar * const *servers_desc, const gchar * const *streams_desc)
 {
     J4statusIOContext *self;
     self = g_new0(J4statusIOContext, 1);
     self->core = core;
+    self->header = header;
 
     _j4status_io_add_systemd(self);
 
@@ -501,6 +522,7 @@ j4status_io_free(J4statusIOContext *self)
         g_object_unref(self->server);
 
     g_free(self->line);
+    g_free(self->header);
 
     g_free(self);
 }

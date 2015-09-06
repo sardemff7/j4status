@@ -435,8 +435,12 @@ main(int argc, char *argv[])
         goto end;
     }
 
+    gchar *header = NULL;
+    if ( context->output_plugin->interface.generate_header != NULL )
+        header = context->output_plugin->interface.generate_header(context->output_plugin->context);
+
     /* Creating input/output stream */
-    context->io = j4status_io_new(context, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
+    context->io = j4status_io_new(context, header, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
     if ( context->io == NULL )
     {
         g_warning("Couldn't create input/output streams");

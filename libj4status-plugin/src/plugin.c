@@ -34,6 +34,7 @@
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, init, Init)
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, uninit, Simple)
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, generate_header, GenerateHeader)
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, generate_line, GenerateLine)
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, action, Action)
 

@@ -77,6 +77,7 @@ struct _J4statusOutputPluginInterface {
     J4statusPluginInitFunc     init;
     J4statusPluginSimpleFunc   uninit;
 
+    J4statusPluginGenerateHeaderFunc generate_header;
     J4statusPluginGenerateLineFunc   generate_line;
     J4statusPluginActionFunc         action;
 };

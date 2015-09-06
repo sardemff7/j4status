@@ -25,7 +25,7 @@
 
 #include "types.h"
 
-J4statusIOContext *j4status_io_new(J4statusCoreContext *core, const gchar * const *servers_desc, const gchar * const *streams_desc);
+J4statusIOContext *j4status_io_new(J4statusCoreContext *core, gchar *header, const gchar * const *servers_desc, const gchar * const *streams_desc);
 void j4status_io_free(J4statusIOContext *io);
 
 void j4status_io_update_line(J4statusIOContext *io, gchar *line);
