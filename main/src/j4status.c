@@ -179,7 +179,7 @@ _j4status_core_generate(gpointer user_data)
     context->should_display = FALSE;
 
     gchar *line;
-    line = context->output_plugin->interface.generate(context->output_plugin->context, context->sections);
+    line = context->output_plugin->interface.generate_line(context->output_plugin->context, context->sections);
     j4status_io_update_line(context->io, line);
 
     return FALSE;

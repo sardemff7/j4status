@@ -80,7 +80,7 @@ _j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean import
 }
 
 static gchar *
-_j4status_flat_generate(J4statusPluginContext *context, GList *sections)
+_j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
 {
     GString *line = g_string_sized_new(context->last_len);
     GList *section_;
@@ -264,6 +264,6 @@ j4status_output_plugin(J4statusOutputPluginInterface *interface)
     libj4status_output_plugin_interface_add_init_callback(interface, _j4status_flat_init);
     libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_flat_uninit);
 
-    libj4status_output_plugin_interface_add_generate_callback(interface, _j4status_flat_generate);
+    libj4status_output_plugin_interface_add_generate_line_callback(interface, _j4status_flat_generate_line);
     libj4status_output_plugin_interface_add_action_callback(interface, _j4status_flat_action);
 }
