@@ -61,15 +61,7 @@ glib_min_major="2"
 glib_min_minor="40"
 glib_min_version="${glib_min_major}.${glib_min_minor}"
 gio_min_version="$glib_min_version"
-
-# Server dependencies
 gmodule_min_version="$glib_min_version"
-libpulse_min_version="0.9.15"
-libnotify_min_version="0.5.0"
-gtk_min_version="3.0"
-
-# Client dependencies
-vala_min_version="0.12"
 
 
 AM_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers"
@@ -127,15 +119,17 @@ J4SP_ADD_OUTPUT_PLUGIN(debug, [Debug], [always])
 J4SP_ADD_INPUT_PLUGIN(time, [Time], [always])
 J4SP_ADD_INPUT_PLUGIN(file-monitor, [File monitor], [always])
 
+yajl_min_version=2.0.0
 J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
     AC_CHECK_HEADERS([signal.h])
-    PKG_CHECK_MODULES(YAJL, [yajl >= 2.0.0])
+    PKG_CHECK_MODULES(YAJL, [yajl >= $yajl_min_version])
 ])
 
 
+libnm_min_version=0.9
 J4SP_ADD_INPUT_PLUGIN(nm, [NetworkManager], [yes], [
     AC_CHECK_HEADERS([netdb.h])
-    PKG_CHECK_MODULES(LIBNM, [libnm-util >= 0.9 libnm-glib >= 0.9])
+    PKG_CHECK_MODULES(LIBNM, [libnm-util >= $libnm_min_version libnm-glib >= $libnm_min_version])
 ])
 
 J4SP_ADD_INPUT_PLUGIN(upower, [UPower], [yes], [
@@ -155,8 +149,9 @@ J4SP_ADD_INPUT_PLUGIN(sensors, [libsensors], [yes], [
         ])
 ])
 
+libpulse_min_version=0.9.16
 J4SP_ADD_INPUT_PLUGIN(pulseaudio, [PULSEAUDIO], [yes], [
-    PKG_CHECK_MODULES(PULSE, [libpulse >= 0.9.16 libpulse-mainloop-glib])
+    PKG_CHECK_MODULES(PULSE, [libpulse >= $libpulse_min_version libpulse-mainloop-glib])
 ])
 
 J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
