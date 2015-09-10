@@ -210,6 +210,7 @@ _j4status_io_add_stream(J4statusIOContext *self, const gchar *stream_desc)
         g_object_unref(out);
         g_object_unref(in);
 
+        _j4status_io_stream_put_header(stream, self->header);
         g_data_input_stream_read_line_async(stream->in, G_PRIORITY_DEFAULT, NULL, _j4status_io_stream_read_callback, stream);
 
         goto end;
