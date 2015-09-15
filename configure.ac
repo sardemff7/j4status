@@ -1,6 +1,11 @@
 AC_PREREQ([2.65])
 AC_INIT([j4status],[0.1],[],[])
 
+if test -d .git; then
+    # Redefine PACKAGE_VERSION only to preserve VERSION for distdir
+    PACKAGE_VERSION="${PACKAGE_VERSION} - `git describe --tags --always` (`git describe --tags --always --all | sed -e 's:heads/::'`)"
+fi
+
 AC_CONFIG_HEADERS([src/config.h])
 AC_CONFIG_SRCDIR([main/src/j4status.c])
 AC_CONFIG_MACRO_DIR([m4])
@@ -71,10 +76,6 @@ AM_XSLTPROCFLAGS="--nonet --xinclude --stringparam man.output.quietly 1 --string
 AM_DOCBOOK_CONDITIONS="installation"
 
 
-if test -d .git; then
-    PACKAGE_VERSION="${PACKAGE_VERSION} - `git describe --tags --always` (`git describe --tags --always --all | sed -e 's:heads/::'`)"
-    AC_DEFINE_UNQUOTED([PACKAGE_VERSION], ["$PACKAGE_VERSION"], [Full version with git information])
-fi
 
 GW_INIT([src/libgwater])
 NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/string], [AM_DOCBOOK_CONDITIONS])
