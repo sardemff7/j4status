@@ -138,8 +138,8 @@ J4SP_ADD_INPUT_PLUGIN(upower, [UPower], [yes], [
 ])
 
 J4SP_ADD_INPUT_PLUGIN(sensors, [libsensors], [yes], [
-    LIBSENSORS_CFLAGS="-I/usr/include"
-    LIBSENSORS_LIBS="-lsensors"
+    LIBSENSORS_CFLAGS='-I${includedir}'
+    LIBSENSORS_LIBS='-lsensors'
     AC_SEARCH_LIBS([sensors_init], [sensors],
         [
             AC_SUBST(LIBSENSORS_CFLAGS)
