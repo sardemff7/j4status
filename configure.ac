@@ -129,7 +129,7 @@ J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
 
 libnm_min_version=0.9
 J4SP_ADD_INPUT_PLUGIN(nm, [NetworkManager], [yes], [
-    AC_CHECK_HEADERS([netdb.h])
+    AC_CHECK_HEADERS([netdb.h], [], [AC_MSG_ERROR([*** netdb.h is require for the NetworkManager input plugin])])
     PKG_CHECK_MODULES(LIBNM, [libnm-util >= $libnm_min_version libnm-glib >= $libnm_min_version])
 ])
 
@@ -146,7 +146,7 @@ J4SP_ADD_INPUT_PLUGIN(sensors, [libsensors], [yes], [
             AC_SUBST(LIBSENSORS_LIBS)
         ],
         [
-            AC_MSG_ERROR([*** libsensors support requested but library is missing])
+            AC_MSG_ERROR([*** libsensors library is missing])
         ])
 ])
 
