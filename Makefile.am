@@ -45,6 +45,9 @@ include input-output/i3bar/i3bar.mk
 endif
 include input/time/time.mk
 include input/file-monitor/file-monitor.mk
+if ENABLE_NL_INPUT
+include input/nl/nl.mk
+endif
 if ENABLE_NM_INPUT
 include input/nm/nm.mk
 endif
