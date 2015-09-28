@@ -16,7 +16,7 @@ AC_DEFUN([_J4SP_PRINT_PLUGIN_SUMMARY_INTERNAL], [
     AS_CASE([$1][$2],
         [yesyes], [_j4sp_plugin_status="$_j4sp_plugin_status (Default, disable with --disable-$3)"],
         [yesno], [_j4sp_plugin_status="$_j4sp_plugin_status (Disabled)"],
-        [nono], [_j4sp_plugin_status="$_j4sp_plugin_status (Default, enable with --enabled-$3)"],
+        [nono], [_j4sp_plugin_status="$_j4sp_plugin_status (Default, enable with --enable-$3)"],
         [noyes], [_j4sp_plugin_status="$_j4sp_plugin_status (Enabled)"]
     )
     AC_MSG_RESULT([        ]m4_map_args_sep([], [], [ ], m4_shift3($@))[: $_j4sp_plugin_status])
