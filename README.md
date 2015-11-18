@@ -20,4 +20,5 @@ Build from Git
 To build j4status from Git, you will need some additional dependencies:
 - autoconf 2.65 (or newer)
 - automake 1.11 (or newer)
+- libtool
 - pkg-config 0.25 (or newer) or pkgconf 0.2 (or newer)
