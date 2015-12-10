@@ -14,6 +14,39 @@ You can also browse man pages online here:
 http://j4status.j4tools.org/man/
 
 
+My config
+---------
+
+Here is my configuration:
+
+    [Plugins]
+    Output = i3bar
+    Input = mpd;pulseaudio;nl;sensors;upower;time;
+
+    [Time]
+    Zones = Europe/Paris;UTC;
+    Formats = %F %a %T;%T;
+
+    [Sensors]
+    Sensors = coretemp-isa-0000;
+
+    [MPD]
+    Actions=mouse:1 toggle;mouse:4 previous;mouse:5 next;
+
+    [PulseAudio]
+    Actions=mouse:1 mute toggle;mouse:4 raise;mouse:5 lower;
+
+    [Override sensors:coretemp-isa-0000/temp1]
+    Disable=true
+
+    [Netlink]
+    Interfaces=eth;wlan;
+
+And the result in i3bar:
+
+![](http://j4status.j4tools.org/img/j4status-i3bar.png)
+
+
 Build from Git
 --------------
 
