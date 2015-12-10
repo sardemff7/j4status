@@ -221,7 +221,7 @@ _j4status_io_add_stream(J4statusIOContext *self, const gchar *stream_desc)
     if ( g_str_has_prefix(stream_desc, "tcp:") )
     {
         const gchar *uri = stream_desc + strlen("tcp:");
-        gchar *port_str = g_utf8_strrchr(stream_desc, -1, ':');
+        gchar *port_str = g_utf8_strrchr(uri, -1, ':');
         if ( port_str == NULL )
             /* No port, illegal stream description */
             return;
@@ -408,22 +408,29 @@ _j4status_io_server_add(J4statusIOContext *self, const gchar *server_desc)
 
     if ( g_str_has_prefix(server_desc, "tcp:") )
     {
+        GInetAddress *inet_address;
         const gchar *uri = server_desc + strlen("tcp:");
-        gchar *port_str = g_utf8_strrchr(server_desc, -1, ':');
+        gchar *port_str = g_utf8_strrchr(uri, -1, ':');
         if ( port_str == NULL )
-            /* No port, illegal stream description */
-            return;
+        {
+            /* No host, only port */
+            port_str = (gchar *) uri;
+            /* If you want IPv4, just use "0.0.0.0" */
+            inet_address = g_inet_address_new_any(G_SOCKET_FAMILY_IPV6);
+        }
+        else
+        {
+            *port_str = '\0';
+            ++port_str;
+            inet_address = g_inet_address_new_from_string(uri);
+        }
 
-        *port_str = '\0';
-        ++port_str;
 
         guint64 port;
         port = g_ascii_strtoull(port_str, NULL, 10);
         if ( port > 65535 )
             return;
 
-        GInetAddress *inet_address;
-        inet_address = g_inet_address_new_from_string(uri);
 
         address = g_inet_socket_address_new(inet_address, port);
     }
