@@ -127,16 +127,6 @@ J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
 ])
 
 
-J4SP_ADD_INPUT_PLUGIN(nl, [Netlink], [yes], [
-    GW_CHECK_NL([NL], [libnl-route-3.0], [sys/socket.h linux/if_arp.h])
-])
-
-libnm_min_version=0.9
-J4SP_ADD_INPUT_PLUGIN(nm, [NetworkManager], [yes], [
-    AC_CHECK_HEADERS([netdb.h], [], [AC_MSG_ERROR([*** netdb.h is require for the NetworkManager input plugin])])
-    PKG_CHECK_MODULES(LIBNM, [libnm-util >= $libnm_min_version libnm-glib >= $libnm_min_version])
-])
-
 J4SP_ADD_INPUT_PLUGIN(upower, [UPower], [yes], [
     PKG_CHECK_MODULES(UPOWER, [upower-glib])
 ])
