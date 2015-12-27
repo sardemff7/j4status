@@ -15,7 +15,7 @@ mpd_la_CPPFLAGS = \
 
 mpd_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	$(MPD_CFLAGS) \
+	$(GW_MPD_CFLAGS) \
 	$(GIO_CFLAGS) \
 	$(GOBJECT_CFLAGS) \
 	$(GLIB_CFLAGS) \
@@ -28,7 +28,7 @@ mpd_la_LDFLAGS = \
 
 mpd_la_LIBADD = \
 	libj4status-plugin.la \
-	$(MPD_LIBS) \
+	$(GW_MPD_LIBS) \
 	$(GIO_LIBS) \
 	$(GOBJECT_LIBS) \
 	$(GLIB_LIBS) \

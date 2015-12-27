@@ -150,7 +150,7 @@ J4SP_ADD_INPUT_PLUGIN(pulseaudio, [PULSEAUDIO], [yes], [
 ])
 
 J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
-    GW_CHECK_MPD(MPD)
+    GW_CHECK_MPD
 ])
 
 J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no])
