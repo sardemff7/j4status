@@ -19,8 +19,9 @@ addons:
             - libyajl-dev
             - libpulse-dev
             - libmpdclient-dev
+            - libupower-glib-dev
 install:
-    - sudo apt-get install -y libsensors4-dev libupower-glib-dev
+    - sudo apt-get install -y libsensors4-dev
 
 before_script:
     - autoreconf -fi
