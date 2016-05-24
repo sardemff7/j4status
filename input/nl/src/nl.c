@@ -397,6 +397,9 @@ _j4status_nl_init(J4statusCoreInterface *core)
         goto error;
     }
 
+    self->formats.up   = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens, G_N_ELEMENTS(_j4status_nl_format_up_tokens), J4STATUS_NL_DEFAULT_UP_FORMAT,   NULL);
+    self->formats.down = j4status_format_string_parse(NULL, NULL,                          0,                                           J4STATUS_NL_DEFAULT_DOWN_FORMAT, NULL);
+
     gchar **interface;
     for ( interface = interfaces ; *interface != NULL ; ++interface )
     {
@@ -414,9 +417,6 @@ _j4status_nl_init(J4statusCoreInterface *core)
     if ( g_hash_table_size(self->sections) < 1 )
         goto error;
 
-    self->formats.up   = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens, G_N_ELEMENTS(_j4status_nl_format_up_tokens), J4STATUS_NL_DEFAULT_UP_FORMAT,   NULL);
-    self->formats.down = j4status_format_string_parse(NULL, NULL,                          0,                                           J4STATUS_NL_DEFAULT_DOWN_FORMAT, NULL);
-
 
     return self;
 
@@ -428,6 +428,9 @@ error:
 static void
 _j4status_nl_uninit(J4statusPluginContext *self)
 {
+    j4status_format_string_unref(self->formats.down);
+    j4status_format_string_unref(self->formats.up);
+
     nl_cache_put(self->addr_cache);
     nl_cache_put(self->link_cache);
 
