@@ -108,6 +108,12 @@ _j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer
     return NULL;
 }
 
+static const gchar *
+_j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    return NULL;
+}
+
 static gsize
 _j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
 {
@@ -171,29 +177,30 @@ _j4status_nl_section_update(J4statusNlSection *self)
 
     gchar *value = NULL;
     J4statusState state = J4STATUS_STATE_NO_STATE;
-    if ( flags & IFF_LOWER_UP )
+    if ( ! ( flags & IFF_UP ) )
     {
-        if ( ( self->ipv4_addresses == NULL ) && ( self->ipv6_addresses == NULL ) )
-        {
-            state = J4STATUS_STATE_AVERAGE;
-            value = g_strdup("Connecting");
-        }
-        else
-        {
-            gchar *addresses;
-            addresses = _j4status_nl_section_get_addresses(self);
-
-            state = J4STATUS_STATE_GOOD;
-            value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, addresses);
-
-            g_free(addresses);
-        }
+        /* Unavailable */
     }
-    else if ( flags & (IFF_UP | IFF_RUNNING) )
+    else if ( ! ( flags & IFF_RUNNING ) )
     {
         state = J4STATUS_STATE_BAD;
-        value = g_strdup("Not connected");
+        value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, NULL);
         _j4status_nl_section_free_addresses(self);
+    }
+    else if ( ( self->ipv4_addresses == NULL ) && ( self->ipv6_addresses == NULL ) )
+    {
+        state = J4STATUS_STATE_AVERAGE;
+        value = g_strdup("Connecting");
+    }
+    else
+    {
+        gchar *addresses;
+        addresses = _j4status_nl_section_get_addresses(self);
+
+        state = J4STATUS_STATE_GOOD;
+        value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, addresses);
+
+        g_free(addresses);
     }
 
     j4status_section_set_state(self->section, state);
