@@ -292,6 +292,14 @@ _j4status_nl_section_new(J4statusPluginContext *context, J4statusCoreInterface *
         return NULL;
     }
 
+    struct nl_object *object;
+    for ( object = nl_cache_get_first(context->addr_cache) ; object != NULL ; object = nl_cache_get_next(object) )
+    {
+        struct rtnl_addr *addr = nl_object_priv(object);
+        if ( rtnl_addr_get_ifindex(addr) == self->ifindex )
+            _j4status_nl_section_add_address(self, addr);
+    }
+
     _j4status_nl_section_update(self);
 
     return self;
