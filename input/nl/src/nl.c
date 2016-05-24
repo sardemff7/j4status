@@ -116,7 +116,7 @@ _j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
     for ( addr = list ; addr != NULL ; addr = g_list_next(addr) )
     {
         gchar *p;
-        nl_addr2str(rtnl_addr_get_local(addr->data), str + o, size - o);
+        nl_addr2str(addr->data, str + o, size - o);
         p = g_utf8_strchr(str + o, -1, '/');
         g_assert_nonnull(p); /* We know libnl wrote the prefix length */
         o = p - str;
@@ -200,6 +200,40 @@ _j4status_nl_section_update(J4statusNlSection *self)
     j4status_section_set_value(self->section, value);
 }
 
+static gint
+_j4status_nl_address_compare(gconstpointer a, gconstpointer b)
+{
+    if ( a == b )
+        return 0;
+    return nl_addr_cmp(a, b);
+}
+
+static void
+_j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtaddr)
+{
+    struct nl_addr *addr;
+    addr = rtnl_addr_get_local(rtaddr);
+    GList **list;
+    switch ( nl_addr_get_family(addr) )
+    {
+    case AF_INET:
+        list = &self->ipv4_addresses;
+    break;
+    case AF_INET6:
+        list = &self->ipv6_addresses;
+    break;
+    default:
+        /* Not supported */
+        return;
+    }
+
+    if ( g_list_find_custom(*list, addr,_j4status_nl_address_compare)  != NULL )
+        /* Already got it */
+        return;
+
+    *list = g_list_prepend(*list, nl_addr_get(addr));
+}
+
 static void
 _j4status_nl_section_free(gpointer data)
 {
@@ -263,14 +297,6 @@ _j4status_nl_section_new(J4statusPluginContext *context, J4statusCoreInterface *
     return self;
 }
 
-static gint
-_j4status_nl_address_compare(gconstpointer a, gconstpointer b)
-{
-    if ( a == b )
-        return 0;
-    return nl_addr_cmp(a, b);
-}
-
 static void
 _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int something, void *user_data)
 {
@@ -301,26 +327,7 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
             return;
         g_debug("Addr cache update: %p = %d", object, rtnl_addr_get_ifindex(addr));
 
-        GList **list;
-        switch ( rtnl_addr_get_family(addr) )
-        {
-        case AF_INET:
-            list = &section->ipv4_addresses;
-        break;
-        case AF_INET6:
-            list = &section->ipv6_addresses;
-        break;
-        default:
-            /* Not supported */
-            return;
-        }
-
-        if ( g_list_find_custom(*list, addr,_j4status_nl_address_compare)  != NULL )
-            /* Already got it */
-            return;
-
-        nl_object_get(object);
-        *list = g_list_prepend(*list, addr);
+        _j4status_nl_section_add_address(section, addr);
     }
     else
         g_assert_not_reached();
