@@ -73,6 +73,10 @@ typedef enum {
 #define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
 
+typedef struct {
+    const gchar *addresses;
+} J4statusNlFormatData;
+
 struct _J4statusPluginContext {
     GHashTable *sections;
     GWaterNlSource *source;
@@ -151,10 +155,12 @@ _j4status_nl_section_get_addresses(J4statusNlSection *self)
 static const gchar *
 _j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
+    const J4statusNlFormatData *data = user_data;
+
     switch ( value )
     {
     case TOKEN_UP_ADDRESSES:
-        return user_data;
+        return data->addresses;
     default:
         g_assert_not_reached();
     }
@@ -200,17 +206,19 @@ _j4status_nl_section_update(J4statusNlSection *self)
     else if ( ( self->ipv4_addresses == NULL ) && ( self->ipv6_addresses == NULL ) )
     {
         state = J4STATUS_STATE_AVERAGE;
-        value = g_strdup("Connecting");
+            value = g_strdup("Connecting");
     }
     else
     {
         state = J4STATUS_STATE_GOOD;
 
+        J4statusNlFormatData data = { NULL };
         gchar *addresses = NULL;
         if ( _j4status_nl_section_need_addresses(self) )
             addresses = _j4status_nl_section_get_addresses(self);
+        data.addresses = addresses;
 
-        value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, addresses);
+            value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, &data);
 
         g_free(addresses);
     }
