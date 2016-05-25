@@ -66,8 +66,8 @@ static const gchar * const _j4status_nl_format_up_tokens[] = {
     [TOKEN_UP_ADDRESSES] = "addresses",
 };
 
-#define J4STATUS_NL_DEFAULT_UP_FORMAT "${addresses}"
-#define J4STATUS_NL_DEFAULT_DOWN_FORMAT "Down"
+#define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
+#define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
 
 struct _J4statusPluginContext {
     GHashTable *sections;
@@ -93,26 +93,6 @@ typedef struct {
     GList *ipv4_addresses;
     GList *ipv6_addresses;
 } J4statusNlSection;
-
-static const gchar *
-_j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer user_data)
-{
-    switch ( value )
-    {
-    case TOKEN_UP_ADDRESSES:
-        return user_data;
-    break;
-    default:
-        g_assert_not_reached();
-    }
-    return NULL;
-}
-
-static const gchar *
-_j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpointer user_data)
-{
-    return NULL;
-}
 
 static gsize
 _j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
@@ -157,6 +137,25 @@ _j4status_nl_section_get_addresses(J4statusNlSection *self)
     return addresses;
 }
 
+static const gchar *
+_j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    switch ( value )
+    {
+    case TOKEN_UP_ADDRESSES:
+        return user_data;
+    default:
+        g_assert_not_reached();
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    return NULL;
+}
+
 static void
 _j4status_nl_section_free_addresses(J4statusNlSection *self)
 {
@@ -194,10 +193,11 @@ _j4status_nl_section_update(J4statusNlSection *self)
     }
     else
     {
-        gchar *addresses;
+        state = J4STATUS_STATE_GOOD;
+
+        gchar *addresses = NULL;
         addresses = _j4status_nl_section_get_addresses(self);
 
-        state = J4STATUS_STATE_GOOD;
         value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, addresses);
 
         g_free(addresses);
@@ -334,7 +334,6 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
         section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(rtnl_link_get_ifindex(link)));
         if ( section == NULL )
             return;
-        g_debug("Link cache update: %p = %s", object, rtnl_link_get_ifalias(link));
 
         if ( section->link != link )
         {
@@ -349,7 +348,6 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
         section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(rtnl_addr_get_ifindex(addr)));
         if ( section == NULL )
             return;
-        g_debug("Addr cache update: %p = %d", object, rtnl_addr_get_ifindex(addr));
 
         _j4status_nl_section_add_address(section, addr);
     }
@@ -391,6 +389,9 @@ _j4status_nl_init(J4statusCoreInterface *core)
 
     self->sections = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, _j4status_nl_section_free);
 
+    self->formats.up        = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        NULL);
+    self->formats.down      = j4status_format_string_parse(NULL, NULL,                                 0,                                                  J4STATUS_NL_DEFAULT_FORMAT_DOWN,      NULL);
+
     self->source = g_water_nl_source_new_cache_mngr(NULL, NETLINK_ROUTE, NL_AUTO_PROVIDE, &err);
     if ( self->source == NULL )
     {
@@ -428,8 +429,6 @@ _j4status_nl_init(J4statusCoreInterface *core)
         goto error;
     }
 
-    self->formats.up   = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens, G_N_ELEMENTS(_j4status_nl_format_up_tokens), J4STATUS_NL_DEFAULT_UP_FORMAT,   NULL);
-    self->formats.down = j4status_format_string_parse(NULL, NULL,                          0,                                           J4STATUS_NL_DEFAULT_DOWN_FORMAT, NULL);
 
     gchar **interface;
     for ( interface = interfaces ; *interface != NULL ; ++interface )
@@ -438,8 +437,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
         section = _j4status_nl_section_new(self, core, *interface);
         if ( section != NULL )
             g_hash_table_insert(self->sections, GINT_TO_POINTER(section->ifindex), section);
-        else
-            g_free(*interface);
+        g_free(*interface);
     }
 
     g_free(interfaces);
