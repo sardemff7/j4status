@@ -129,7 +129,7 @@ J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
 
 
 J4SP_ADD_INPUT_PLUGIN(nl, [Netlink], [yes], [
-    GW_CHECK_NL([libnl-route-3.0], [sys/socket.h linux/if_arp.h])
+    GW_CHECK_NL([libnl-route-3.0 libnl-genl-3.0], [sys/socket.h linux/if_arp.h linux/nl80211.h])
 ])
 
 J4SP_ADD_INPUT_PLUGIN(upower, [UPower], [yes], [

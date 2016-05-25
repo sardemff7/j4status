@@ -34,12 +34,15 @@
 #include <sys/socket.h>
 #include <linux/if_arp.h>
 #include <linux/netlink.h>
+#include <linux/nl80211.h>
 #include <netlink/netlink.h>
 #include <netlink/cache.h>
 #include <netlink/socket.h>
 #include <netlink/msg.h>
 #include <netlink/route/link.h>
 #include <netlink/route/addr.h>
+#include <netlink/genl/genl.h>
+#include <netlink/genl/ctrl.h>
 #include <libgwater-nl.h>
 
 #include <j4status-plugin-input.h>
@@ -62,20 +65,66 @@ typedef enum {
     TOKEN_UP_ADDRESSES,
 } J4statusNlFormatUpToken;
 
+typedef enum {
+    TOKEN_UP_WIFI_ADDRESSES,
+    TOKEN_UP_WIFI_STRENGTH,
+    TOKEN_UP_WIFI_SSID,
+    TOKEN_UP_WIFI_BITRATE,
+} J4statusNlFormatUpWiFiToken;
+
+typedef enum {
+    TOKEN_DOWN_WIFI_APS,
+} J4statusNlFormatDownWiFiToken;
+
 static const gchar * const _j4status_nl_format_up_tokens[] = {
     [TOKEN_UP_ADDRESSES] = "addresses",
+};
+
+static const gchar * const _j4status_nl_format_up_wifi_tokens[] = {
+    [TOKEN_UP_WIFI_ADDRESSES] = "addresses",
+    [TOKEN_UP_WIFI_STRENGTH]  = "strength",
+    [TOKEN_UP_WIFI_SSID]      = "ssid",
+    [TOKEN_UP_WIFI_BITRATE]   = "bitrate",
+};
+
+static const gchar * const _j4status_nl_format_down_wifi_tokens[] = {
+    [TOKEN_DOWN_WIFI_APS] = "aps",
 };
 
 typedef enum {
     TOKEN_FLAG_UP_ADDRESSES = (1 << TOKEN_UP_ADDRESSES),
 } J4statusNlFormatUpEthTokenFlag;
 
+typedef enum {
+    TOKEN_FLAG_UP_WIFI_ADDRESSES = (1 << TOKEN_UP_WIFI_ADDRESSES),
+    TOKEN_FLAG_UP_WIFI_STRENGTH  = (1 << TOKEN_UP_WIFI_STRENGTH),
+    TOKEN_FLAG_UP_WIFI_SSID      = (1 << TOKEN_UP_WIFI_SSID),
+    TOKEN_FLAG_UP_WIFI_BITRATE   = (1 << TOKEN_UP_WIFI_BITRATE),
+} J4statusNlFormatUpWiFiTokenFlag;
+
+typedef enum {
+    TOKEN_FLAG_DOWN_WIFI_APS = (1 << TOKEN_DOWN_WIFI_APS),
+} J4statusNlFormatDownWiFiTokenFlag;
+
 #define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
+#define J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength>% }${at <ssid>, }${bitrate})"
+#define J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI "Down${ (<aps> APs)}"
 
 typedef struct {
     const gchar *addresses;
+    const gchar *strength;
+    const gchar *ssid;
+    const gchar *bitrate;
+    const gchar *aps;
 } J4statusNlFormatData;
+
+typedef struct {
+    int error;
+    struct nlattr **answer;
+    int size;
+    gsize number;
+} J4statusNlMessageAnswer;
 
 struct _J4statusPluginContext {
     GHashTable *sections;
@@ -84,13 +133,24 @@ struct _J4statusPluginContext {
     struct nl_cache_mngr *cache_mngr;
     struct nl_cache *link_cache;
     struct nl_cache *addr_cache;
+    struct {
+        GWaterNlSource *source;
+        struct nl_sock *sock;
+        int id;
+        GWaterNlSource *esource;
+        struct nl_sock *esock;
+    } nl80211;
     gboolean started;
 
     J4statusNlAddresses addresses;
     struct {
         J4statusFormatString *up;
         J4statusFormatString *down;
+        J4statusFormatString *up_wifi;
+        J4statusFormatString *down_wifi;
         guint64 up_tokens;
+        guint64 up_wifi_tokens;
+        guint64 down_wifi_tokens;
     } formats;
 };
 
@@ -99,14 +159,336 @@ typedef struct {
     J4statusSection *section;
     gint ifindex;
     struct rtnl_link *link;
+    struct {
+        gboolean is;
+        gboolean has_ap;
+        gchar *ssid;
+        gchar strength[4]; /* 100 + \0 */
+        gchar bitrate[9]; /* 1000 + xb/s + \0 */
+        gchar aps[5]; /* 1000 + \0 */
+    } wifi;
     GList *ipv4_addresses;
     GList *ipv6_addresses;
 } J4statusNlSection;
 
+static int
+_j4status_nl_message_error_callback(struct sockaddr_nl *nla, struct nlmsgerr *error, void *user_data)
+{
+    J4statusNlMessageAnswer *data = user_data;
+    data->error = error->error;
+    return NL_STOP;
+}
+
+static int
+_j4status_nl_message_ack_callback(struct nl_msg *msg, void *user_data)
+{
+    J4statusNlMessageAnswer *data = user_data;
+    data->error = 0;
+    return NL_STOP;
+}
+
+static int
+_j4status_nl_message_valid_callback(struct nl_msg *msg, void *user_data)
+{
+    J4statusNlMessageAnswer *data = user_data;
+    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+
+    ++data->number;
+    nla_parse(data->answer, data->size, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
+
+    return NL_SKIP;
+}
+
+static int
+_j4status_nl_send_message(struct nl_sock *sock, struct nl_msg *message, struct nlattr **answer, int size, gsize *number)
+{
+    struct nl_cb *cb = NULL;
+
+    cb = nl_cb_alloc(NL_CB_DEFAULT);
+    if ( cb == NULL )
+        goto fail;
+
+    J4statusNlMessageAnswer data = {
+        .error = 1,
+        .answer = answer,
+        .size = size,
+        .number = 0,
+    };
+
+    int err;
+    err = nl_send_auto_complete(sock, message);
+    if ( err < 0 )
+    {
+        g_warning("Couldn’t send message: %s", nl_geterror(err));
+        goto fail;
+    }
+
+    nl_cb_err(cb, NL_CB_CUSTOM, _j4status_nl_message_error_callback, &data);
+    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &data);
+    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &data);
+    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, _j4status_nl_message_valid_callback, &data);
+
+    while ( data.error > 0 )
+        nl_recvmsgs(sock, cb);
+
+    if ( number != NULL )
+        *number = data.number;
+
+fail:
+    nl_cb_put(cb);
+    return data.error;
+}
+
+static gboolean
+_j4status_nl_register_events(J4statusPluginContext *self)
+{
+    struct nl_msg *message;
+
+    message = nlmsg_alloc();
+    if ( message == NULL )
+        return FALSE;
+
+    gboolean ret = FALSE;
+
+    int ctrlid;
+    ctrlid = genl_ctrl_resolve(self->nl80211.esock, "nlctrl");
+
+    genlmsg_put(message, NL_AUTO_PORT, NL_AUTO_SEQ, ctrlid, 0, 0, CTRL_CMD_GETFAMILY, 0);
+    NLA_PUT_STRING(message, CTRL_ATTR_FAMILY_NAME, NL80211_GENL_NAME);
+
+    struct nlattr *answer[CTRL_ATTR_MAX + 1];
+    int err;
+    if ( ( err = _j4status_nl_send_message(self->nl80211.sock, message, answer, CTRL_ATTR_MAX, NULL) ) != 0 )
+    {
+        if ( err < 0 )
+            g_warning("Couldn’t get multicast groups ids: %s", nl_geterror(err));
+        goto fail;
+    }
+
+    if ( answer[CTRL_ATTR_MCAST_GROUPS] == NULL )
+        goto fail;
+
+    struct nlattr *group;
+    int rem;
+    nla_for_each_nested(group, answer[CTRL_ATTR_MCAST_GROUPS], rem)
+    {
+        struct nlattr *group_attr[CTRL_ATTR_MCAST_GRP_MAX + 1];
+
+        nla_parse(group_attr, CTRL_ATTR_MCAST_GRP_MAX, nla_data(group), nla_len(group), NULL);
+
+        if ( ( group_attr[CTRL_ATTR_MCAST_GRP_NAME] == NULL ) || ( group_attr[CTRL_ATTR_MCAST_GRP_ID] == NULL ) )
+            continue;
+
+        const char *name = nla_data(group_attr[CTRL_ATTR_MCAST_GRP_NAME]);
+        size_t n = nla_len(group_attr[CTRL_ATTR_MCAST_GRP_NAME]);
+        if ( ( strncmp(name, NL80211_MULTICAST_GROUP_CONFIG, n) != 0 )
+             && ( strncmp(name, NL80211_MULTICAST_GROUP_SCAN, n) != 0 ) )
+            continue;
+
+        int id = nla_get_u32(group_attr[CTRL_ATTR_MCAST_GRP_ID]);
+        err = nl_socket_add_membership(self->nl80211.esock, id);
+        if ( err < 0 )
+        {
+            ret = FALSE;
+            g_warning("Couldn’t register to %.*s events: %s", (int) n, name, nl_geterror(err));
+            goto fail;
+        }
+        ret = TRUE;
+    }
+
+nla_put_failure:
+fail:
+    nlmsg_free(message);
+    return ret;
+}
+
+static void
+_j4status_nl_section_update_nl80211(J4statusNlSection *self)
+{
+    g_return_if_fail(self->wifi.is);
+
+    self->wifi.has_ap = FALSE;
+    g_free(self->wifi.ssid);
+    self->wifi.ssid = NULL;
+    self->wifi.bitrate[0] = '\0';
+    self->wifi.strength[0] = '\0';
+    self->wifi.aps[0] = '\0';
+
+    struct nl_msg *message;
+
+    message = nlmsg_alloc();
+    genlmsg_put(message, NL_AUTO_PORT, NL_AUTO_SEQ, self->context->nl80211.id, 0, NLM_F_DUMP, NL80211_CMD_GET_SCAN, 0);
+    NLA_PUT_U32(message, NL80211_ATTR_IFINDEX, self->ifindex);
+
+    int err;
+    struct nlattr *answer[NUM_NL80211_ATTR];
+    gsize aps;
+    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, &aps) ) != 0 )
+    {
+        if ( err < 0 )
+            g_warning("Couldn’t query nl80211 scan information: %s", nl_geterror(err));
+        goto end;
+    }
+
+    g_snprintf(self->wifi.aps, sizeof(self->wifi.aps), "%zu", aps);
+
+    if ( answer[NL80211_ATTR_BSS] == NULL )
+        goto end;
+    struct nlattr *bss[NL80211_BSS_MAX + 1];
+    static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
+        [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
+        [NL80211_BSS_BSSID] = { },
+        [NL80211_BSS_INFORMATION_ELEMENTS] = { },
+        [NL80211_BSS_STATUS] = { .type = NLA_U32 },
+    };
+    if ( nla_parse_nested(bss, NL80211_BSS_MAX, answer[NL80211_ATTR_BSS], bss_policy) < 0 )
+        goto end;
+
+    if ( bss[NL80211_BSS_STATUS] == NULL )
+        goto end;
+
+    if ( bss[NL80211_BSS_INFORMATION_ELEMENTS] != NULL )
+    {
+        guchar *data = nla_data(bss[NL80211_BSS_INFORMATION_ELEMENTS]);
+        gint len = nla_len(bss[NL80211_BSS_INFORMATION_ELEMENTS]);
+        guchar *c;
+        guchar size;
+        for ( c = data ; c < data + len ; c += size )
+        {
+            gint type = c[0];
+            size = c[1];
+            c += 2;
+
+            switch ( type )
+            {
+            case 0: /* SSID */
+                self->wifi.ssid = g_strndup((gchar *) c, size);
+            break;
+            }
+        }
+    }
+
+    switch ( nla_get_u32(bss[NL80211_BSS_STATUS]) )
+    {
+    case NL80211_BSS_STATUS_ASSOCIATED:
+    break;
+    case NL80211_BSS_STATUS_AUTHENTICATED:
+        goto has_ap;
+    case NL80211_BSS_STATUS_IBSS_JOINED:
+        goto has_ap;
+    default:
+        goto end;
+    }
+
+    nlmsg_free(message);
+    message = nlmsg_alloc();
+    genlmsg_put(message, NL_AUTO_PORT, NL_AUTO_SEQ, self->context->nl80211.id, 0, 0, NL80211_CMD_GET_STATION, 0);
+    NLA_PUT_U32(message, NL80211_ATTR_IFINDEX, self->ifindex);
+    NLA_PUT(message, NL80211_ATTR_MAC, nla_len(bss[NL80211_BSS_BSSID]), nla_data(bss[NL80211_BSS_BSSID]));
+    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
+    {
+        if ( err < 0 )
+            g_warning("Couldn’t query nl80211 station: %s", nl_geterror(err));
+        goto end;
+    }
+
+    if ( answer[NL80211_ATTR_STA_INFO] == NULL )
+        goto end;
+
+    struct nlattr *sinfo[NL80211_STA_INFO_MAX + 1];
+    static struct nla_policy stats_policy[NL80211_STA_INFO_MAX + 1] = {
+        [NL80211_STA_INFO_SIGNAL] = { .type = NLA_U8 },
+        [NL80211_STA_INFO_TX_BITRATE] = { .type = NLA_NESTED },
+    };
+    if ( nla_parse_nested(sinfo, NL80211_STA_INFO_MAX, answer[NL80211_ATTR_STA_INFO], stats_policy) < 0 )
+        goto end;
+
+    if ( sinfo[NL80211_STA_INFO_TX_BITRATE] != NULL )
+    {
+        struct nlattr *rinfo[NL80211_RATE_INFO_MAX + 1];
+        static struct nla_policy rate_policy[NL80211_RATE_INFO_MAX + 1] = {
+                [NL80211_RATE_INFO_BITRATE] = { .type = NLA_U16 },
+                [NL80211_RATE_INFO_BITRATE32] = { .type = NLA_U32 },
+        };
+
+        if ( nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX, sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy) < 0 )
+            goto end;
+
+        guint32 rate = 0;
+        if ( rinfo[NL80211_RATE_INFO_BITRATE32] != NULL )
+            rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
+        else if ( rinfo[NL80211_RATE_INFO_BITRATE] != NULL )
+            rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
+        if ( rate > 0 )
+        {
+            rate /= 10;
+
+            const gchar *f = "%uMb/s";
+            if ( ( rate % 1000000 ) == 0 )
+            {
+                f = "%uTb/s";
+                rate /= 1000000;
+            }
+            else if ( ( rate % 1000 ) == 0 )
+            {
+                f = "%uGb/s";
+                rate /= 1000;
+            }
+            g_snprintf(self->wifi.bitrate, sizeof(self->wifi.bitrate), f, rate);
+        }
+    }
+
+    if ( sinfo[NL80211_STA_INFO_SIGNAL] != NULL )
+    {
+        gint8 dbm = (gint8) nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL]);
+        guint8 strength = ( 100 + CLAMP(dbm, -100, -50) ) * 2;
+        g_snprintf(self->wifi.strength, sizeof(self->wifi.strength), "%hhu", strength);
+    }
+
+has_ap:
+    self->wifi.has_ap = TRUE;
+
+nla_put_failure:
+end:
+    nlmsg_free(message);
+}
+
+static gboolean
+_j4status_nl_section_check_nl80211(J4statusNlSection *self, const gchar *interface)
+{
+    gboolean ret = FALSE;
+    struct nl_msg *message;
+
+    message = nlmsg_alloc();
+    genlmsg_put(message, NL_AUTO_PORT, NL_AUTO_SEQ, self->context->nl80211.id, 0, 0, NL80211_CMD_GET_INTERFACE, 0);
+    NLA_PUT_U32(message, NL80211_ATTR_IFINDEX, self->ifindex);
+
+    int err;
+    struct nlattr *answer[NUM_NL80211_ATTR];
+    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
+    {
+        if ( err == -NLE_NOADDR )
+            ret = TRUE;
+        else if ( err < 0 )
+            g_warning("Couldn’t query nl80211 status for %s: %s", interface, nl_geterror(err));
+        goto fail;
+    }
+
+    self->wifi.is = TRUE;
+
+    _j4status_nl_section_update_nl80211(self);
+
+nla_put_failure:
+fail:
+    nlmsg_free(message);
+    return ret || self->wifi.is;
+}
+
 static gboolean
 _j4status_nl_section_need_addresses(J4statusNlSection *self)
 {
-    return ( self->context->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES );
+    return ( ( ( ! self->wifi.is ) && ( self->context->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES ) )
+             || ( self->wifi.is && ( self->context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_ADDRESSES) ) );
 }
 
 static gsize
@@ -173,6 +555,38 @@ _j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpoint
     return NULL;
 }
 
+static const gchar *
+_j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusNlFormatData *data = user_data;
+
+    switch ( value )
+    {
+    case TOKEN_UP_WIFI_ADDRESSES:
+        return data->addresses;
+    case TOKEN_UP_WIFI_STRENGTH:
+        return data->strength;
+    case TOKEN_UP_WIFI_SSID:
+        return data->ssid;
+    case TOKEN_UP_WIFI_BITRATE:
+        return data->bitrate;
+    }
+    return NULL;
+}
+
+static const gchar *
+_j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusNlFormatData *data = user_data;
+
+    switch ( value )
+    {
+    case TOKEN_DOWN_WIFI_APS:
+        return data->aps;
+    }
+    return NULL;
+}
+
 static void
 _j4status_nl_section_free_addresses(J4statusNlSection *self)
 {
@@ -200,12 +614,30 @@ _j4status_nl_section_update(J4statusNlSection *self)
     else if ( ! ( flags & IFF_RUNNING ) )
     {
         state = J4STATUS_STATE_BAD;
-        value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, NULL);
+
+        J4statusNlFormatData data = { NULL };
+        if ( self->wifi.is )
+        {
+            g_debug("Wifi down: %s", self->wifi.aps);
+            if ( self->wifi.aps[0] != '\0' )
+                data.aps = self->wifi.aps;
+            value = j4status_format_string_replace(self->context->formats.down_wifi, _j4status_nl_format_down_wifi_callback, &data);
+        }
+        else
+            value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, &data);
         _j4status_nl_section_free_addresses(self);
     }
     else if ( ( self->ipv4_addresses == NULL ) && ( self->ipv6_addresses == NULL ) )
     {
         state = J4STATUS_STATE_AVERAGE;
+        if ( self->wifi.is && self->wifi.has_ap )
+        {
+            if ( self->wifi.ssid == NULL )
+                value = g_strdup("Associating");
+            else
+                value = g_strdup_printf("Associating with %s", self->wifi.ssid);
+        }
+        else
             value = g_strdup("Connecting");
     }
     else
@@ -218,6 +650,16 @@ _j4status_nl_section_update(J4statusNlSection *self)
             addresses = _j4status_nl_section_get_addresses(self);
         data.addresses = addresses;
 
+        if ( self->wifi.is )
+        {
+            data.ssid = self->wifi.ssid;
+            if ( self->wifi.strength[0] != '\0' )
+                data.strength = self->wifi.strength;
+            if ( self->wifi.bitrate[0] != '\0' )
+                data.bitrate = self->wifi.bitrate;
+            value = j4status_format_string_replace(self->context->formats.up_wifi, _j4status_nl_format_up_wifi_callback, &data);
+        }
+        else
             value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, &data);
 
         g_free(addresses);
@@ -329,6 +771,8 @@ _j4status_nl_section_new(J4statusPluginContext *context, J4statusCoreInterface *
         return NULL;
     }
 
+    _j4status_nl_section_check_nl80211(self, interface);
+
     if ( _j4status_nl_section_need_addresses(self) )
     {
         struct nl_object *object;
@@ -385,6 +829,34 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
     _j4status_nl_section_update(section);
 }
 
+static int
+_j4status_nl_nl80211_no_seq_check(struct nl_msg *msg, void *user_data)
+{
+    return NL_OK;
+}
+
+static int
+_j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
+{
+    J4statusPluginContext *self = user_data;
+    struct genlmsghdr *gnlh = nlmsg_data(nlmsg_hdr(msg));
+    J4statusNlSection *section;
+
+    struct nlattr *answer[NUM_NL80211_ATTR];
+    nla_parse(answer, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
+
+    g_debug("Got an event");
+    if ( answer[NL80211_ATTR_IFINDEX] == NULL )
+        goto end;
+
+    section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(nla_get_u32(answer[NL80211_ATTR_IFINDEX])));
+
+    _j4status_nl_section_update_nl80211(section);
+
+end:
+    return NL_SKIP;
+}
+
 
 static void _j4status_nl_uninit(J4statusPluginContext *self);
 
@@ -420,6 +892,8 @@ _j4status_nl_init(J4statusCoreInterface *core)
 
     self->formats.up        = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        &self->formats.up_tokens);
     self->formats.down      = j4status_format_string_parse(NULL, NULL,                                 0,                                                  J4STATUS_NL_DEFAULT_FORMAT_DOWN,      NULL);
+    self->formats.up_wifi   = j4status_format_string_parse(NULL, _j4status_nl_format_up_wifi_tokens,   G_N_ELEMENTS(_j4status_nl_format_up_wifi_tokens),   J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI,   &self->formats.wifi_up_tokens);
+    self->formats.down_wifi = j4status_format_string_parse(NULL, _j4status_nl_format_down_wifi_tokens, G_N_ELEMENTS(_j4status_nl_format_down_wifi_tokens), J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI, &self->formats.wifi_down_tokens);
 
     self->source = g_water_nl_source_new_cache_mngr(NULL, NETLINK_ROUTE, NL_AUTO_PROVIDE, &err);
     if ( self->source == NULL )
@@ -444,7 +918,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
         goto error;
     }
 
-    if ( self->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES )
+    if ( ( self->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES ) || ( self->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_ADDRESSES ) )
     {
         err = rtnl_addr_alloc_cache(self->sock, &self->addr_cache);
         if ( err < 0 )
@@ -461,6 +935,52 @@ _j4status_nl_init(J4statusCoreInterface *core)
         }
     }
 
+    if ( self->formats.up_wifi_tokens & ~TOKEN_FLAG_UP_WIFI_ADDRESSES )
+    {
+        self->nl80211.source = g_water_nl_source_new_sock(NULL);
+        if ( self->nl80211.source == NULL )
+        {
+            g_warning("Couldn't subscribe to nl80211 events");
+            goto error;
+        }
+        self->nl80211.sock = g_water_nl_source_get_sock(self->nl80211.source);
+
+        err = genl_connect(self->nl80211.sock);
+        if ( err < 0 )
+        {
+            g_warning("Couldn't connect to nl80211: %s", nl_geterror(err));
+            goto error;
+        }
+
+        self->nl80211.id = genl_ctrl_resolve(self->nl80211.sock, NL80211_GENL_NAME);
+        if ( self->nl80211.id < 0 )
+        {
+            g_warning("Couldn't resolve nl80211: %s", nl_geterror(self->nl80211.id));
+            goto error;
+        }
+
+        self->nl80211.esource = g_water_nl_source_new_sock(NULL);
+        if ( self->nl80211.esource == NULL )
+        {
+            g_warning("Couldn't subscribe to nl80211 events");
+            goto error;
+        }
+        self->nl80211.esock = g_water_nl_source_get_sock(self->nl80211.esource);
+
+
+        err = genl_connect(self->nl80211.esock);
+        if ( err < 0 )
+        {
+            g_warning("Couldn't connect to nl80211: %s", nl_geterror(err));
+            goto error;
+        }
+
+        nl_socket_modify_cb(self->nl80211.esock, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, _j4status_nl_nl80211_no_seq_check, self);
+        nl_socket_modify_cb(self->nl80211.esock, NL_CB_VALID, NL_CB_CUSTOM, _j4status_nl_nl80211_event, self);
+
+        if ( ! _j4status_nl_register_events(self) )
+            goto error;
+    }
 
     gchar **interface;
     for ( interface = interfaces ; *interface != NULL ; ++interface )
@@ -489,8 +1009,13 @@ error:
 static void
 _j4status_nl_uninit(J4statusPluginContext *self)
 {
+    j4status_format_string_unref(self->formats.down_wifi);
+    j4status_format_string_unref(self->formats.up_wifi);
     j4status_format_string_unref(self->formats.down);
     j4status_format_string_unref(self->formats.up);
+
+    if ( self->nl80211.source != NULL )
+        g_water_nl_source_unref(self->nl80211.source);
 
     nl_cache_put(self->addr_cache);
     nl_cache_put(self->link_cache);
