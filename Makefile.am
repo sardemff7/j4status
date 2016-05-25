@@ -45,6 +45,7 @@ include input-output/i3bar/i3bar.mk
 endif
 include input/time/time.mk
 include input/file-monitor/file-monitor.mk
+include input/systemd/systemd.mk
 if ENABLE_UPOWER_INPUT
 include input/upower/upower.mk
 endif
@@ -56,9 +57,6 @@ include input/mpd/mpd.mk
 endif
 if ENABLE_PULSEAUDIO_INPUT
 include input/pulseaudio/pulseaudio.mk
-endif
-if ENABLE_SYSTEMD_INPUT
-include input/systemd/systemd.mk
 endif
 
 include src/man.mk

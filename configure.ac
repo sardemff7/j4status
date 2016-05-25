@@ -119,6 +119,7 @@ J4SP_ADD_OUTPUT_PLUGIN(flat, [Flat], [always])
 J4SP_ADD_OUTPUT_PLUGIN(debug, [Debug], [always])
 J4SP_ADD_INPUT_PLUGIN(time, [Time], [always])
 J4SP_ADD_INPUT_PLUGIN(file-monitor, [File monitor], [always])
+J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [always])
 
 yajl_min_version=2.0.0
 J4SP_ADD_INPUT_OUTPUT_PLUGIN(i3bar, [i3bar JSON protocol], [yes], [
@@ -152,8 +153,6 @@ J4SP_ADD_INPUT_PLUGIN(pulseaudio, [PULSEAUDIO], [yes], [
 J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
     GW_CHECK_MPD
 ])
-
-J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [no])
 
 # Features defaulting to enable
 # They more or less provide i3status features
