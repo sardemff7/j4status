@@ -69,16 +69,20 @@ include src/units.mk
 #
 
 install-data-hook: la-files-install-hook
-uninstall-hook: la-files-uninstall-hook
+uninstall-libLTLIBRARIES uninstall-hook: la-files-uninstall-hook
+
+j4_remove_la = $(if $(strip $($(1)_LTLIBRARIES)),( cd $(DESTDIR)$($(1)dir) && rm -f $($(1)_LTLIBRARIES) ))
+j4_remove_so_from_la = $(if $(strip $($(1)_LTLIBRARIES)),for la in $($(1)_LTLIBRARIES); do \
+		$(INSTALL) "$(abs_builddir)/$(LT_OBJDIR)"/$${la}i "$(DESTDIR)$($(1)dir)"/$${la}; \
+	done )
 
 # *.la files cleanup
 la-files-install-hook:
-	cd $(DESTDIR)$(pluginsdir) && \
-		rm $(plugins_LTLIBRARIES)
+	$(call j4_remove_la,lib)
+	$(call j4_remove_la,plugins)
 
 # Remove shared object files at uninstall since
 # we remove *.la files at install
 la-files-uninstall-hook:
-	cd $(DESTDIR)$(pluginsdir) && \
-		rm $(plugins_LTLIBRARIES:.la=$(shrext_cmds))
-	rmdir $(DESTDIR)$(pluginsdir)
+	$(call j4_remove_so_from_la,lib)
+	$(call j4_remove_so_from_la,plugins)
