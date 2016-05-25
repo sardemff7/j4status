@@ -227,7 +227,16 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
         list = &self->ipv4_addresses;
     break;
     case AF_INET6:
+    {
+        guint8 *bin;
+        /* IPv6 addresses ar 128bit long, so 16 bytes */
+        g_return_if_fail(nl_addr_get_len(addr) == 16);
+        bin = nl_addr_get_binary_addr(addr);
+        /* We only keep Unicast routable addresses */
+        if ( ( bin[0] & 0xE0 ) != 0x20 )
+            return;
         list = &self->ipv6_addresses;
+    }
     break;
     default:
         /* Not supported */
