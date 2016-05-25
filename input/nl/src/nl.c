@@ -66,6 +66,10 @@ static const gchar * const _j4status_nl_format_up_tokens[] = {
     [TOKEN_UP_ADDRESSES] = "addresses",
 };
 
+typedef enum {
+    TOKEN_FLAG_UP_ADDRESSES = (1 << TOKEN_UP_ADDRESSES),
+} J4statusNlFormatUpEthTokenFlag;
+
 #define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
 
@@ -82,6 +86,7 @@ struct _J4statusPluginContext {
     struct {
         J4statusFormatString *up;
         J4statusFormatString *down;
+        guint64 up_tokens;
     } formats;
 };
 
@@ -93,6 +98,12 @@ typedef struct {
     GList *ipv4_addresses;
     GList *ipv6_addresses;
 } J4statusNlSection;
+
+static gboolean
+_j4status_nl_section_need_addresses(J4statusNlSection *self)
+{
+    return ( self->context->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES );
+}
 
 static gsize
 _j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
@@ -196,7 +207,8 @@ _j4status_nl_section_update(J4statusNlSection *self)
         state = J4STATUS_STATE_GOOD;
 
         gchar *addresses = NULL;
-        addresses = _j4status_nl_section_get_addresses(self);
+        if ( _j4status_nl_section_need_addresses(self) )
+            addresses = _j4status_nl_section_get_addresses(self);
 
         value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, addresses);
 
@@ -215,7 +227,7 @@ _j4status_nl_address_compare(gconstpointer a, gconstpointer b)
     return nl_addr_cmp(a, b);
 }
 
-static void
+static gboolean
 _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtaddr)
 {
     struct nl_addr *addr;
@@ -230,24 +242,25 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
     {
         guint8 *bin;
         /* IPv6 addresses ar 128bit long, so 16 bytes */
-        g_return_if_fail(nl_addr_get_len(addr) == 16);
+        g_return_val_if_fail(nl_addr_get_len(addr) == 16, FALSE);
         bin = nl_addr_get_binary_addr(addr);
         /* We only keep Unicast routable addresses */
         if ( ( bin[0] & 0xE0 ) != 0x20 )
-            return;
+            return FALSE;
         list = &self->ipv6_addresses;
     }
     break;
     default:
         /* Not supported */
-        return;
+        return FALSE;
     }
 
     if ( g_list_find_custom(*list, addr,_j4status_nl_address_compare)  != NULL )
         /* Already got it */
-        return;
+        return FALSE;
 
     *list = g_list_prepend(*list, nl_addr_get(addr));
+    return TRUE;
 }
 
 static void
@@ -308,12 +321,15 @@ _j4status_nl_section_new(J4statusPluginContext *context, J4statusCoreInterface *
         return NULL;
     }
 
-    struct nl_object *object;
-    for ( object = nl_cache_get_first(context->addr_cache) ; object != NULL ; object = nl_cache_get_next(object) )
+    if ( _j4status_nl_section_need_addresses(self) )
     {
-        struct rtnl_addr *addr = nl_object_priv(object);
-        if ( rtnl_addr_get_ifindex(addr) == self->ifindex )
-            _j4status_nl_section_add_address(self, addr);
+        struct nl_object *object;
+        for ( object = nl_cache_get_first(context->addr_cache) ; object != NULL ; object = nl_cache_get_next(object) )
+        {
+            struct rtnl_addr *addr = nl_object_priv(object);
+            if ( rtnl_addr_get_ifindex(addr) == self->ifindex )
+                _j4status_nl_section_add_address(self, addr);
+        }
     }
 
     _j4status_nl_section_update(self);
@@ -337,6 +353,7 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
 
         if ( section->link != link )
         {
+            _j4status_nl_section_free_addresses(section);
             nl_object_get(object);
             rtnl_link_put(section->link);
             section->link = link;
@@ -349,7 +366,11 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
         if ( section == NULL )
             return;
 
-        _j4status_nl_section_add_address(section, addr);
+        if ( ! _j4status_nl_section_need_addresses(section) )
+            return;
+
+        if ( ! _j4status_nl_section_add_address(section, addr) )
+            return;
     }
     else
         g_assert_not_reached();
@@ -389,7 +410,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
 
     self->sections = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, _j4status_nl_section_free);
 
-    self->formats.up        = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        NULL);
+    self->formats.up        = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        &self->formats.up_tokens);
     self->formats.down      = j4status_format_string_parse(NULL, NULL,                                 0,                                                  J4STATUS_NL_DEFAULT_FORMAT_DOWN,      NULL);
 
     self->source = g_water_nl_source_new_cache_mngr(NULL, NETLINK_ROUTE, NL_AUTO_PROVIDE, &err);
@@ -415,18 +436,21 @@ _j4status_nl_init(J4statusCoreInterface *core)
         goto error;
     }
 
-    err = rtnl_addr_alloc_cache(self->sock, &self->addr_cache);
-    if ( err < 0 )
+    if ( self->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES )
     {
-        g_warning("Couldn't allocate addresses cache: %s", nl_geterror(err));
-        goto error;
-    }
+        err = rtnl_addr_alloc_cache(self->sock, &self->addr_cache);
+        if ( err < 0 )
+        {
+            g_warning("Couldn't allocate addresses cache: %s", nl_geterror(err));
+            goto error;
+        }
 
-    err = nl_cache_mngr_add_cache(self->cache_mngr, self->addr_cache, _j4status_nl_cache_change, self);
-    if ( err < 0 )
-    {
-        g_warning("Couldn't manage addresses cache: %s", nl_geterror(err));
-        goto error;
+        err = nl_cache_mngr_add_cache(self->cache_mngr, self->addr_cache, _j4status_nl_cache_change, self);
+        if ( err < 0 )
+        {
+            g_warning("Couldn't manage addresses cache: %s", nl_geterror(err));
+            goto error;
+        }
     }
 
 
