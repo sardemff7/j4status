@@ -864,14 +864,12 @@ static J4statusPluginContext *
 _j4status_nl_init(J4statusCoreInterface *core)
 {
     gchar **interfaces = NULL;
-    guint64 addresses = ADDRESSES_ALL;
 
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("Netlink");
     if ( key_file != NULL )
     {
         interfaces = g_key_file_get_string_list(key_file, "Netlink", "Interfaces", NULL, NULL);
-        j4status_config_key_file_get_enum(key_file, "Netlink", "Addresses", _j4status_nl_addresses, G_N_ELEMENTS(_j4status_nl_addresses), &addresses);
 
         g_key_file_free(key_file);
     }
@@ -886,14 +884,32 @@ _j4status_nl_init(J4statusCoreInterface *core)
     J4statusPluginContext *self;
 
     self = g_new0(J4statusPluginContext, 1);
-    self->addresses = addresses;
 
     self->sections = g_hash_table_new_full(g_direct_hash, g_direct_equal, NULL, _j4status_nl_section_free);
 
-    self->formats.up        = j4status_format_string_parse(NULL, _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        &self->formats.up_tokens);
-    self->formats.down      = j4status_format_string_parse(NULL, NULL,                                 0,                                                  J4STATUS_NL_DEFAULT_FORMAT_DOWN,      NULL);
-    self->formats.up_wifi   = j4status_format_string_parse(NULL, _j4status_nl_format_up_wifi_tokens,   G_N_ELEMENTS(_j4status_nl_format_up_wifi_tokens),   J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI,   &self->formats.wifi_up_tokens);
-    self->formats.down_wifi = j4status_format_string_parse(NULL, _j4status_nl_format_down_wifi_tokens, G_N_ELEMENTS(_j4status_nl_format_down_wifi_tokens), J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI, &self->formats.wifi_down_tokens);
+    guint64 addresses = ADDRESSES_ALL;
+    gchar *format_up = NULL;
+    gchar *format_down = NULL;
+    gchar *format_up_wifi = NULL;
+    gchar *format_down_wifi = NULL;
+
+    key_file = j4status_config_get_key_file("Netlink Formats");
+    if ( key_file != NULL )
+    {
+        j4status_config_key_file_get_enum(key_file, "Netlink Formats", "Addresses", _j4status_nl_addresses, G_N_ELEMENTS(_j4status_nl_addresses), &addresses);
+        format_up         = g_key_file_get_string(key_file, "Netlink Formats", "Up", NULL);
+        format_down       = g_key_file_get_string(key_file, "Netlink Formats", "Down", NULL);
+        format_up_wifi    = g_key_file_get_string(key_file, "Netlink Formats", "UpWiFi", NULL);
+        format_down_wifi  = g_key_file_get_string(key_file, "Netlink Formats", "DownWiFi", NULL);
+
+        g_key_file_free(key_file);
+    }
+
+    self->addresses = addresses;
+    self->formats.up        = j4status_format_string_parse(format_up,        _j4status_nl_format_up_tokens,        G_N_ELEMENTS(_j4status_nl_format_up_tokens),        J4STATUS_NL_DEFAULT_FORMAT_UP,        &self->formats.up_tokens);
+    self->formats.down      = j4status_format_string_parse(format_down,      NULL,                                 0,                                                  J4STATUS_NL_DEFAULT_FORMAT_DOWN,      NULL);
+    self->formats.up_wifi   = j4status_format_string_parse(format_up_wifi,   _j4status_nl_format_up_wifi_tokens,   G_N_ELEMENTS(_j4status_nl_format_up_wifi_tokens),   J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI,   &self->formats.up_wifi_tokens);
+    self->formats.down_wifi = j4status_format_string_parse(format_down_wifi, _j4status_nl_format_down_wifi_tokens, G_N_ELEMENTS(_j4status_nl_format_down_wifi_tokens), J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI, &self->formats.down_wifi_tokens);
 
     self->source = g_water_nl_source_new_cache_mngr(NULL, NETLINK_ROUTE, NL_AUTO_PROVIDE, &err);
     if ( self->source == NULL )
