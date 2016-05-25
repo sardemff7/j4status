@@ -46,6 +46,9 @@ endif
 include input/time/time.mk
 include input/file-monitor/file-monitor.mk
 include input/systemd/systemd.mk
+if ENABLE_NL_INPUT
+include input/nl/nl.mk
+endif
 if ENABLE_UPOWER_INPUT
 include input/upower/upower.mk
 endif

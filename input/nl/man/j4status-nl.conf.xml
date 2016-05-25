@@ -1,0 +1,113 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % config SYSTEM "config.ent">
+%config;
+]>
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012-2015 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status-nl.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status-nl.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status-nl.conf</refname>
+        <refpurpose>j4status Netlink plugin configuration</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>
+            Configuration for the Netlink plugin
+        </para>
+        <para>
+            The Netlink plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
+        </para>
+    </refsynopsisdiv>
+
+    <refsect1 id="description">
+        <title>Description</title>
+
+        <para>
+            It controls the Netlink plugin behavior.
+        </para>
+    </refsect1>
+
+    <refsect1 id="sections">
+        <title>Sections</title>
+
+        <refsect2 id="section-nl">
+            <title>Section <varname>[Netlink]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Interfaces=</varname>
+                        (<type>list of interfaces names</type>, defaults to <literal>empty</literal>)
+                    </term>
+                    <listitem>
+                        <para>The list of interfaces the plugin will monitor.</para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>Addresses=</varname>
+                        (An <type>enumeration</type>:
+                            <simplelist type='inline'>
+                                <member><literal>"IPv4"</literal></member>
+                                <member><literal>"IPv6"</literal></member>
+                                <member><literal>"All"</literal></member>
+                            </simplelist>,
+                        defaults to <literal>"All"</literal>)
+                    </term>
+                    <listitem>
+                        <para>Which addresses to display.</para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+    </refsect1>
+
+    <refsect1 id="see-also">
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>
