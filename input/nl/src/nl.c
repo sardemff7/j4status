@@ -951,7 +951,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
         }
     }
 
-    if ( self->formats.up_wifi_tokens & ~TOKEN_FLAG_UP_WIFI_ADDRESSES )
+    if ( ( self->formats.up_wifi_tokens & ~TOKEN_FLAG_UP_WIFI_ADDRESSES ) || ( self->formats.down_wifi_tokens ) )
     {
         self->nl80211.source = g_water_nl_source_new_sock(NULL);
         if ( self->nl80211.source == NULL )
@@ -982,7 +982,6 @@ _j4status_nl_init(J4statusCoreInterface *core)
             goto error;
         }
         self->nl80211.esock = g_water_nl_source_get_sock(self->nl80211.esource);
-
 
         err = genl_connect(self->nl80211.esock);
         if ( err < 0 )
@@ -1029,6 +1028,9 @@ _j4status_nl_uninit(J4statusPluginContext *self)
     j4status_format_string_unref(self->formats.up_wifi);
     j4status_format_string_unref(self->formats.down);
     j4status_format_string_unref(self->formats.up);
+
+    if ( self->nl80211.esource != NULL )
+        g_water_nl_source_unref(self->nl80211.esource);
 
     if ( self->nl80211.source != NULL )
         g_water_nl_source_unref(self->nl80211.source);
