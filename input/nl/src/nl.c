@@ -931,6 +931,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
     if ( err < 0 )
     {
         g_warning("Couldn't manage links cache: %s", nl_geterror(err));
+        nl_cache_put(self->link_cache);
         goto error;
     }
 
@@ -947,6 +948,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
         if ( err < 0 )
         {
             g_warning("Couldn't manage addresses cache: %s", nl_geterror(err));
+            nl_cache_put(self->addr_cache);
             goto error;
         }
     }
@@ -1020,9 +1022,6 @@ _j4status_nl_uninit(J4statusPluginContext *self)
 
     if ( self->nl80211.source != NULL )
         g_water_nl_source_free(self->nl80211.source);
-
-    nl_cache_put(self->addr_cache);
-    nl_cache_put(self->link_cache);
 
     if ( self->source != NULL )
         g_water_nl_source_free(self->source);
