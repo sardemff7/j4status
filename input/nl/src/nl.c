@@ -268,6 +268,7 @@ _j4status_nl_register_events(J4statusPluginContext *self)
         const char *name = nla_data(group_attr[CTRL_ATTR_MCAST_GRP_NAME]);
         size_t n = nla_len(group_attr[CTRL_ATTR_MCAST_GRP_NAME]);
         if ( ( strncmp(name, NL80211_MULTICAST_GROUP_CONFIG, n) != 0 )
+             && ( strncmp(name, NL80211_MULTICAST_GROUP_MLME, n) != 0 )
              && ( strncmp(name, NL80211_MULTICAST_GROUP_SCAN, n) != 0 ) )
             continue;
 
@@ -831,13 +832,27 @@ _j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
     nla_parse(answer, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
 
     if ( answer[NL80211_ATTR_IFINDEX] == NULL )
-        goto end;
+        return NL_SKIP;
 
     section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(nla_get_u32(answer[NL80211_ATTR_IFINDEX])));
 
-    _j4status_nl_section_update_nl80211(section);
 
-end:
+    switch ( gnlh->cmd )
+    {
+    case NL80211_CMD_NEW_STATION:
+    case NL80211_CMD_JOIN_IBSS:
+    case NL80211_CMD_AUTHENTICATE:
+    case NL80211_CMD_ASSOCIATE:
+    case NL80211_CMD_CONNECT:
+        _j4status_nl_section_update_nl80211(section);
+    break;
+    case NL80211_CMD_NEW_SCAN_RESULTS:
+        _j4status_nl_section_update_nl80211(section);
+    break;
+    default:
+    break;
+    }
+
     return NL_SKIP;
 }
 
