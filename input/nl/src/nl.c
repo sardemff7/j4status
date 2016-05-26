@@ -134,6 +134,7 @@ struct _J4statusPluginContext {
     struct nl_cache *link_cache;
     struct nl_cache *addr_cache;
     struct {
+        J4statusNlMessageAnswer data;
         GWaterNlSource *source;
         struct nl_sock *sock;
         int id;
@@ -200,43 +201,28 @@ _j4status_nl_message_valid_callback(struct nl_msg *msg, void *user_data)
 }
 
 static int
-_j4status_nl_send_message(struct nl_sock *sock, struct nl_msg *message, struct nlattr **answer, int size, gsize *number)
+_j4status_nl_send_message(J4statusPluginContext *self, struct nl_msg *message, struct nlattr **answer, int size, gsize *number)
 {
-    struct nl_cb *cb = NULL;
-
-    cb = nl_cb_alloc(NL_CB_DEFAULT);
-    if ( cb == NULL )
-        goto fail;
-
-    J4statusNlMessageAnswer data = {
-        .error = 1,
-        .answer = answer,
-        .size = size,
-        .number = 0,
-    };
+    self->nl80211.data.error = 1;
+    self->nl80211.data.answer = answer;
+    self->nl80211.data.size = size;
+    self->nl80211.data.number = 0;
 
     int err;
-    err = nl_send_auto_complete(sock, message);
+    err = nl_send_auto_complete(self->nl80211.sock, message);
     if ( err < 0 )
     {
         g_warning("Couldn’t send message: %s", nl_geterror(err));
-        goto fail;
+        return 1;
     }
 
-    nl_cb_err(cb, NL_CB_CUSTOM, _j4status_nl_message_error_callback, &data);
-    nl_cb_set(cb, NL_CB_ACK, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &data);
-    nl_cb_set(cb, NL_CB_FINISH, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &data);
-    nl_cb_set(cb, NL_CB_VALID, NL_CB_CUSTOM, _j4status_nl_message_valid_callback, &data);
-
-    while ( data.error > 0 )
-        nl_recvmsgs(sock, cb);
+    while ( self->nl80211.data.error > 0 )
+        nl_recvmsgs_default(self->nl80211.sock);
 
     if ( number != NULL )
-        *number = data.number;
+        *number = self->nl80211.data.number;
 
-fail:
-    nl_cb_put(cb);
-    return data.error;
+    return self->nl80211.data.error;
 }
 
 static gboolean
@@ -258,7 +244,7 @@ _j4status_nl_register_events(J4statusPluginContext *self)
 
     struct nlattr *answer[CTRL_ATTR_MAX + 1];
     int err;
-    if ( ( err = _j4status_nl_send_message(self->nl80211.sock, message, answer, CTRL_ATTR_MAX, NULL) ) != 0 )
+    if ( ( err = _j4status_nl_send_message(self, message, answer, CTRL_ATTR_MAX, NULL) ) != 0 )
     {
         if ( err < 0 )
             g_warning("Couldn’t get multicast groups ids: %s", nl_geterror(err));
@@ -323,7 +309,7 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
     int err;
     struct nlattr *answer[NUM_NL80211_ATTR];
     gsize aps;
-    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, &aps) ) != 0 )
+    if ( ( err = _j4status_nl_send_message(self->context, message, answer, NL80211_ATTR_MAX, &aps) ) != 0 )
     {
         if ( err < 0 )
             g_warning("Couldn’t query nl80211 scan information: %s", nl_geterror(err));
@@ -385,7 +371,7 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
     genlmsg_put(message, NL_AUTO_PORT, NL_AUTO_SEQ, self->context->nl80211.id, 0, 0, NL80211_CMD_GET_STATION, 0);
     NLA_PUT_U32(message, NL80211_ATTR_IFINDEX, self->ifindex);
     NLA_PUT(message, NL80211_ATTR_MAC, nla_len(bss[NL80211_BSS_BSSID]), nla_data(bss[NL80211_BSS_BSSID]));
-    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
+    if ( ( err = _j4status_nl_send_message(self->context, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
     {
         if ( err < 0 )
             g_warning("Couldn’t query nl80211 station: %s", nl_geterror(err));
@@ -465,7 +451,7 @@ _j4status_nl_section_check_nl80211(J4statusNlSection *self, const gchar *interfa
 
     int err;
     struct nlattr *answer[NUM_NL80211_ATTR];
-    if ( ( err = _j4status_nl_send_message(self->context->nl80211.sock, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
+    if ( ( err = _j4status_nl_send_message(self->context, message, answer, NL80211_ATTR_MAX, NULL) ) != 0 )
     {
         if ( err == -NLE_NOADDR )
             ret = TRUE;
@@ -967,6 +953,11 @@ _j4status_nl_init(J4statusCoreInterface *core)
             g_warning("Couldn't resolve nl80211: %s", nl_geterror(self->nl80211.id));
             goto error;
         }
+
+        nl_socket_modify_err_cb(self->nl80211.sock, NL_CB_CUSTOM, _j4status_nl_message_error_callback, &self->nl80211.data);
+        nl_socket_modify_cb(self->nl80211.sock, NL_CB_ACK, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &self->nl80211.data);
+        nl_socket_modify_cb(self->nl80211.sock, NL_CB_FINISH, NL_CB_CUSTOM, _j4status_nl_message_ack_callback, &self->nl80211.data);
+        nl_socket_modify_cb(self->nl80211.sock, NL_CB_VALID, NL_CB_CUSTOM, _j4status_nl_message_valid_callback, &self->nl80211.data);
 
         self->nl80211.esource = g_water_nl_source_new_sock(NULL, NETLINK_GENERIC);
         if ( self->nl80211.esource == NULL )
