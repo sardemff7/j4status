@@ -28,8 +28,7 @@ install:
 
 before_script:
     - autoreconf -fi
-      # nl plugin needs newer kernel headers
-    - ./configure --disable-silent-rules --enable-debug --enable-mpd-input --enable-systemd-input --disable-nl-input
+    - ./configure --disable-silent-rules --enable-debug --enable-mpd-input --enable-systemd-input
 script:
     - make && make check && make distcheck
 
