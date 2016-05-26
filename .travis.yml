@@ -17,6 +17,9 @@ addons:
             - docbook-xml
             - libglib2.0-dev
             - libyajl-dev
+            - libnl-3-dev
+            - libnl-genl-3-dev
+            - libnl-route-3-dev
             - libpulse-dev
             - libmpdclient-dev
             - libupower-glib-dev
@@ -25,7 +28,8 @@ install:
 
 before_script:
     - autoreconf -fi
-    - ./configure --disable-silent-rules --enable-debug --enable-mpd-input --enable-systemd-input
+      # nl plugin needs newer kernel headers
+    - ./configure --disable-silent-rules --enable-debug --enable-mpd-input --enable-systemd-input --disable-nl-input
 script:
     - make && make check && make distcheck
 
