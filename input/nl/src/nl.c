@@ -618,7 +618,6 @@ _j4status_nl_section_update(J4statusNlSection *self)
         J4statusNlFormatData data = { NULL };
         if ( self->wifi.is )
         {
-            g_debug("Wifi down: %s", self->wifi.aps);
             if ( self->wifi.aps[0] != '\0' )
                 data.aps = self->wifi.aps;
             value = j4status_format_string_replace(self->context->formats.down_wifi, _j4status_nl_format_down_wifi_callback, &data);
@@ -845,7 +844,6 @@ _j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
     struct nlattr *answer[NUM_NL80211_ATTR];
     nla_parse(answer, NL80211_ATTR_MAX, genlmsg_attrdata(gnlh, 0), genlmsg_attrlen(gnlh, 0), NULL);
 
-    g_debug("Got an event");
     if ( answer[NL80211_ATTR_IFINDEX] == NULL )
         goto end;
 
