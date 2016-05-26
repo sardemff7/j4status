@@ -953,20 +953,13 @@ _j4status_nl_init(J4statusCoreInterface *core)
 
     if ( ( self->formats.up_wifi_tokens & ~TOKEN_FLAG_UP_WIFI_ADDRESSES ) || ( self->formats.down_wifi_tokens ) )
     {
-        self->nl80211.source = g_water_nl_source_new_sock(NULL);
+        self->nl80211.source = g_water_nl_source_new_sock(NULL, NETLINK_GENERIC);
         if ( self->nl80211.source == NULL )
         {
             g_warning("Couldn't subscribe to nl80211 events");
             goto error;
         }
         self->nl80211.sock = g_water_nl_source_get_sock(self->nl80211.source);
-
-        err = genl_connect(self->nl80211.sock);
-        if ( err < 0 )
-        {
-            g_warning("Couldn't connect to nl80211: %s", nl_geterror(err));
-            goto error;
-        }
 
         self->nl80211.id = genl_ctrl_resolve(self->nl80211.sock, NL80211_GENL_NAME);
         if ( self->nl80211.id < 0 )
@@ -975,7 +968,7 @@ _j4status_nl_init(J4statusCoreInterface *core)
             goto error;
         }
 
-        self->nl80211.esource = g_water_nl_source_new_sock(NULL);
+        self->nl80211.esource = g_water_nl_source_new_sock(NULL, NETLINK_GENERIC);
         if ( self->nl80211.esource == NULL )
         {
             g_warning("Couldn't subscribe to nl80211 events");
@@ -983,18 +976,11 @@ _j4status_nl_init(J4statusCoreInterface *core)
         }
         self->nl80211.esock = g_water_nl_source_get_sock(self->nl80211.esource);
 
-        err = genl_connect(self->nl80211.esock);
-        if ( err < 0 )
-        {
-            g_warning("Couldn't connect to nl80211: %s", nl_geterror(err));
+        if ( ! _j4status_nl_register_events(self) )
             goto error;
-        }
 
         nl_socket_modify_cb(self->nl80211.esock, NL_CB_SEQ_CHECK, NL_CB_CUSTOM, _j4status_nl_nl80211_no_seq_check, self);
         nl_socket_modify_cb(self->nl80211.esock, NL_CB_VALID, NL_CB_CUSTOM, _j4status_nl_nl80211_event, self);
-
-        if ( ! _j4status_nl_register_events(self) )
-            goto error;
     }
 
     gchar **interface;
@@ -1030,16 +1016,16 @@ _j4status_nl_uninit(J4statusPluginContext *self)
     j4status_format_string_unref(self->formats.up);
 
     if ( self->nl80211.esource != NULL )
-        g_water_nl_source_unref(self->nl80211.esource);
+        g_water_nl_source_free(self->nl80211.esource);
 
     if ( self->nl80211.source != NULL )
-        g_water_nl_source_unref(self->nl80211.source);
+        g_water_nl_source_free(self->nl80211.source);
 
     nl_cache_put(self->addr_cache);
     nl_cache_put(self->link_cache);
 
     if ( self->source != NULL )
-        g_water_nl_source_unref(self->source);
+        g_water_nl_source_free(self->source);
 
     g_hash_table_unref(self->sections);
 

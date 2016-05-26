@@ -421,7 +421,7 @@ _j4status_mpd_section_free(gpointer data)
 
     j4status_section_free(section->section);
 
-    g_water_mpd_source_unref(section->source);
+    g_water_mpd_source_free(section->source);
 
     g_free(section);
 }
