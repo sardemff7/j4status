@@ -269,6 +269,9 @@ j4status_section_set_value(J4statusSection *self, gchar *value)
 
     self->dirty = TRUE;
 
+    if ( ( value != NULL ) && ( *value == '\0' ) )
+        value = (g_free(value), NULL);
+
     g_free(self->value);
     self->value = value;
 }
