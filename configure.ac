@@ -78,7 +78,7 @@ AM_DOCBOOK_CONDITIONS="installation"
 
 
 GW_INIT([src/libgwater])
-NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/string], [AM_DOCBOOK_CONDITIONS])
+NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/alpha colour/string], [AM_DOCBOOK_CONDITIONS])
 
 AC_CHECK_HEADERS([errno.h])
 
@@ -117,6 +117,7 @@ J4SP_INIT
 
 J4SP_ADD_OUTPUT_PLUGIN(flat, [Flat], [always])
 J4SP_ADD_OUTPUT_PLUGIN(debug, [Debug], [always])
+J4SP_ADD_OUTPUT_PLUGIN(pango, [Pango markup], [always])
 J4SP_ADD_INPUT_PLUGIN(time, [Time], [always])
 J4SP_ADD_INPUT_PLUGIN(file-monitor, [File monitor], [always])
 J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [always])

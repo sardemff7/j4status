@@ -72,6 +72,7 @@ typedef struct {
     guint8 red;
     guint8 green;
     guint8 blue;
+    guint8 alpha;
 } J4statusColour;
 
 void j4status_colour_reset(J4statusColour *colour);
