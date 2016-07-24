@@ -269,23 +269,16 @@ _j4status_core_source_quit(gpointer user_data)
 
 #ifdef G_OS_UNIX
 static gboolean
-_j4status_core_signal_int(gpointer user_data)
+_j4status_core_signal_usr1(gpointer user_data)
 {
-    if ( isatty(0) )
-        j4status_core_quit(user_data);
-    else
-        _j4status_core_stop(user_data);
+    _j4status_core_start(user_data);
     return TRUE;
 }
 
 static gboolean
-_j4status_core_signal_hup(gpointer user_data)
+_j4status_core_signal_usr2(gpointer user_data)
 {
-    J4statusCoreContext *context = user_data;
-    if ( context->started )
-        _j4status_core_stop(context);
-    else
-        _j4status_core_start(context);
+    _j4status_core_stop(user_data);
     return TRUE;
 }
 #endif /* G_OS_UNIX */
@@ -420,8 +413,9 @@ main(int argc, char *argv[])
 #ifdef G_OS_UNIX
     g_unix_signal_add(SIGTERM, _j4status_core_source_quit, context);
 
-    g_unix_signal_add(SIGINT, _j4status_core_signal_int, context);
-    g_unix_signal_add(SIGHUP, _j4status_core_signal_hup, context);
+    g_unix_signal_add(SIGINT, _j4status_core_source_quit, context);
+    g_unix_signal_add(SIGUSR1, _j4status_core_signal_usr1, context);
+    g_unix_signal_add(SIGUSR2, _j4status_core_signal_usr2, context);
 
     /* Ignore SIGPIPE as it is useless */
     signal(SIGPIPE, SIG_IGN);

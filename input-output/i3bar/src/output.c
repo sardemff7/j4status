@@ -363,9 +363,9 @@ _j4status_i3bar_output_generate_header(J4statusPluginContext *context)
     yajl_gen_string(json_gen, (const unsigned char *)"version", strlen("version"));
     yajl_gen_integer(json_gen, 1);
     yajl_gen_string(json_gen, (const unsigned char *)"stop_signal", strlen("stop_signal"));
-    yajl_gen_integer(json_gen, SIGINT);
+    yajl_gen_integer(json_gen, SIGUSR2);
     yajl_gen_string(json_gen, (const unsigned char *)"cont_signal", strlen("cont_signal"));
-    yajl_gen_integer(json_gen, SIGHUP);
+    yajl_gen_integer(json_gen, SIGUSR1);
     if ( ! context->no_click_events )
     {
         yajl_gen_string(json_gen, (const unsigned char *)"click_events", strlen("click_events"));
