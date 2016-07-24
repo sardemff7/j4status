@@ -25,5 +25,6 @@
 
 typedef struct _J4statusCoreContext J4statusCoreContext;
 typedef struct _J4statusIOContext J4statusIOContext;
+typedef struct _J4statusIOStream J4statusIOStream;
 
 #endif /* __J4STATUS_TYPES_H__ */

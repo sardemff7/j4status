@@ -24,12 +24,20 @@
 #define __J4STATUS_J4STATUS_PLUGIN_OUTPUT_H__
 
 #include <j4status-plugin.h>
+#include <gio/gio.h>
+
+typedef struct _J4statusIOStream J4statusCoreStream;
+typedef struct _J4statusOutputPluginStream J4statusOutputPluginStream;
 
 void j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *event_id);
+GInputStream *j4status_core_stream_get_input_stream(J4statusCoreInterface *core, J4statusCoreStream *stream);
+GOutputStream *j4status_core_stream_get_output_stream(J4statusCoreInterface *core, J4statusCoreStream *stream);
+void j4status_core_stream_reconnect(J4statusCoreInterface *core, J4statusCoreStream *stream);
 
-typedef gchar *(*J4statusPluginGenerateHeaderFunc)(J4statusPluginContext *context);
-typedef gchar *(*J4statusPluginGenerateLineFunc)(J4statusPluginContext *context, GList *sections);
-typedef void (*J4statusPluginActionFunc)(J4statusPluginContext *context, gchar *action_description);
+typedef gboolean (*J4statusPluginSendFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream, GError **error);
+typedef void (*J4statusPluginGenerateLineFunc)(J4statusPluginContext *context, GList *sections);
+typedef J4statusOutputPluginStream *(*J4statusPluginStreamNewFunc)(J4statusPluginContext *context, J4statusCoreStream *stream);
+typedef void (*J4statusPluginStreamFreeFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream);
 
 typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
@@ -37,9 +45,11 @@ typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, init, Init);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, uninit, Simple);
-LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, generate_header, GenerateHeader);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, send_header, Send);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, generate_line, GenerateLine);
-LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, action, Action);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, send_line, Send);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, stream_new, StreamNew);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, stream_free, StreamFree);
 
 const gchar *j4status_section_get_name(const J4statusSection *section);
 const gchar *j4status_section_get_instance(const J4statusSection *section);

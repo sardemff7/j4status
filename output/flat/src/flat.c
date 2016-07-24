@@ -52,19 +52,80 @@ struct _J4statusPluginContext {
         J4statusColour good;
     } colours;
     gboolean align;
-    gsize last_len;
+    GString *line;
+};
+
+struct _J4statusOutputPluginStream {
+    J4statusPluginContext *context;
+    J4statusCoreStream *stream;
+    GDataInputStream *in;
+    GDataOutputStream *out;
+    GCancellable *cancellable;
 };
 
 static void
-_j4status_flat_action(J4statusPluginContext *context, gchar *action_description)
+_j4status_flat_stream_read_callback(GObject *obj, GAsyncResult *res, gpointer user_data)
 {
-    gchar *event_id = action_description;
-    gchar *section_id = g_utf8_strchr(action_description, -1, ' ');
+    J4statusOutputPluginStream *stream = user_data;
+    GDataInputStream *in = G_DATA_INPUT_STREAM(obj);
+    GError *error = NULL;
+
+    gchar *line;
+    line = g_data_input_stream_read_line_finish(in, res, NULL, &error);
+    if ( line == NULL )
+    {
+        if ( error == NULL )
+            return;
+
+        if ( ! g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) )
+        {
+            g_warning("Input error: %s", error->message);
+            j4status_core_stream_reconnect(stream->context->core, stream->stream);
+        }
+        g_clear_error(&error);
+        return;
+    }
+
+    gchar *event_id = line;
+    gchar *section_id = g_utf8_strchr(line, -1, ' ');
     if ( section_id != NULL )
     {
         *section_id++ = '\0';
-        j4status_core_trigger_action(context->core, section_id, event_id);
+        j4status_core_trigger_action(stream->context->core, section_id, event_id);
     }
+
+    g_free(line);
+    g_data_input_stream_read_line_async(in, G_PRIORITY_DEFAULT, stream->cancellable, _j4status_flat_stream_read_callback, stream);
+}
+
+static J4statusOutputPluginStream *
+_j4status_flat_stream_new(J4statusPluginContext *context, J4statusCoreStream *core_stream)
+{
+    J4statusOutputPluginStream *stream;
+
+    stream = g_slice_new0(J4statusOutputPluginStream);
+    stream->context = context;
+    stream->stream = core_stream;
+
+    stream->out = g_data_output_stream_new(j4status_core_stream_get_output_stream(stream->context->core, stream->stream));
+    stream->in = g_data_input_stream_new(j4status_core_stream_get_input_stream(stream->context->core, stream->stream));
+
+    stream->cancellable = g_cancellable_new();
+    g_data_input_stream_read_line_async(stream->in, G_PRIORITY_DEFAULT, stream->cancellable, _j4status_flat_stream_read_callback, stream);
+
+    return stream;
+}
+
+static void
+_j4status_flat_stream_free(J4statusPluginContext *context, J4statusOutputPluginStream *stream)
+{
+    g_cancellable_cancel(stream->cancellable);
+    g_object_unref(stream->cancellable);
+
+    g_object_unref(stream->out);
+    g_object_unref(stream->in);
+
+    g_slice_free(J4statusOutputPluginStream, stream);
 }
 
 static void
@@ -79,10 +140,10 @@ _j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean import
         out->end[0] = '\0';
 }
 
-static gchar *
+static void
 _j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
 {
-    GString *line = g_string_sized_new(context->last_len);
+    g_string_truncate(context->line, 0);
     GList *section_;
     J4statusSection *section;
     gboolean first = TRUE;
@@ -176,13 +237,16 @@ _j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
         if ( first )
             first = FALSE;
         else
-            g_string_append(line, " | ");
-        g_string_append(line, cache);
+            g_string_append(context->line, " | ");
+        g_string_append(context->line, cache);
     }
-    g_string_append_c(line, '\n');
-    context->last_len = line->len;
+    g_string_append_c(context->line, '\n');
+}
 
-    return g_string_free(line, FALSE);
+static gboolean
+_j4status_flat_send_line(J4statusPluginContext *context, J4statusOutputPluginStream *stream, GError **error)
+{
+    return g_data_output_stream_put_string(stream->out, context->line->str, NULL, error);
 }
 
 static void
@@ -247,12 +311,16 @@ _j4status_flat_init(J4statusCoreInterface *core)
     if ( key_file != NULL )
         g_key_file_free(key_file);
 
+    context->line = g_string_new("");
+
     return context;
 }
 
 static void
 _j4status_flat_uninit(J4statusPluginContext *context)
 {
+    g_string_free(context->line, TRUE);
+
     g_free(context->label_separator);
 
     g_free(context);
@@ -264,6 +332,9 @@ j4status_output_plugin(J4statusOutputPluginInterface *interface)
     libj4status_output_plugin_interface_add_init_callback(interface, _j4status_flat_init);
     libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_flat_uninit);
 
+    libj4status_output_plugin_interface_add_stream_new_callback(interface, _j4status_flat_stream_new);
+    libj4status_output_plugin_interface_add_stream_free_callback(interface, _j4status_flat_stream_free);
+
     libj4status_output_plugin_interface_add_generate_line_callback(interface, _j4status_flat_generate_line);
-    libj4status_output_plugin_interface_add_action_callback(interface, _j4status_flat_action);
+    libj4status_output_plugin_interface_add_send_line_callback(interface, _j4status_flat_send_line);
 }

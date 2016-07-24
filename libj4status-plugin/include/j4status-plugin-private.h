@@ -63,6 +63,9 @@ typedef gboolean (*J4statusCoreSectionAddFunc)(J4statusCoreContext *context, J4s
 typedef void (*J4statusCoreSectionFunc)(J4statusCoreContext *context, J4statusSection *section);
 typedef void (*J4statusCoreTriggerGenerateFunc)(J4statusCoreContext *context, gboolean force);
 typedef void (*J4statusCoreTriggerActionFunc)(J4statusCoreContext *context, const gchar *section_id, const gchar *event_id);
+typedef GInputStream *(*J4statusCoreStreamGetInputStreamFunc)(J4statusCoreStream *stream);
+typedef GOutputStream *(*J4statusCoreStreamGetOutputStreamFunc)(J4statusCoreStream *stream);
+typedef void (*J4statusCoreStreamReconnectFunc)(J4statusCoreStream *stream);
 
 struct _J4statusCoreInterface {
     J4statusCoreContext *context;
@@ -70,6 +73,9 @@ struct _J4statusCoreInterface {
     J4statusCoreSectionFunc remove_section;
     J4statusCoreTriggerGenerateFunc trigger_generate;
     J4statusCoreTriggerActionFunc trigger_action;
+    J4statusCoreStreamGetInputStreamFunc stream_get_input_stream;
+    J4statusCoreStreamGetOutputStreamFunc stream_get_output_stream;
+    J4statusCoreStreamReconnectFunc stream_reconnect;
 };
 
 
@@ -77,9 +83,12 @@ struct _J4statusOutputPluginInterface {
     J4statusPluginInitFunc     init;
     J4statusPluginSimpleFunc   uninit;
 
-    J4statusPluginGenerateHeaderFunc generate_header;
-    J4statusPluginGenerateLineFunc   generate_line;
-    J4statusPluginActionFunc         action;
+    J4statusPluginStreamNewFunc  stream_new;
+    J4statusPluginStreamFreeFunc stream_free;
+
+    J4statusPluginSendFunc         send_header;
+    J4statusPluginGenerateLineFunc generate_line;
+    J4statusPluginSendFunc         send_line;
 };
 
 struct _J4statusInputPluginInterface {

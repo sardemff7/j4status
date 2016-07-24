@@ -25,9 +25,12 @@
 
 #include "types.h"
 
-J4statusIOContext *j4status_io_new(J4statusCoreContext *core, gchar *header, const gchar * const *servers_desc, const gchar * const *streams_desc);
+J4statusIOContext *j4status_io_new(J4statusCoreContext *core, J4statusOutputPlugin *plugin, const gchar * const *servers_desc, const gchar * const *streams_desc);
 void j4status_io_free(J4statusIOContext *io);
 
-void j4status_io_update_line(J4statusIOContext *io, gchar *line);
+void j4status_io_update_line(J4statusIOContext *io);
+GInputStream *j4status_io_stream_get_input_stream(J4statusIOStream *stream);
+GOutputStream *j4status_io_stream_get_output_stream(J4statusIOStream *stream);
+void j4status_io_stream_reconnect(J4statusIOStream *stream);
 
 #endif /* __J4STATUS_IO_H__ */

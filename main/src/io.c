@@ -46,44 +46,48 @@
 #endif /* ENABLE_SYSTEMD */
 
 #include "j4status.h"
+#include "j4status-plugin.h"
+#include "j4status-plugin-output.h"
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-private.h"
+#include "plugins.h"
 
 #include "io.h"
 
 struct _J4statusIOContext {
     J4statusCoreContext *core;
-    gchar *header;
-    gchar *line;
+    J4statusOutputPlugin *plugin;
     GSocketService *server;
     GList *streams;
     GList *paths_to_unlink;
 };
 
-typedef struct {
+struct _J4statusIOStream {
     J4statusIOContext *io;
     guint tries;
     GSocketAddress *address;
     GSocketConnection *connection;
-    GDataOutputStream *out;
-    GDataInputStream *in;
+    GInputStream *in;
+    GOutputStream *out;
+    J4statusOutputPluginStream *stream;
     gboolean header_sent;
-} J4statusIOStream;
+};
 
 #define MAX_TRIES 3
 
-static void _j4status_io_stream_read_callback(GObject *stream, GAsyncResult *res, gpointer user_data);
 static void _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer user_data);
 static void _j4status_io_remove_stream(J4statusIOContext *io, J4statusIOStream *stream);
-static void _j4status_io_stream_put_header(J4statusIOStream *stream, const gchar *header);
+static void _j4status_io_stream_put_header(J4statusIOStream *stream);
 
 static void
 _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *connection)
 {
     self->connection = connection;
-    self->out = g_data_output_stream_new(g_io_stream_get_output_stream(G_IO_STREAM(self->connection)));
-    self->in = g_data_input_stream_new(g_io_stream_get_input_stream(G_IO_STREAM(self->connection)));
+    self->in = g_io_stream_get_input_stream(G_IO_STREAM(self->connection));
+    self->out = g_io_stream_get_output_stream(G_IO_STREAM(self->connection));
+    self->stream = self->io->plugin->interface.stream_new(self->io->plugin->context, self);
     if ( ! self->header_sent )
-        _j4status_io_stream_put_header(self, self->io->header);
-    g_data_input_stream_read_line_async(self->in, G_PRIORITY_DEFAULT, NULL, _j4status_io_stream_read_callback, self);
+        _j4status_io_stream_put_header(self);
 }
 
 static void
@@ -91,13 +95,12 @@ _j4status_io_stream_connect(J4statusIOStream *self)
 {
     if ( self->connection != NULL )
     {
-        g_object_unref(self->in);
-        g_object_unref(self->out);
         g_object_unref(self->connection);
         self->connection = NULL;
-        self->out = NULL;
         self->in = NULL;
+        self->out = NULL;
     }
+    self->io->plugin->interface.stream_free(self->io->plugin->context, self->stream);
 
 
     GSocketClient *client;
@@ -107,8 +110,20 @@ _j4status_io_stream_connect(J4statusIOStream *self)
     g_object_unref(client);
 }
 
-static void
-_j4status_io_stream_reconnect_maybe(J4statusIOStream *self)
+GInputStream *
+j4status_io_stream_get_input_stream(J4statusIOStream *self)
+{
+    return self->in;
+}
+
+GOutputStream *
+j4status_io_stream_get_output_stream(J4statusIOStream *self)
+{
+    return self->out;
+}
+
+void
+j4status_io_stream_reconnect(J4statusIOStream *self)
 {
     if ( self->connection == NULL )
         /* Not a socket stream */
@@ -120,31 +135,6 @@ _j4status_io_stream_reconnect_maybe(J4statusIOStream *self)
     else
         /* Server stream */
         _j4status_io_remove_stream(self->io, self);
-}
-
-static void
-_j4status_io_stream_read_callback(GObject *stream, GAsyncResult *res, gpointer user_data)
-{
-    J4statusIOStream *self = user_data;
-    GError *error = NULL;
-
-    gchar *line;
-    line = g_data_input_stream_read_line_finish(self->in, res, NULL, &error);
-    if ( line == NULL )
-    {
-        if ( error != NULL )
-        {
-            g_warning("Input error: %s", error->message);
-            g_clear_error(&error);
-        }
-        _j4status_io_stream_reconnect_maybe(self);
-        return;
-    }
-
-    j4status_core_action(self->io->core, line);
-
-    g_free(line);
-    g_data_input_stream_read_line_async(self->in, G_PRIORITY_DEFAULT, NULL, _j4status_io_stream_read_callback, self);
 }
 
 static void
@@ -205,13 +195,12 @@ _j4status_io_add_stream(J4statusIOContext *self, const gchar *stream_desc)
 
         stream = _j4status_io_stream_new(self);
 
-        stream->out = g_data_output_stream_new(out);
-        stream->in = g_data_input_stream_new(in);
-        g_object_unref(out);
-        g_object_unref(in);
+        stream->out = out;
+        stream->in = in;
 
-        _j4status_io_stream_put_header(stream, self->header);
-        g_data_input_stream_read_line_async(stream->in, G_PRIORITY_DEFAULT, NULL, _j4status_io_stream_read_callback, stream);
+        stream->stream = stream->io->plugin->interface.stream_new(stream->io->plugin->context, stream);
+
+        _j4status_io_stream_put_header(stream);
 
         goto end;
     }
@@ -278,15 +267,15 @@ _j4status_io_stream_free(gpointer data)
 }
 
 static gboolean
-_j4status_io_stream_put_string(J4statusIOStream *self, const gchar *string)
+_j4status_io_stream_put_string(J4statusIOStream *self, J4statusPluginSendFunc send_func)
 {
-    if ( string == NULL )
+    if ( send_func == NULL )
         return TRUE;
     if ( self->out == NULL )
         return FALSE;
 
     GError *error = NULL;
-    if ( g_data_output_stream_put_string(self->out, string, NULL, &error) )
+    if ( send_func(self->io->plugin->context, self->stream, &error) )
         return TRUE;
 
     /*
@@ -298,22 +287,22 @@ _j4status_io_stream_put_string(J4statusIOStream *self, const gchar *string)
         g_warning("Couldn't write line: %s", error->message);
     g_clear_error(&error);
 
-    _j4status_io_stream_reconnect_maybe(self);
+    j4status_io_stream_reconnect(self);
 
     return FALSE;
 }
 
 static void
-_j4status_io_stream_put_header(J4statusIOStream *self, const gchar *line)
+_j4status_io_stream_put_header(J4statusIOStream *self)
 {
-    self->header_sent = _j4status_io_stream_put_string(self, line);
+    self->header_sent = _j4status_io_stream_put_string(self, self->io->plugin->interface.send_header);
 }
 
 static void
-_j4status_io_stream_put_line(J4statusIOStream *self, const gchar *line)
+_j4status_io_stream_put_line(J4statusIOStream *self)
 {
     if ( self->header_sent )
-        _j4status_io_stream_put_string(self, line);
+        _j4status_io_stream_put_string(self, self->io->plugin->interface.send_line);
 }
 
 static gboolean
@@ -324,7 +313,7 @@ _j4status_io_server_callback(GSocketService *service, GSocketConnection *connect
 
     stream = _j4status_io_stream_new_for_connection(self, connection);
     self->streams = g_list_prepend(self->streams, stream);
-    _j4status_io_stream_put_line(stream, self->line);
+    _j4status_io_stream_put_line(stream);
 
     return FALSE;
 }
@@ -478,12 +467,12 @@ _j4status_io_has_stream(J4statusIOContext *self)
 }
 
 J4statusIOContext *
-j4status_io_new(J4statusCoreContext *core, gchar *header, const gchar * const *servers_desc, const gchar * const *streams_desc)
+j4status_io_new(J4statusCoreContext *core, J4statusOutputPlugin *plugin, const gchar * const *servers_desc, const gchar * const *streams_desc)
 {
     J4statusIOContext *self;
     self = g_new0(J4statusIOContext, 1);
     self->core = core;
-    self->header = header;
+    self->plugin = plugin;
 
     _j4status_io_add_systemd(self);
 
@@ -529,9 +518,6 @@ j4status_io_free(J4statusIOContext *self)
     if ( self->server != NULL )
         g_object_unref(self->server);
 
-    g_free(self->line);
-    g_free(self->header);
-
     g_free(self);
 }
 
@@ -545,16 +531,13 @@ _j4status_io_remove_stream(J4statusIOContext *self, J4statusIOStream *stream)
 }
 
 void
-j4status_io_update_line(J4statusIOContext *self, gchar *line)
+j4status_io_update_line(J4statusIOContext *self)
 {
-    g_free(self->line);
-    self->line = line;
-
     GList *stream = self->streams;
     while ( stream != NULL )
     {
         GList *next = g_list_next(stream);
-        _j4status_io_stream_put_line(stream->data, self->line);
+        _j4status_io_stream_put_line(stream->data);
         stream = next;
     }
 }

@@ -13,6 +13,7 @@ debug_la_CPPFLAGS = \
 
 debug_la_CFLAGS = \
 	$(AM_CFLAGS) \
+	$(GIO_CFLAGS) \
 	$(GLIB_CFLAGS) \
 	$(null)
 
@@ -23,5 +24,6 @@ debug_la_LDFLAGS = \
 
 debug_la_LIBADD = \
 	libj4status-plugin.la \
+	$(GIO_LIBS) \
 	$(GLIB_LIBS) \
 	$(null)

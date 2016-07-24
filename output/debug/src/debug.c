@@ -31,10 +31,65 @@
 
 #define BOOL_TO_S(bool) ((bool) ? "yes" : "no")
 
-static gchar *
+struct _J4statusPluginContext {
+    J4statusCoreInterface *core;
+    gsize last_len;
+    GString *line;
+};
+
+struct _J4statusOutputPluginStream {
+    J4statusPluginContext *context;
+    J4statusCoreStream *stream;
+    GDataOutputStream *out;
+};
+
+static J4statusPluginContext *
+_j4status_debug_init(J4statusCoreInterface *core)
+{
+    J4statusPluginContext *context;
+
+    context = g_new0(J4statusPluginContext, 1);
+    context->core = core;
+
+    context->line = g_string_new("");
+
+    return context;
+}
+
+static void
+_j4status_debug_uninit(J4statusPluginContext *context)
+{
+    g_string_free(context->line, TRUE);
+
+    g_free(context);
+}
+
+static J4statusOutputPluginStream *
+_j4status_debug_stream_new(J4statusPluginContext *context, J4statusCoreStream *core_stream)
+{
+    J4statusOutputPluginStream *stream;
+
+    stream = g_slice_new0(J4statusOutputPluginStream);
+    stream->context = context;
+    stream->stream = core_stream;
+
+    stream->out = g_data_output_stream_new(j4status_core_stream_get_output_stream(stream->context->core, stream->stream));
+
+    return stream;
+}
+
+static void
+_j4status_debug_stream_free(J4statusPluginContext *context, J4statusOutputPluginStream *stream)
+{
+    g_object_unref(stream->out);
+
+    g_slice_free(J4statusOutputPluginStream, stream);
+}
+
+static void
 _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
 {
-    GString *line = g_string_new("");
+    g_string_truncate(context->line, 0);
     gboolean first = TRUE;
     GList *section_;
     J4statusSection *section;
@@ -108,18 +163,29 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
         j4status_section_set_cache(section, cache);
 
     print:
-        g_string_append(line, j4status_section_get_cache(section));
+        g_string_append(context->line, j4status_section_get_cache(section));
         if ( first )
             first = FALSE;
         else
-            g_string_append_c(line, '\n');
+            g_string_append_c(context->line, '\n');
     }
+}
 
-    return g_string_free(line, FALSE);
+static gboolean
+_j4status_debug_send_line(J4statusPluginContext *context, J4statusOutputPluginStream *stream, GError **error)
+{
+    return g_data_output_stream_put_string(stream->out, context->line->str, NULL, error);
 }
 
 void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
+    libj4status_output_plugin_interface_add_init_callback(interface, _j4status_debug_init);
+    libj4status_output_plugin_interface_add_uninit_callback(interface, _j4status_debug_uninit);
+
+    libj4status_output_plugin_interface_add_stream_new_callback(interface, _j4status_debug_stream_new);
+    libj4status_output_plugin_interface_add_stream_free_callback(interface, _j4status_debug_stream_free);
+
     libj4status_output_plugin_interface_add_generate_line_callback(interface, _j4status_debug_generate_line);
+    libj4status_output_plugin_interface_add_send_line_callback(interface, _j4status_debug_send_line);
 }

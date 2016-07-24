@@ -62,7 +62,6 @@ struct _J4statusCoreContext {
     gboolean started;
     gulong display_handle;
     gboolean should_display;
-    gchar *line;
     J4statusIOContext *io;
 };
 
@@ -178,18 +177,10 @@ _j4status_core_generate(gpointer user_data)
     context->display_handle = 0;
     context->should_display = FALSE;
 
-    gchar *line;
-    line = context->output_plugin->interface.generate_line(context->output_plugin->context, context->sections);
-    j4status_io_update_line(context->io, line);
+    context->output_plugin->interface.generate_line(context->output_plugin->context, context->sections);
+    j4status_io_update_line(context->io);
 
     return FALSE;
-}
-
-void
-j4status_core_action(J4statusCoreContext *context, gchar *action_description)
-{
-    if ( context->output_plugin->interface.action != NULL )
-        context->output_plugin->interface.action(context->output_plugin->context, action_description);
 }
 
 static void
@@ -216,6 +207,24 @@ _j4status_core_trigger_action(J4statusCoreContext *context, const gchar *section
         return;
 
     section->action.callback(section, event_id, section->action.user_data);
+}
+
+static GInputStream *
+_j4status_core_stream_get_input_stream(J4statusCoreStream *stream)
+{
+    return j4status_io_stream_get_input_stream(stream);
+}
+
+static GOutputStream *
+_j4status_core_stream_get_output_stream(J4statusCoreStream *stream)
+{
+    return j4status_io_stream_get_output_stream(stream);
+}
+
+static void
+_j4status_core_stream_reconnect(J4statusCoreStream *stream)
+{
+    j4status_io_stream_reconnect(stream);
 }
 
 static void
@@ -408,6 +417,9 @@ main(int argc, char *argv[])
         .remove_section = _j4status_core_remove_section,
         .trigger_generate = _j4status_core_trigger_generate,
         .trigger_action = _j4status_core_trigger_action,
+        .stream_get_input_stream = _j4status_core_stream_get_input_stream,
+        .stream_get_output_stream = _j4status_core_stream_get_output_stream,
+        .stream_reconnect = _j4status_core_stream_reconnect,
     };
 
 #ifdef G_OS_UNIX
@@ -429,12 +441,8 @@ main(int argc, char *argv[])
         goto end;
     }
 
-    gchar *header = NULL;
-    if ( context->output_plugin->interface.generate_header != NULL )
-        header = context->output_plugin->interface.generate_header(context->output_plugin->context);
-
     /* Creating input/output stream */
-    context->io = j4status_io_new(context, header, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
+    context->io = j4status_io_new(context, context->output_plugin, (const gchar * const *) servers_desc, (const gchar * const *) streams_desc);
     if ( context->io == NULL )
     {
         g_warning("Couldn't create input/output streams");

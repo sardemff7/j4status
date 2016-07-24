@@ -23,6 +23,8 @@
 #ifndef __J4STATUS_J4STATUS_PLUGIN_H__
 #define __J4STATUS_J4STATUS_PLUGIN_H__
 
+#include <glib.h>
+
 typedef struct _J4statusCoreInterface J4statusCoreInterface;
 
 
