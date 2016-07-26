@@ -848,7 +848,6 @@ _j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
     if ( answer[NL80211_ATTR_IFINDEX] == NULL )
         return NL_SKIP;
 
-    g_debug("EVENT");
     section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(nla_get_u32(answer[NL80211_ATTR_IFINDEX])));
 
 
@@ -865,7 +864,6 @@ _j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
         _j4status_nl_section_update_nl80211(section);
     break;
     default:
-        g_debug("Other event");
     break;
     }
 
