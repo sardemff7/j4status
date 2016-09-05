@@ -322,7 +322,7 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
     NLA_PUT_U32(message, NL80211_ATTR_IFINDEX, self->ifindex);
 
     int err;
-    struct nlattr *answer[NUM_NL80211_ATTR];
+    struct nlattr *answer[NUM_NL80211_ATTR] = { NULL };
     gsize aps;
     if ( ( err = _j4status_nl_send_message(self->context, message, answer, NL80211_ATTR_MAX, &aps) ) != 0 )
     {
@@ -335,7 +335,7 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
 
     if ( answer[NL80211_ATTR_BSS] == NULL )
         goto end;
-    struct nlattr *bss[NL80211_BSS_MAX + 1];
+    struct nlattr *bss[NL80211_BSS_MAX + 1] = { NULL };
     static struct nla_policy bss_policy[NL80211_BSS_MAX + 1] = {
         [NL80211_BSS_FREQUENCY] = { .type = NLA_U32 },
         [NL80211_BSS_BSSID] = { },
