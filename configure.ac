@@ -69,7 +69,7 @@ gio_min_version="$glib_min_version"
 gmodule_min_version="$glib_min_version"
 
 
-AM_CFLAGS="-Wall -Wextra -Wno-unused-parameter -Wno-missing-field-initializers"
+AM_CFLAGS="-Wall -Wextra"
 AM_CPPFLAGS=""
 AM_LDFLAGS=""
 AM_XSLTPROCFLAGS="--nonet --xinclude --stringparam man.output.quietly 1 --stringparam funcsynopsis.style ansi"

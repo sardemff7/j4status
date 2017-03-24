@@ -326,7 +326,7 @@ j4status_section_get_label(const J4statusSection *self)
 J4statusColour
 j4status_section_get_label_colour(const J4statusSection *self)
 {
-    J4statusColour def = { FALSE, 0, 0, 0 };
+    J4statusColour def = { FALSE, 0, 0, 0, 0 };
     g_return_val_if_fail(self != NULL, def);
     g_return_val_if_fail(self->freeze, def);
 
@@ -362,7 +362,7 @@ j4status_section_get_state(const J4statusSection *self)
 J4statusColour
 j4status_section_get_colour(const J4statusSection *self)
 {
-    J4statusColour def = { FALSE, 0, 0, 0 };
+    J4statusColour def = { FALSE, 0, 0, 0, 0 };
     g_return_val_if_fail(self != NULL, def);
     g_return_val_if_fail(self->freeze, def);
 
