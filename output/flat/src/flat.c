@@ -34,17 +34,18 @@
 #include <j4status-plugin-output.h>
 
 typedef struct {
-    gchar start[16];
+    gchar start[28];
     gchar end[5];
 } ColourStr;
 
-#define COLOUR_STR(n) ColourStr n = { .start = { '\0' }, .end = { '\e', '[', '0', 'm', '\0' } }; /* strlen("\e[38;5;xxxm\e[5m\x07") */
+#define COLOUR_STR(n) ColourStr n = { .start = { '\0' }, .end = { '\e', '[', '0', 'm', '\0' } }; /* strlen("\e[38;5;xxxm\e[38;5;xxxm\e[5m\x07") */
 #define MAX_LINE 256
 
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     gchar *label_separator;
     J4statusColour colours[_J4STATUS_STATE_SIZE];
+    gboolean back_colours;
     gboolean align;
     GString *line;
 };
@@ -123,14 +124,16 @@ _j4status_flat_stream_free(J4statusPluginContext *context, J4statusOutputPluginS
 }
 
 static void
-_j4status_flat_set_colour(ColourStr *out, J4statusColour colour, gboolean important)
+_j4status_flat_set_colour(ColourStr *out, J4statusColour colour, J4statusColour back_colour, gboolean important)
 {
     gsize o = 0;
     if ( colour.set )
-        o = g_sprintf(out->start, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
+        o += g_sprintf(out->start, "\e[38;5;%03hum", 16 + ( ( colour.red / 51 ) * 36 ) + ( ( colour.green / 51 ) * 6 ) + ( colour.blue / 51 ));
+    if ( back_colour.set )
+        o += g_sprintf(out->start + o, "\e[48;5;%03hum", 16 + ( ( back_colour.red / 51 ) * 36 ) + ( ( back_colour.green / 51 ) * 6 ) + ( back_colour.blue / 51 ));
     if ( important )
         g_sprintf(out->start + o, "\e[5m\a");
-    else if ( ! colour.set )
+    else if ( ( ! colour.set ) && ( ! back_colour.set ) )
         out->end[0] = '\0';
 }
 
@@ -153,15 +156,22 @@ _j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
             if ( value != NULL )
             {
                 J4statusColour colour = {0};
+                J4statusColour back_colour = {0};
                 COLOUR_STR(colour_str);
 
 
                 J4statusState state = j4status_section_get_state(section);
                 gboolean urgent = ( state & J4STATUS_STATE_URGENT );
                 colour = j4status_section_get_colour(section);
-                if ( ! colour.set )
-                    colour = context->colours[state & ~J4STATUS_STATE_FLAGS];
-                _j4status_flat_set_colour(&colour_str, colour, urgent);
+                back_colour = j4status_section_get_background_colour(section);
+                if ( ( ! colour.set ) && ( ! back_colour.set ) )
+                {
+                    if ( context->back_colours )
+                        back_colour = context->colours[state & ~J4STATUS_STATE_FLAGS];
+                    else
+                        colour = context->colours[state & ~J4STATUS_STATE_FLAGS];
+                }
+                _j4status_flat_set_colour(&colour_str, colour, back_colour, urgent);
 
                 gsize s = 1, l = 0, r = 0;
 
@@ -196,8 +206,9 @@ _j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
                 label = j4status_section_get_label(section);
                 if ( label != NULL )
                 {
+                    J4statusColour back_colour = {0};
                     COLOUR_STR(label_colour_str);
-                    _j4status_flat_set_colour(&label_colour_str, j4status_section_get_label_colour(section), FALSE);
+                    _j4status_flat_set_colour(&label_colour_str, j4status_section_get_label_colour(section), back_colour, FALSE);
 
                     new_cache = g_strdup_printf("%s%s%s%s%s%s%s%s%s", label_colour_str.start, label, label_colour_str.end, context->label_separator, align_left, colour_str.start, value, colour_str.end, align_right);
                 }
@@ -255,6 +266,7 @@ _j4status_flat_init(J4statusCoreInterface *core)
         context->align = g_key_file_get_boolean(key_file, "Flat", "Align", NULL);
         context->label_separator = g_key_file_get_string(key_file, "Flat", "LabelSeparator", NULL);
         use_colours = g_key_file_get_boolean(key_file, "Flat", "UseColours", NULL);
+        context->back_colours = g_key_file_get_boolean(key_file, "Flat", "ColoursOnBackground", NULL);
     }
 
     if (
