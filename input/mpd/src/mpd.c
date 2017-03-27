@@ -127,7 +127,7 @@ static const gchar * const _j4status_mpd_format_tokens[] = {
     [TOKEN_VOLUME]   = "volume",
 };
 
-#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${database/^.+$/ (\0)} [${options}]"
+#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${database/^.+$/ (\\0)} [${options}]"
 
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command, ...)
