@@ -144,6 +144,7 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
     } G_STMT_END
         set_colour(label_colour);
         set_colour(colour);
+        set_colour(background_colour);
 #undef set_colour
 
         gchar *cache;
@@ -158,6 +159,7 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
             "\nState: %s"
             "\nUrgent: %s"
             "\nColour: %s"
+            "\nBackground colour: %s"
             "\nValue: %s"
             "\n--",
             j4status_section_get_name(section),
@@ -169,6 +171,7 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
             state_s,
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
             colour_str,
+            background_colour_str,
             j4status_section_get_value(section));
 
         j4status_section_set_cache(section, cache);
