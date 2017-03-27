@@ -50,6 +50,7 @@ gboolean j4status_section_insert(J4statusSection *section) G_GNUC_WARN_UNUSED_RE
 /* API once the section is inserted in the list */
 void j4status_section_set_state(J4statusSection *section, J4statusState state);
 void j4status_section_set_colour(J4statusSection *section, J4statusColour colour);
+void j4status_section_set_background_colour(J4statusSection *section, J4statusColour colour);
 void j4status_section_set_value(J4statusSection *section, gchar *value);
 void j4status_section_set_short_value(J4statusSection *section, gchar *short_value);
 

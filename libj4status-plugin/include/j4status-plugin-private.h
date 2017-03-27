@@ -48,6 +48,7 @@ struct _J4statusSection {
      * once the section is inserted in the list */
     J4statusState state;
     J4statusColour colour;
+    J4statusColour background_colour;
     gchar *value;
     gchar *short_value;
 

@@ -259,6 +259,20 @@ j4status_section_set_colour(J4statusSection *self, J4statusColour colour)
 }
 
 void
+j4status_section_set_background_colour(J4statusSection *self, J4statusColour colour)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(self->freeze);
+
+    if ( ! self->dirty )
+        self->core->trigger_generate(self->core->context, FALSE);
+
+    self->dirty = TRUE;
+
+    self->background_colour = colour;
+}
+
+void
 j4status_section_set_value(J4statusSection *self, gchar *value)
 {
     g_return_if_fail(self != NULL);
@@ -367,6 +381,16 @@ j4status_section_get_colour(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, def);
 
     return self->colour;
+}
+
+J4statusColour
+j4status_section_get_background_colour(const J4statusSection *self)
+{
+    J4statusColour def = { FALSE, 0, 0, 0, 0 };
+    g_return_val_if_fail(self != NULL, def);
+    g_return_val_if_fail(self->freeze, def);
+
+    return self->background_colour;
 }
 
 const gchar *
