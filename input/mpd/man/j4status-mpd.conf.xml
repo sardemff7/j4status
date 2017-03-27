@@ -169,16 +169,23 @@
                             </varlistentry>
 
                             <varlistentry>
-                                <term><literal>song</literal></term>
+                                <term><literal>options</literal></term>
                                 <listitem>
-                                    <para>The played song name. If MPD is stopped, the song which would be played.</para>
+                                    <para>The play options of the server. It is a string of 4 characters. Each character represents an option:</para>
+                                    <simplelist>
+                                        <member><literal>r</literal> Repeat</member>
+                                        <member><literal>z</literal> Random/Shuffle</member>
+                                        <member><literal>1</literal> Single mode</member>
+                                        <member><literal>-</literal> Consume mode</member>
+                                    </simplelist>
+                                    <para>If the option is enabled, the character is shown, otherwise a space is shown.</para>
                                 </listitem>
                             </varlistentry>
 
                             <varlistentry>
-                                <term><literal>song</literal></term>
+                                <term><literal>volume</literal></term>
                                 <listitem>
-                                    <para>The played song name. If MPD is stopped, the song which would be played.</para>
+                                    <para>The current volume (as a percentage).</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
