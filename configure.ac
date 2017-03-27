@@ -77,7 +77,7 @@ AM_DOCBOOK_CONDITIONS="installation"
 
 
 
-GW_INIT([src/libgwater])
+GW_INIT
 NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/alpha colour/string], [AM_DOCBOOK_CONDITIONS])
 
 AC_CHECK_HEADERS([errno.h])
