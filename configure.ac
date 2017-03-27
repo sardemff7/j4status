@@ -78,7 +78,7 @@ AM_DOCBOOK_CONDITIONS="installation"
 
 
 GW_INIT
-NK_INIT([src/libnkutils], [GLIB], [enum token/enum colour/alpha colour/string], [AM_DOCBOOK_CONDITIONS])
+NK_INIT([enum token/enum colour/alpha colour/string])
 
 AC_CHECK_HEADERS([errno.h])
 

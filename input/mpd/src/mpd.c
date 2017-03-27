@@ -127,7 +127,7 @@ static const gchar * const _j4status_mpd_format_tokens[] = {
     [TOKEN_VOLUME]   = "volume",
 };
 
-#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${ (<database>)}${ [<options>]}"
+#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${database/^.+$/ (\0)} [${options}]"
 
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command, ...)
@@ -230,7 +230,7 @@ _j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *ev
 }
 
 const gchar *
-_j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer user_data)
+_j4status_mpd_format_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
 {
     const J4statusMpdSection *section = user_data;
     static gchar options[5] = {0};

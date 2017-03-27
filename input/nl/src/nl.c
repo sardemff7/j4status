@@ -122,8 +122,8 @@ typedef enum {
 
 #define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
-#define J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength>% }${at <ssid>, }${bitrate})"
-#define J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI "Down${ (<aps> APs)}"
+#define J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength}${strength:+% }${ssid/^.+$/at \\0, }${bitrate})"
+#define J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI "Down${aps/^.+$/(\\0 APs)}"
 
 typedef struct {
     const gchar *addresses;
@@ -536,7 +536,7 @@ _j4status_nl_section_get_addresses(J4statusNlSection *self)
 }
 
 static const gchar *
-_j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer user_data)
+_j4status_nl_format_up_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
 {
     const J4statusNlFormatData *data = user_data;
 
@@ -551,13 +551,13 @@ _j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer
 }
 
 static const gchar *
-_j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpointer user_data)
+_j4status_nl_format_down_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
 {
     return NULL;
 }
 
 static const gchar *
-_j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+_j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
 {
     const J4statusNlFormatData *data = user_data;
 
@@ -576,7 +576,7 @@ _j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, gconstpo
 }
 
 static const gchar *
-_j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
+_j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
 {
     const J4statusNlFormatData *data = user_data;
 
