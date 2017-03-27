@@ -135,6 +135,17 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
         break;
         }
 
+#define set_colour(n) \
+    gchar n##_str[10] = "none"; \
+    G_STMT_START { \
+        const gchar *tmp = j4status_colour_to_hex(j4status_section_get_##n(section)); \
+        if ( tmp != NULL ) \
+            g_snprintf(n##_str, sizeof(n##_str), "%s", tmp); \
+    } G_STMT_END
+        set_colour(label_colour);
+        set_colour(colour);
+#undef set_colour
+
         gchar *cache;
         cache = g_strdup_printf("--"
             "\nName: %s"
@@ -152,12 +163,12 @@ _j4status_debug_generate_line(J4statusPluginContext *context, GList *sections)
             j4status_section_get_name(section),
             j4status_section_get_instance(section),
             j4status_section_get_label(section),
-            j4status_colour_to_hex(j4status_section_get_label_colour(section)),
+            label_colour_str,
             align,
             j4status_section_get_max_width(section),
             state_s,
             BOOL_TO_S(state & J4STATUS_STATE_URGENT),
-            j4status_colour_to_hex(j4status_section_get_colour(section)),
+            colour_str,
             j4status_section_get_value(section));
 
         j4status_section_set_cache(section, cache);
