@@ -34,7 +34,7 @@
 #include <j4status-plugin-output.h>
 
 typedef struct {
-    gchar start[25]; /* strlen("<span color='#FFFFFFFF'>") */
+    gchar start[53]; /* strlen("<span foreground='#FFFFFFFF' background='#FFFFFFFF'>") */
     gchar end[8];    /* strlen("</span>") */
 } ColourStr;
 
@@ -128,12 +128,21 @@ _j4status_pango_send_header(J4statusPluginContext *context, J4statusOutputPlugin
 }
 
 static void
-_j4status_pango_set_colour(ColourStr *out, J4statusColour colour)
+_j4status_pango_set_colour(ColourStr *out, J4statusColour colour, J4statusColour back_colour)
 {
-    if ( colour.set )
-        g_snprintf(out->start, 25, "<span color=\"%s\">", j4status_colour_to_hex(colour));
+    gsize l = sizeof(out->start), o = 0;
+    if ( colour.set || back_colour.set )
+        o += g_snprintf(out->start + o, l - o, "<span");
     else
+    {
         out->end[0] = '\0';
+        return;
+    }
+    if ( colour.set )
+        o += g_snprintf(out->start + o, l - o, " foreground=\"%s\"", j4status_colour_to_hex(colour));
+    if ( back_colour.set )
+        o += g_snprintf(out->start + o, l - o, " background=\"%s\"", j4status_colour_to_hex(back_colour));
+    g_snprintf(out->start + o, l - o, ">");
 }
 
 #define byte_append(b) G_STMT_START { guint8 b_ = (b); g_byte_array_append(context->line, &b_, 1); } G_STMT_END
@@ -156,15 +165,17 @@ _j4status_pango_generate_line(J4statusPluginContext *context, GList *sections)
             if ( value != NULL )
             {
                 J4statusColour colour = {0};
+                J4statusColour back_colour = {0};
                 COLOUR_STR(colour_str);
 
 
                 J4statusState state = j4status_section_get_state(section);
                 urgent = urgent || ( state & J4STATUS_STATE_URGENT );
                 colour = j4status_section_get_colour(section);
-                if ( ! colour.set )
+                back_colour = j4status_section_get_background_colour(section);
+                if ( ( ! colour.set ) && ( ! back_colour.set ) )
                     colour = context->colours[state & ~J4STATUS_STATE_FLAGS];
-                _j4status_pango_set_colour(&colour_str, colour);
+                _j4status_pango_set_colour(&colour_str, colour, back_colour);
 
                 gsize s = 1, l = 0, r = 0;
 
@@ -200,7 +211,7 @@ _j4status_pango_generate_line(J4statusPluginContext *context, GList *sections)
                 if ( label != NULL )
                 {
                     COLOUR_STR(label_colour_str);
-                    _j4status_pango_set_colour(&label_colour_str, j4status_section_get_label_colour(section));
+                    _j4status_pango_set_colour(&label_colour_str, j4status_section_get_label_colour(section), back_colour);
 
                     new_cache = g_strdup_printf("%s%s%s%s%s%s%s%s%s", label_colour_str.start, label, label_colour_str.end, context->label_separator, align_left, colour_str.start, value, colour_str.end, align_right);
                 }
