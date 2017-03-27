@@ -77,6 +77,7 @@ typedef enum {
     KEY_SHORT_TEXT,
     KEY_URGENT,
     KEY_COLOUR,
+    KEY_BACKGROUND,
     KEY_ALIGN,
     KEY_MIN_WIDTH,
     KEY_SEPARATOR,
@@ -100,6 +101,7 @@ static gchar *_j4status_i3bar_input_json_key_names[] = {
     [KEY_SHORT_TEXT] = "short_text",
     [KEY_URGENT] = "urgent",
     [KEY_COLOUR] = "colour",
+    [KEY_BACKGROUND] = "background",
     [KEY_ALIGN] = "align",
     [KEY_MIN_WIDTH] = "min_width",
     [KEY_SEPARATOR] = "separator",
@@ -126,6 +128,7 @@ typedef struct {
     gchar *short_text;
     gboolean urgent;
     J4statusColour colour;
+    J4statusColour background;
     J4statusAlign align;
     gint64 max_width;
     gboolean separator;
@@ -379,6 +382,9 @@ _j4status_i3bar_input_section_string(void *user_data, const unsigned char *value
     case KEY_COLOUR:
         client->parse_context.colour = j4status_colour_parse_length((const gchar *) value, length);
     break;
+    case KEY_BACKGROUND:
+        client->parse_context.background = j4status_colour_parse_length((const gchar *) value, length);
+    break;
     case KEY_ALIGN:
         if ( yajl_strcmp(value, length, "left") )
             client->parse_context.align = J4STATUS_ALIGN_LEFT;
@@ -519,6 +525,7 @@ _j4status_i3bar_input_section_end_map(void *user_data)
     j4status_section_set_short_value(section, client->parse_context.short_text);
     client->parse_context.short_text = NULL;
     j4status_section_set_colour(section, client->parse_context.colour);
+    j4status_section_set_background_colour(section, client->parse_context.background);
 
 end:
     client->parse_context.in_section = FALSE;
@@ -535,6 +542,7 @@ end:
     client->parse_context.short_text = NULL;
     client->parse_context.urgent = FALSE;
     j4status_colour_reset(&client->parse_context.colour);
+    j4status_colour_reset(&client->parse_context.background);
     client->parse_context.align = J4STATUS_ALIGN_CENTER;
     client->parse_context.max_width = 0;
 

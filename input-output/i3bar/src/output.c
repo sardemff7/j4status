@@ -577,6 +577,7 @@ _j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusS
 
     J4statusState state = j4status_section_get_state(section);
     const gchar *colour = NULL;
+    const gchar *background_colour = NULL;
     switch ( state & ~J4STATUS_STATE_FLAGS )
     {
     case J4STATUS_STATE_NO_STATE:
@@ -612,6 +613,16 @@ _j4status_i3bar_output_process_section(J4statusPluginContext *context, J4statusS
     {
         yajl_gen_string(json_gen, (const unsigned char *)"color", strlen("color"));
         yajl_gen_string(json_gen, (const unsigned char *)colour, strlen("#000000"));
+    }
+
+    forced_colour = j4status_colour_to_hex(j4status_section_get_background_colour(section));
+    if ( forced_colour != NULL )
+        background_colour = forced_colour;
+
+    if ( background_colour != NULL )
+    {
+        yajl_gen_string(json_gen, (const unsigned char *)"background", strlen("background"));
+        yajl_gen_string(json_gen, (const unsigned char *)background_colour, strlen("#000000"));
     }
 
     const gchar *short_value;
