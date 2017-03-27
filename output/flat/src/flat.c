@@ -44,13 +44,7 @@ typedef struct {
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     gchar *label_separator;
-    struct {
-        J4statusColour no_state;
-        J4statusColour unavailable;
-        J4statusColour bad;
-        J4statusColour average;
-        J4statusColour good;
-    } colours;
+    J4statusColour colours[_J4STATUS_STATE_SIZE];
     gboolean align;
     GString *line;
 };
@@ -166,24 +160,7 @@ _j4status_flat_generate_line(J4statusPluginContext *context, GList *sections)
                 gboolean urgent = ( state & J4STATUS_STATE_URGENT );
                 colour = j4status_section_get_colour(section);
                 if ( ! colour.set )
-                switch ( state & ~J4STATUS_STATE_FLAGS )
-                {
-                case J4STATUS_STATE_NO_STATE:
-                    colour = context->colours.no_state;
-                break;
-                case J4STATUS_STATE_UNAVAILABLE:
-                    colour = context->colours.unavailable;
-                break;
-                case J4STATUS_STATE_BAD:
-                    colour = context->colours.bad;
-                break;
-                case J4STATUS_STATE_AVERAGE:
-                    colour = context->colours.average;
-                break;
-                case J4STATUS_STATE_GOOD:
-                    colour = context->colours.good;
-                break;
-                }
+                    colour = context->colours[state & ~J4STATUS_STATE_FLAGS];
                 _j4status_flat_set_colour(&colour_str, colour, urgent);
 
                 gsize s = 1, l = 0, r = 0;
@@ -285,23 +262,23 @@ _j4status_flat_init(J4statusCoreInterface *core)
         ( g_str_has_suffix(g_getenv("TERM"), "-256color") || g_str_has_suffix(g_getenv("TERM"), "-256colour") )
         )
     {
-        context->colours.unavailable.set = TRUE;
-        context->colours.unavailable.blue = 0xff;
-        context->colours.bad.set = TRUE;
-        context->colours.bad.red = 0xff;
-        context->colours.average.set = TRUE;
-        context->colours.average.red = 0xff;
-        context->colours.average.green = 0xff;
-        context->colours.good.set = TRUE;
-        context->colours.good.green = 0xff;
+        context->colours[J4STATUS_STATE_UNAVAILABLE].set = TRUE;
+        context->colours[J4STATUS_STATE_UNAVAILABLE].blue = 0xff;
+        context->colours[J4STATUS_STATE_BAD].set = TRUE;
+        context->colours[J4STATUS_STATE_BAD].red = 0xff;
+        context->colours[J4STATUS_STATE_AVERAGE].set = TRUE;
+        context->colours[J4STATUS_STATE_AVERAGE].red = 0xff;
+        context->colours[J4STATUS_STATE_AVERAGE].green = 0xff;
+        context->colours[J4STATUS_STATE_GOOD].set = TRUE;
+        context->colours[J4STATUS_STATE_GOOD].green = 0xff;
 
         if ( key_file != NULL )
         {
-            _j4status_flat_update_colour(&context->colours.no_state, key_file, "NoStateColour");
-            _j4status_flat_update_colour(&context->colours.unavailable, key_file, "UnavailableColour");
-            _j4status_flat_update_colour(&context->colours.bad, key_file, "BadColour");
-            _j4status_flat_update_colour(&context->colours.average, key_file, "AverageColour");
-            _j4status_flat_update_colour(&context->colours.good, key_file, "GoodColour");
+            _j4status_flat_update_colour(&context->colours[J4STATUS_STATE_NO_STATE], key_file, "NoStateColour");
+            _j4status_flat_update_colour(&context->colours[J4STATUS_STATE_UNAVAILABLE], key_file, "UnavailableColour");
+            _j4status_flat_update_colour(&context->colours[J4STATUS_STATE_BAD], key_file, "BadColour");
+            _j4status_flat_update_colour(&context->colours[J4STATUS_STATE_AVERAGE], key_file, "AverageColour");
+            _j4status_flat_update_colour(&context->colours[J4STATUS_STATE_GOOD], key_file, "GoodColour");
         }
     }
 
