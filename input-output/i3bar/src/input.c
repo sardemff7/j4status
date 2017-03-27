@@ -62,12 +62,15 @@ struct _J4statusPluginContext {
 
 typedef enum {
     /* Header keys */
+#define KEY_HEADER_FIRST KEY_VERSION
     KEY_VERSION      = (1<<0),
     KEY_STOP_SIGNAL,
     KEY_CONT_SIGNAL,
     KEY_CLICK_EVENTS,
+#define KEY_HEADER_LAST KEY_CLICK_EVENTS
 
     /* Sections keys */
+#define KEY_SECTION_FIRST KEY_NAME
     KEY_NAME         = (1<<4),
     KEY_INSTANCE,
     KEY_FULL_TEXT,
@@ -78,6 +81,7 @@ typedef enum {
     KEY_MIN_WIDTH,
     KEY_SEPARATOR,
     KEY_SEPARATOR_BLOCK_WIDTH,
+#define KEY_SECTION_LAST KEY_SEPARATOR_BLOCK_WIDTH
 
     KEY_NONE = 0
 } J4statusI3barInputJsonKey;
@@ -257,21 +261,18 @@ _j4status_i3bar_input_header_map_key(void *user_data, const unsigned char *value
 {
     J4statusI3barInputHeaderParseContext *context = user_data;
 
-    if ( yajl_strcmp(value, length, "version") )
-        context->key = KEY_VERSION;
-    else if ( yajl_strcmp(value, length, "stop_signal") )
-        context->key = KEY_STOP_SIGNAL;
-    else if ( yajl_strcmp(value, length, "cont_signal") )
-        context->key = KEY_CONT_SIGNAL;
-    else if ( yajl_strcmp(value, length, "click_events") )
-        context->key = KEY_CLICK_EVENTS;
-    else
+    gsize i;
+    for ( i = KEY_HEADER_FIRST ; i <= KEY_HEADER_LAST ; ++i )
     {
-        context->error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
-        return 0;
+        if ( yajl_strcmp(value, length, _j4status_i3bar_input_json_key_names[i]) )
+        {
+            context->key = i;
+            return 1;
+        }
     }
 
-    return 1;
+    context->error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
+    return 0;
 }
 
 static yajl_callbacks _j4status_i3bar_input_header_callbacks = {
@@ -427,33 +428,18 @@ _j4status_i3bar_input_section_map_key(void *user_data, const unsigned char *valu
         return 0;
     }
 
-    if ( yajl_strcmp(value, length, "name") )
-        client->parse_context.key = KEY_NAME;
-    else if ( yajl_strcmp(value, length, "instance") )
-        client->parse_context.key = KEY_INSTANCE;
-    else if ( yajl_strcmp(value, length, "full_text") )
-        client->parse_context.key = KEY_FULL_TEXT;
-    else if ( yajl_strcmp(value, length, "short_text") )
-        client->parse_context.key = KEY_SHORT_TEXT;
-    else if ( yajl_strcmp(value, length, "urgent") )
-        client->parse_context.key = KEY_URGENT;
-    else if ( yajl_strcmp(value, length, "color") )
-        client->parse_context.key = KEY_COLOUR;
-    else if ( yajl_strcmp(value, length, "align") )
-        client->parse_context.key = KEY_ALIGN;
-    else if ( yajl_strcmp(value, length, "min_width") )
-        client->parse_context.key = KEY_MIN_WIDTH;
-    else if ( yajl_strcmp(value, length, "separator") )
-        client->parse_context.key = KEY_SEPARATOR;
-    else if ( yajl_strcmp(value, length, "separator_block_width") )
-        client->parse_context.key = KEY_SEPARATOR_BLOCK_WIDTH;
-    else
+    gsize i;
+    for ( i = KEY_SECTION_FIRST ; i <= KEY_SECTION_LAST ; ++i )
     {
-        client->parse_context.error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
-        return 0;
+        if ( yajl_strcmp(value, length, _j4status_i3bar_input_json_key_names[i]) )
+        {
+            client->parse_context.key = i;
+            return 1;
+        }
     }
 
-    return 1;
+    client->parse_context.error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
+    return 0;
 }
 
 static int
