@@ -220,7 +220,21 @@ _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
 
     j4status_section_set_name(section->section, "systemd");
     j4status_section_set_instance(section->section, unit_name);
-    j4status_section_set_label(section->section, unit_name);
+
+    if ( g_str_has_suffix(unit_name, ".service") )
+    {
+        gsize l;
+        gchar *label;
+        l = strlen(unit_name) - strlen(".service");
+        label = g_newa(gchar, l);
+        g_snprintf(label, l, "%s", unit_name);
+        j4status_section_set_label(section->section, label);
+    }
+    else
+    {
+        j4status_section_set_label(section->section, unit_name);
+    }
+
     /* Possible unit states:
      * loaded failed active inactive not-found listening running waiting plugged mounted exited dead masked */
     j4status_section_set_max_width(section->section, -strlen("listening"));
