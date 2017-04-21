@@ -225,7 +225,7 @@ _j4status_systemd_section_new(J4statusPluginContext *context, gchar *unit_name)
     {
         gsize l;
         gchar *label;
-        l = strlen(unit_name) - strlen(".service");
+        l = strlen(unit_name) - strlen(".service") + 1;
         label = g_newa(gchar, l);
         g_snprintf(label, l, "%s", unit_name);
         j4status_section_set_label(section->section, label);
