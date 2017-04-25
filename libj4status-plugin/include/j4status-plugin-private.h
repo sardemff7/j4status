@@ -77,6 +77,7 @@ struct _J4statusCoreInterface {
     J4statusCoreStreamGetInputStreamFunc stream_get_input_stream;
     J4statusCoreStreamGetOutputStreamFunc stream_get_output_stream;
     J4statusCoreStreamFunc stream_reconnect;
+    J4statusCoreStreamFunc stream_free;
 };
 
 

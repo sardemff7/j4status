@@ -54,3 +54,9 @@ j4status_core_stream_reconnect(J4statusCoreInterface *core, J4statusCoreStream *
 {
     return core->stream_reconnect(stream);
 }
+
+void
+j4status_core_stream_free(J4statusCoreInterface *core, J4statusCoreStream *stream)
+{
+    return core->stream_free(stream);
+}

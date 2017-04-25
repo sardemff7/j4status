@@ -228,6 +228,12 @@ _j4status_core_stream_reconnect(J4statusCoreStream *stream)
 }
 
 static void
+_j4status_core_stream_free(J4statusCoreStream *stream)
+{
+    j4status_io_stream_free(stream);
+}
+
+static void
 _j4status_core_start(J4statusCoreContext *context)
 {
     context->started = TRUE;
@@ -420,6 +426,7 @@ main(int argc, char *argv[])
         .stream_get_input_stream = _j4status_core_stream_get_input_stream,
         .stream_get_output_stream = _j4status_core_stream_get_output_stream,
         .stream_reconnect = _j4status_core_stream_reconnect,
+        .stream_free = _j4status_core_stream_free,
     };
 
 #ifdef G_OS_UNIX

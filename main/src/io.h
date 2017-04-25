@@ -32,5 +32,6 @@ void j4status_io_update_line(J4statusIOContext *io);
 GInputStream *j4status_io_stream_get_input_stream(J4statusIOStream *stream);
 GOutputStream *j4status_io_stream_get_output_stream(J4statusIOStream *stream);
 void j4status_io_stream_reconnect(J4statusIOStream *stream);
+void j4status_io_stream_free(J4statusIOStream *stream);
 
 #endif /* __J4STATUS_IO_H__ */

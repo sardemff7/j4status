@@ -33,6 +33,7 @@ void j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *sect
 GInputStream *j4status_core_stream_get_input_stream(J4statusCoreInterface *core, J4statusCoreStream *stream);
 GOutputStream *j4status_core_stream_get_output_stream(J4statusCoreInterface *core, J4statusCoreStream *stream);
 void j4status_core_stream_reconnect(J4statusCoreInterface *core, J4statusCoreStream *stream);
+void j4status_core_stream_free(J4statusCoreInterface *core, J4statusCoreStream *stream);
 
 typedef gboolean (*J4statusPluginSendFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream, GError **error);
 typedef void (*J4statusPluginGenerateLineFunc)(J4statusPluginContext *context, GList *sections);

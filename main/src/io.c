@@ -76,7 +76,6 @@ struct _J4statusIOStream {
 #define MAX_TRIES 3
 
 static void _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer user_data);
-static void _j4status_io_remove_stream(J4statusIOContext *io, J4statusIOStream *stream);
 static void _j4status_io_stream_put_header(J4statusIOStream *stream);
 
 static void
@@ -150,7 +149,7 @@ j4status_io_stream_reconnect(J4statusIOStream *self)
         _j4status_io_stream_connect(self);
     else
         /* Server stream */
-        _j4status_io_remove_stream(self->io, self);
+        j4status_io_stream_free(self);
 }
 
 static void
@@ -167,7 +166,7 @@ _j4status_io_stream_connect_callback(GObject *obj, GAsyncResult *res, gpointer u
         g_warning("Couldn't reconnect: %s", error->message);
         g_clear_error(&error);
         if ( ++self->tries > MAX_TRIES )
-            _j4status_io_remove_stream(self->io, self);
+            j4status_io_stream_free(self);
         else
             _j4status_io_stream_connect(self);
     }
@@ -536,13 +535,14 @@ j4status_io_free(J4statusIOContext *self)
     g_free(self);
 }
 
-static void
-_j4status_io_remove_stream(J4statusIOContext *self, J4statusIOStream *stream)
+void
+j4status_io_stream_free(J4statusIOStream *self)
 {
-    self->streams = g_list_remove(self->streams, stream);
-    _j4status_io_stream_free(stream);
-    if ( ! _j4status_io_has_stream(self) )
-        j4status_core_quit(self->core);
+    J4statusIOContext *io = self->io;
+    io->streams = g_list_remove(io->streams, self);
+    _j4status_io_stream_free(self);
+    if ( ! _j4status_io_has_stream(io) )
+        j4status_core_quit(io->core);
 }
 
 void
