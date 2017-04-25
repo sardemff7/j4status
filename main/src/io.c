@@ -195,7 +195,7 @@ _j4status_io_stream_new_for_connection(J4statusIOContext *io, GSocketConnection 
 }
 
 static void
-_j4status_io_add_stream(J4statusIOContext *self, const gchar *stream_desc)
+_j4status_io_stream_add(J4statusIOContext *self, const gchar *stream_desc)
 {
     J4statusIOStream *stream;
     if ( g_strcmp0(stream_desc, "std") == 0 )
@@ -493,7 +493,7 @@ j4status_io_new(J4statusCoreContext *core, J4statusOutputPlugin *plugin, const g
 
     if ( ( servers_desc == NULL ) && ( streams_desc == NULL ) && ( ! _j4status_io_has_stream(self) ) )
         /* Using stdin/stdout */
-        _j4status_io_add_stream(self, "std");
+        _j4status_io_stream_add(self, "std");
 
     if ( servers_desc != NULL )
     {
@@ -506,7 +506,7 @@ j4status_io_new(J4statusCoreContext *core, J4statusOutputPlugin *plugin, const g
     {
         const gchar * const *stream_desc;
         for ( stream_desc = streams_desc ; *stream_desc != NULL ; ++stream_desc)
-            _j4status_io_add_stream(self, *stream_desc);
+            _j4status_io_stream_add(self, *stream_desc);
     }
 
     if ( _j4status_io_has_stream(self) )
