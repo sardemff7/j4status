@@ -40,6 +40,8 @@ struct _J4statusPluginContext {
 struct _J4statusOutputPluginStream {
     J4statusPluginContext *context;
     J4statusCoreStream *stream;
+    gchar buffer[4096];
+    GInputStream *in;
     GDataOutputStream *out;
 };
 
@@ -64,6 +66,28 @@ _j4status_debug_uninit(J4statusPluginContext *context)
     g_free(context);
 }
 
+static void
+_j4status_debug_stream_read_callback(GObject *obj, GAsyncResult *res, gpointer user_data)
+{
+    J4statusOutputPluginStream *stream = user_data;
+    GInputStream *in = G_INPUT_STREAM(obj);
+    GError *error = NULL;
+
+    gsize size;
+    if ( ! g_input_stream_read_all_finish(in, res, &size, &error) )
+    {
+        g_warning("Input error: %s", error->message);
+        j4status_core_stream_reconnect(stream->context->core, stream->stream);
+        g_clear_error(&error);
+        return;
+    }
+
+    if ( size == 0 )
+        j4status_core_stream_free(stream->context->core, stream->stream);
+    else
+        g_input_stream_read_all_async(stream->in, stream->buffer, sizeof(stream->buffer), G_PRIORITY_DEFAULT, NULL, _j4status_debug_stream_read_callback, stream);
+}
+
 static J4statusOutputPluginStream *
 _j4status_debug_stream_new(J4statusPluginContext *context, J4statusCoreStream *core_stream)
 {
@@ -74,6 +98,9 @@ _j4status_debug_stream_new(J4statusPluginContext *context, J4statusCoreStream *c
     stream->stream = core_stream;
 
     stream->out = g_data_output_stream_new(j4status_core_stream_get_output_stream(stream->context->core, stream->stream));
+    stream->in = j4status_core_stream_get_input_stream(stream->context->core, stream->stream);
+
+    g_input_stream_read_all_async(stream->in, stream->buffer, sizeof(stream->buffer), G_PRIORITY_DEFAULT, NULL, _j4status_debug_stream_read_callback, stream);
 
     return stream;
 }
