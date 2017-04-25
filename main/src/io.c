@@ -80,11 +80,35 @@ static void _j4status_io_remove_stream(J4statusIOContext *io, J4statusIOStream *
 static void _j4status_io_stream_put_header(J4statusIOStream *stream);
 
 static void
+_j4status_io_stream_cleanup(J4statusIOStream *self)
+{
+    if ( self->in != NULL )
+    {
+        g_object_unref(self->in);
+        self->in = NULL;
+    }
+    if ( self->out != NULL )
+    {
+        g_object_unref(self->out);
+        self->out = NULL;
+    }
+
+    if ( self->connection != NULL )
+    {
+        g_object_unref(self->connection);
+        self->connection = NULL;
+    }
+
+    self->io->plugin->interface.stream_free(self->io->plugin->context, self->stream);
+    self->stream = NULL;
+}
+
+static void
 _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *connection)
 {
     self->connection = connection;
-    self->in = g_io_stream_get_input_stream(G_IO_STREAM(self->connection));
-    self->out = g_io_stream_get_output_stream(G_IO_STREAM(self->connection));
+    self->in = g_object_ref(g_io_stream_get_input_stream(G_IO_STREAM(self->connection)));
+    self->out = g_object_ref(g_io_stream_get_output_stream(G_IO_STREAM(self->connection)));
     self->stream = self->io->plugin->interface.stream_new(self->io->plugin->context, self);
     if ( ! self->header_sent )
         _j4status_io_stream_put_header(self);
@@ -93,15 +117,7 @@ _j4status_io_stream_set_connection(J4statusIOStream *self, GSocketConnection *co
 static void
 _j4status_io_stream_connect(J4statusIOStream *self)
 {
-    if ( self->connection != NULL )
-    {
-        g_object_unref(self->connection);
-        self->connection = NULL;
-        self->in = NULL;
-        self->out = NULL;
-    }
-    self->io->plugin->interface.stream_free(self->io->plugin->context, self->stream);
-
+    _j4status_io_stream_cleanup(self);
 
     GSocketClient *client;
     client = g_socket_client_new();
@@ -255,8 +271,7 @@ _j4status_io_stream_free(gpointer data)
 {
     J4statusIOStream *self = data;
 
-    g_object_unref(self->in);
-    g_object_unref(self->out);
+    _j4status_io_stream_cleanup(self);
 
     if ( self->connection != NULL )
         g_object_unref(self->connection);
