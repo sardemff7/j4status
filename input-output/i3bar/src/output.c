@@ -92,7 +92,6 @@ struct _J4statusOutputPluginStream {
     J4statusCoreStream *stream;
     GDataInputStream *in;
     GDataOutputStream *out;
-    GCancellable *cancellable;
 };
 
 static int
@@ -320,9 +319,8 @@ _j4status_i3bar_output_stream_read_callback(GObject *obj, GAsyncResult *res, gpo
     if ( line == NULL )
     {
         if ( error == NULL )
-            return;
-
-        if ( ! g_error_matches(error, G_IO_ERROR, G_IO_ERROR_CANCELLED) )
+            j4status_core_stream_free(stream->context->core, stream->stream);
+        else
         {
             g_warning("Input error: %s", error->message);
             j4status_core_stream_reconnect(stream->context->core, stream->stream);
@@ -334,7 +332,7 @@ _j4status_i3bar_output_stream_read_callback(GObject *obj, GAsyncResult *res, gpo
     _j4status_i3bar_ouput_action(stream->context, line);
 
     g_free(line);
-    g_data_input_stream_read_line_async(in, G_PRIORITY_DEFAULT, stream->cancellable, _j4status_i3bar_output_stream_read_callback, stream);
+    g_data_input_stream_read_line_async(in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_output_stream_read_callback, stream);
 }
 
 static J4statusOutputPluginStream *
@@ -349,8 +347,7 @@ _j4status_i3bar_output_stream_new(J4statusPluginContext *context, J4statusCoreSt
     stream->out = g_data_output_stream_new(j4status_core_stream_get_output_stream(stream->context->core, stream->stream));
     stream->in = g_data_input_stream_new(j4status_core_stream_get_input_stream(stream->context->core, stream->stream));
 
-    stream->cancellable = g_cancellable_new();
-    g_data_input_stream_read_line_async(stream->in, G_PRIORITY_DEFAULT, stream->cancellable, _j4status_i3bar_output_stream_read_callback, stream);
+    g_data_input_stream_read_line_async(stream->in, G_PRIORITY_DEFAULT, NULL, _j4status_i3bar_output_stream_read_callback, stream);
 
     return stream;
 }
@@ -358,9 +355,6 @@ _j4status_i3bar_output_stream_new(J4statusPluginContext *context, J4statusCoreSt
 static void
 _j4status_i3bar_output_stream_free(J4statusPluginContext *context, J4statusOutputPluginStream *stream)
 {
-    g_cancellable_cancel(stream->cancellable);
-    g_object_unref(stream->cancellable);
-
     g_object_unref(stream->out);
     g_object_unref(stream->in);
 
