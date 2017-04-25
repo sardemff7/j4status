@@ -37,7 +37,7 @@ void j4status_core_stream_reconnect(J4statusCoreInterface *core, J4statusCoreStr
 typedef gboolean (*J4statusPluginSendFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream, GError **error);
 typedef void (*J4statusPluginGenerateLineFunc)(J4statusPluginContext *context, GList *sections);
 typedef J4statusOutputPluginStream *(*J4statusPluginStreamNewFunc)(J4statusPluginContext *context, J4statusCoreStream *stream);
-typedef void (*J4statusPluginStreamFreeFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream);
+typedef void (*J4statusPluginStreamFunc)(J4statusPluginContext *context, J4statusOutputPluginStream *stream);
 
 typedef struct _J4statusOutputPluginInterface J4statusOutputPluginInterface;
 
@@ -49,7 +49,7 @@ LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, send_header, Send);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, generate_line, GenerateLine);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, send_line, Send);
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, stream_new, StreamNew);
-LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, stream_free, StreamFree);
+LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(output, Output, stream_free, Stream);
 
 const gchar *j4status_section_get_name(const J4statusSection *section);
 const gchar *j4status_section_get_instance(const J4statusSection *section);
