@@ -8,10 +8,7 @@ Website
 -------
 
 To get further information, please visit j4status’s website at:
-http://j4status.j4tools.org/
-
-You can also browse man pages online here:
-http://j4status.j4tools.org/man/
+https://sardemff7.github.io/j4status/
 
 
 My config
