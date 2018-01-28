@@ -39,10 +39,6 @@ Here is my configuration:
     [Netlink]
     Interfaces=eth;wlan;
 
-And the result in i3bar:
-
-![](http://j4status.j4tools.org/img/j4status-i3bar.png)
-
 
 Build from Git
 --------------
