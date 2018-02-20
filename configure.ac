@@ -118,6 +118,9 @@ J4SP_INIT
 J4SP_ADD_OUTPUT_PLUGIN(flat, [Flat], [always])
 J4SP_ADD_OUTPUT_PLUGIN(debug, [Debug], [always])
 J4SP_ADD_OUTPUT_PLUGIN(pango, [Pango markup], [always])
+J4SP_ADD_OUTPUT_PLUGIN(evp, [Event Protocol], [yes], [
+    PKG_CHECK_MODULES(EVENTC, [libeventc libeventd])
+])
 J4SP_ADD_INPUT_PLUGIN(time, [Time], [always])
 J4SP_ADD_INPUT_PLUGIN(file-monitor, [File monitor], [always])
 J4SP_ADD_INPUT_PLUGIN(systemd, [systemd], [always])

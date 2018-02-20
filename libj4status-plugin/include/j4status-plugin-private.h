@@ -55,6 +55,10 @@ struct _J4statusSection {
     /* Reserved for the output plugin */
     gboolean dirty;
     gchar *cache;
+    struct {
+        gpointer user_data;
+        GDestroyNotify notify;
+    } output;
 };
 
 typedef struct _J4statusCoreContext J4statusCoreContext;

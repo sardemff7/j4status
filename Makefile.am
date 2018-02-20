@@ -41,6 +41,9 @@ include libj4status-plugin/libj4status-plugin.mk
 include output/flat/flat.mk
 include output/debug/debug.mk
 include output/pango/pango.mk
+if ENABLE_EVP_OUTPUT
+include output/evp/evp.mk
+endif
 if ENABLE_I3BAR_INPUT_OUTPUT
 include input-output/i3bar/i3bar.mk
 endif
