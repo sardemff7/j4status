@@ -182,8 +182,11 @@ typedef struct {
         gchar bitrate[9]; /* 1000 + xb/s + \0 */
         gchar aps[5]; /* 1000 + \0 */
     } wifi;
-    GList *ipv4_addresses;
-    GList *ipv6_addresses;
+    struct {
+        gboolean has;
+        GList *ipv4;
+        GList *ipv6;
+    } addresses;
 } J4statusNlSection;
 
 static int
@@ -485,13 +488,6 @@ fail:
     return ret || self->wifi.is;
 }
 
-static gboolean
-_j4status_nl_section_need_addresses(J4statusNlSection *self)
-{
-    return ( ( ( ! self->wifi.is ) && ( self->context->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES ) )
-             || ( self->wifi.is && ( self->context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_ADDRESSES) ) );
-}
-
 static gsize
 _j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
 {
@@ -515,19 +511,14 @@ _j4status_nl_section_get_addresses(J4statusNlSection *self)
     gsize size = 0, o = 0;
     gchar *addresses;
 
-    if ( self->context->addresses != ADDRESSES_IPV6 )
-        size += g_list_length(self->ipv4_addresses) * strlen("255.255.255.255, ");
-    if ( self->context->addresses != ADDRESSES_IPV4 )
-        size += g_list_length(self->ipv6_addresses) * strlen("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff, ");
+    size += g_list_length(self->addresses.ipv4) * strlen("255.255.255.255, ");
+    size += g_list_length(self->addresses.ipv6) * strlen("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff, ");
     size += strlen("/128"); /* We will truncate prefix length, but we need room for libnl to write it first */
 
     addresses = g_new(char, size);
 
-    if ( self->context->addresses != ADDRESSES_IPV6 )
-        o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->ipv4_addresses);
-
-    if ( self->context->addresses != ADDRESSES_IPV4 )
-        o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->ipv6_addresses);
+    o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->addresses.ipv4);
+    o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->addresses.ipv6);
 
     /* Strip the last separator */
     addresses[o-2] = '\0';
@@ -591,10 +582,11 @@ _j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, const 
 static void
 _j4status_nl_section_free_addresses(J4statusNlSection *self)
 {
-    g_list_free_full(self->ipv4_addresses, (GDestroyNotify) nl_addr_put);
-    g_list_free_full(self->ipv6_addresses, (GDestroyNotify) nl_addr_put);
-    self->ipv4_addresses = NULL;
-    self->ipv6_addresses = NULL;
+    g_list_free_full(self->addresses.ipv4, (GDestroyNotify) nl_addr_put);
+    g_list_free_full(self->addresses.ipv6, (GDestroyNotify) nl_addr_put);
+    self->addresses.ipv4 = NULL;
+    self->addresses.ipv6 = NULL;
+    self->addresses.has = FALSE;
 }
 
 static void
@@ -611,6 +603,7 @@ _j4status_nl_section_update(J4statusNlSection *self)
     if ( ! ( flags & IFF_UP ) )
     {
         /* Unavailable */
+        _j4status_nl_section_free_addresses(self);
     }
     else if ( ! ( flags & IFF_RUNNING ) )
     {
@@ -627,7 +620,7 @@ _j4status_nl_section_update(J4statusNlSection *self)
             value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, &data);
         _j4status_nl_section_free_addresses(self);
     }
-    else if ( ( self->ipv4_addresses == NULL ) && ( self->ipv6_addresses == NULL ) )
+    else if ( ! self->addresses.has )
     {
         state = J4STATUS_STATE_AVERAGE;
         if ( self->wifi.is && self->wifi.has_ap )
@@ -646,7 +639,7 @@ _j4status_nl_section_update(J4statusNlSection *self)
 
         J4statusNlFormatData data = { NULL };
         gchar *addresses = NULL;
-        if ( _j4status_nl_section_need_addresses(self) )
+        if ( ( self->addresses.ipv4 != NULL ) || ( self->addresses.ipv6 != NULL ) )
             addresses = _j4status_nl_section_get_addresses(self);
         data.addresses = addresses;
 
@@ -683,10 +676,12 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
     struct nl_addr *addr;
     addr = rtnl_addr_get_local(rtaddr);
     GList **list;
+    gboolean add;
     switch ( nl_addr_get_family(addr) )
     {
     case AF_INET:
-        list = &self->ipv4_addresses;
+        list = &self->addresses.ipv4;
+        add = ( self->context->addresses != ADDRESSES_IPV6 );
     break;
     case AF_INET6:
     {
@@ -697,7 +692,8 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
         /* We only keep Unicast routable addresses */
         if ( ( bin[0] & 0xE0 ) != 0x20 )
             return FALSE;
-        list = &self->ipv6_addresses;
+        list = &self->addresses.ipv6;
+        add = ( self->context->addresses != ADDRESSES_IPV4 );
     }
     break;
     default:
@@ -705,7 +701,15 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
         return FALSE;
     }
 
-    if ( g_list_find_custom(*list, addr,_j4status_nl_address_compare)  != NULL )
+    gboolean had = self->addresses.has;
+    self->addresses.has = TRUE;
+
+    gboolean need = ( ( ( ! self->wifi.is ) && ( self->context->formats.up_tokens & TOKEN_FLAG_UP_ADDRESSES ) )
+                      || ( self->wifi.is && ( self->context->formats.up_wifi_tokens & TOKEN_FLAG_UP_WIFI_ADDRESSES) ) );
+    if ( ! need )
+        return ( ! had );
+
+    if ( ( ! add ) && ( g_list_find_custom(*list, addr,_j4status_nl_address_compare) != NULL ) )
         /* Already got it */
         return FALSE;
 
@@ -773,15 +777,12 @@ _j4status_nl_section_new(J4statusPluginContext *context, J4statusCoreInterface *
 
     _j4status_nl_section_check_nl80211(self, interface);
 
-    if ( _j4status_nl_section_need_addresses(self) )
+    struct nl_object *object;
+    for ( object = nl_cache_get_first(context->addr_cache) ; object != NULL ; object = nl_cache_get_next(object) )
     {
-        struct nl_object *object;
-        for ( object = nl_cache_get_first(context->addr_cache) ; object != NULL ; object = nl_cache_get_next(object) )
-        {
-            struct rtnl_addr *addr = nl_object_priv(object);
-            if ( rtnl_addr_get_ifindex(addr) == self->ifindex )
-                _j4status_nl_section_add_address(self, addr);
-        }
+        struct rtnl_addr *addr = nl_object_priv(object);
+        if ( rtnl_addr_get_ifindex(addr) == self->ifindex )
+            _j4status_nl_section_add_address(self, addr);
     }
 
     _j4status_nl_section_update(self);
@@ -816,9 +817,6 @@ _j4status_nl_cache_change(struct nl_cache *cache, struct nl_object *object, int 
         struct rtnl_addr *addr = nl_object_priv(object);
         section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(rtnl_addr_get_ifindex(addr)));
         if ( section == NULL )
-            return;
-
-        if ( ! _j4status_nl_section_need_addresses(section) )
             return;
 
         if ( ! _j4status_nl_section_add_address(section, addr) )
