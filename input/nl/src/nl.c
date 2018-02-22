@@ -122,16 +122,8 @@ typedef enum {
 
 #define J4STATUS_NL_DEFAULT_FORMAT_UP "${addresses}"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN "Down"
-#define J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength}${strength:+% }${ssid/^.+$/at \\0, }${bitrate})"
+#define J4STATUS_NL_DEFAULT_FORMAT_UP_WIFI "${addresses} (${strength}${strength:+% }${ssid/^.+$/at \\0, }${bitrate:+${bitrate(p)}b/s})"
 #define J4STATUS_NL_DEFAULT_FORMAT_DOWN_WIFI "Down${aps/^.+$/(\\0 APs)}"
-
-typedef struct {
-    const gchar *addresses;
-    const gchar *strength;
-    const gchar *ssid;
-    const gchar *bitrate;
-    const gchar *aps;
-} J4statusNlFormatData;
 
 typedef struct {
     int error;
@@ -178,9 +170,9 @@ typedef struct {
         gboolean is;
         gboolean has_ap;
         gchar *ssid;
-        gchar strength[4]; /* 100 + \0 */
-        gchar bitrate[9]; /* 1000 + xb/s + \0 */
-        gchar aps[5]; /* 1000 + \0 */
+        gint8 strength;
+        guint64 bitrate;
+        gint64 aps;
     } wifi;
     struct {
         gboolean has;
@@ -314,9 +306,9 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
     self->wifi.has_ap = FALSE;
     g_free(self->wifi.ssid);
     self->wifi.ssid = NULL;
-    self->wifi.bitrate[0] = '\0';
-    self->wifi.strength[0] = '\0';
-    self->wifi.aps[0] = '\0';
+    self->wifi.strength = -1;
+    self->wifi.bitrate = 0;
+    self->wifi.aps = -1;
 
     struct nl_msg *message;
 
@@ -334,7 +326,7 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
         goto end;
     }
 
-    g_snprintf(self->wifi.aps, sizeof(self->wifi.aps), "%zu", aps);
+    self->wifi.aps = aps;
 
     if ( answer[NL80211_ATTR_BSS] == NULL )
         goto end;
@@ -418,35 +410,19 @@ _j4status_nl_section_update_nl80211(J4statusNlSection *self)
         if ( nla_parse_nested(rinfo, NL80211_RATE_INFO_MAX, sinfo[NL80211_STA_INFO_TX_BITRATE], rate_policy) < 0 )
             goto end;
 
-        guint32 rate = 0;
+        gint64 rate = 0;
         if ( rinfo[NL80211_RATE_INFO_BITRATE32] != NULL )
             rate = nla_get_u32(rinfo[NL80211_RATE_INFO_BITRATE32]);
         else if ( rinfo[NL80211_RATE_INFO_BITRATE] != NULL )
             rate = nla_get_u16(rinfo[NL80211_RATE_INFO_BITRATE]);
         if ( rate > 0 )
-        {
-            rate /= 10;
-
-            const gchar *f = "%uMb/s";
-            if ( ( rate % 1000000 ) == 0 )
-            {
-                f = "%uTb/s";
-                rate /= 1000000;
-            }
-            else if ( ( rate % 1000 ) == 0 )
-            {
-                f = "%uGb/s";
-                rate /= 1000;
-            }
-            g_snprintf(self->wifi.bitrate, sizeof(self->wifi.bitrate), f, rate);
-        }
+            self->wifi.bitrate = rate * 100 * 1000;
     }
 
     if ( sinfo[NL80211_STA_INFO_SIGNAL] != NULL )
     {
         gint8 dbm = (gint8) nla_get_u8(sinfo[NL80211_STA_INFO_SIGNAL]);
-        guint8 strength = ( 100 + CLAMP(dbm, -100, -50) ) * 2;
-        g_snprintf(self->wifi.strength, sizeof(self->wifi.strength), "%hhu", strength);
+        self->wifi.strength = ( 100 + CLAMP(dbm, -100, -50) ) * 2;
     }
 
 has_ap:
@@ -488,93 +464,96 @@ fail:
     return ret || self->wifi.is;
 }
 
-static gsize
-_j4status_nl_section_append_addresses(gchar *str, gsize size, GList *list)
+static GVariant *
+_j4status_nl_section_get_addresses(const J4statusNlSection *self)
 {
-    gsize o = 0;
-    GList *addr;
-    for ( addr = list ; addr != NULL ; addr = g_list_next(addr) )
+    GVariantBuilder builder;
+    GList *address_;
+    gchar address[44]; /* ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff/128 + \0 */
+
+    g_variant_builder_init(&builder, G_VARIANT_TYPE_STRING_ARRAY);
+
+    for ( address_ = self->addresses.ipv4 ; address_ != NULL ; address_ = g_list_next(address_) )
     {
         gchar *p;
-        nl_addr2str(addr->data, str + o, size - o);
-        p = g_utf8_strchr(str + o, -1, '/');
+        nl_addr2str(address_->data, address, sizeof(address));
+        p = g_utf8_strchr(address, -1, '/');
         g_assert_nonnull(p); /* We know libnl wrote the prefix length */
-        o = p - str;
-        o += g_snprintf(str + o, size - o, ", ");
+        *p = '\0';
+        g_variant_builder_add_value(&builder, g_variant_new_string(address));
     }
-    return o;
+
+    if ( self->context->addresses != ADDRESSES_IPV4 )
+    for ( address_ = self->addresses.ipv6 ; address_ != NULL ; address_ = g_list_next(address_) )
+    {
+        gchar *p;
+        nl_addr2str(address_->data, address, sizeof(address));
+        p = g_utf8_strchr(address, -1, '/');
+        g_assert_nonnull(p); /* We know libnl wrote the prefix length */
+        *p = '\0';
+        g_variant_builder_add_value(&builder, g_variant_new_string(address));
+    }
+
+    return g_variant_builder_end(&builder);
 }
 
-static gchar *
-_j4status_nl_section_get_addresses(J4statusNlSection *self)
+static GVariant *
+_j4status_nl_format_up_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
-    gsize size = 0, o = 0;
-    gchar *addresses;
-
-    size += g_list_length(self->addresses.ipv4) * strlen("255.255.255.255, ");
-    size += g_list_length(self->addresses.ipv6) * strlen("ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff, ");
-    size += strlen("/128"); /* We will truncate prefix length, but we need room for libnl to write it first */
-
-    addresses = g_new(char, size);
-
-    o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->addresses.ipv4);
-    o += _j4status_nl_section_append_addresses(addresses + o, size - o, self->addresses.ipv6);
-
-    /* Strip the last separator */
-    addresses[o-2] = '\0';
-
-    return addresses;
-}
-
-static const gchar *
-_j4status_nl_format_up_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
-{
-    const J4statusNlFormatData *data = user_data;
+    const J4statusNlSection *self = user_data;
 
     switch ( value )
     {
     case TOKEN_UP_ADDRESSES:
-        return data->addresses;
+        return _j4status_nl_section_get_addresses(self);
     default:
         g_assert_not_reached();
     }
     return NULL;
 }
 
-static const gchar *
-_j4status_nl_format_down_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
+static GVariant *
+_j4status_nl_format_down_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
     return NULL;
 }
 
-static const gchar *
-_j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
+static GVariant *
+_j4status_nl_format_up_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
-    const J4statusNlFormatData *data = user_data;
+    const J4statusNlSection *self = user_data;
 
     switch ( value )
     {
     case TOKEN_UP_WIFI_ADDRESSES:
-        return data->addresses;
+        return _j4status_nl_section_get_addresses(self);
     case TOKEN_UP_WIFI_STRENGTH:
-        return data->strength;
+        if ( self->wifi.strength < 0 )
+            return NULL;
+        return g_variant_new_byte(self->wifi.strength);
     case TOKEN_UP_WIFI_SSID:
-        return data->ssid;
+        if ( self->wifi.ssid == NULL )
+            return NULL;
+        return g_variant_new_string(self->wifi.ssid);
     case TOKEN_UP_WIFI_BITRATE:
-        return data->bitrate;
+        if ( self->wifi.bitrate < 1 )
+            return NULL;
+        return g_variant_new_uint64(self->wifi.bitrate);
     }
     return NULL;
 }
 
-static const gchar *
-_j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
+static GVariant *
+_j4status_nl_format_down_wifi_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
-    const J4statusNlFormatData *data = user_data;
+    const J4statusNlSection *self = user_data;
 
     switch ( value )
     {
     case TOKEN_DOWN_WIFI_APS:
-        return data->aps;
+        if ( self->wifi.aps < 0 )
+            return NULL;
+        return g_variant_new_uint64(self->wifi.aps);
     }
     return NULL;
 }
@@ -609,15 +588,10 @@ _j4status_nl_section_update(J4statusNlSection *self)
     {
         state = J4STATUS_STATE_BAD;
 
-        J4statusNlFormatData data = { NULL };
         if ( self->wifi.is )
-        {
-            if ( self->wifi.aps[0] != '\0' )
-                data.aps = self->wifi.aps;
-            value = j4status_format_string_replace(self->context->formats.down_wifi, _j4status_nl_format_down_wifi_callback, &data);
-        }
+            value = j4status_format_string_replace(self->context->formats.down_wifi, _j4status_nl_format_down_wifi_callback, self);
         else
-            value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, &data);
+            value = j4status_format_string_replace(self->context->formats.down, _j4status_nl_format_down_callback, self);
         _j4status_nl_section_free_addresses(self);
     }
     else if ( ! self->addresses.has )
@@ -637,25 +611,10 @@ _j4status_nl_section_update(J4statusNlSection *self)
     {
         state = J4STATUS_STATE_GOOD;
 
-        J4statusNlFormatData data = { NULL };
-        gchar *addresses = NULL;
-        if ( ( self->addresses.ipv4 != NULL ) || ( self->addresses.ipv6 != NULL ) )
-            addresses = _j4status_nl_section_get_addresses(self);
-        data.addresses = addresses;
-
         if ( self->wifi.is )
-        {
-            data.ssid = self->wifi.ssid;
-            if ( self->wifi.strength[0] != '\0' )
-                data.strength = self->wifi.strength;
-            if ( self->wifi.bitrate[0] != '\0' )
-                data.bitrate = self->wifi.bitrate;
-            value = j4status_format_string_replace(self->context->formats.up_wifi, _j4status_nl_format_up_wifi_callback, &data);
-        }
+            value = j4status_format_string_replace(self->context->formats.up_wifi, _j4status_nl_format_up_wifi_callback, self);
         else
-            value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, &data);
-
-        g_free(addresses);
+            value = j4status_format_string_replace(self->context->formats.up, _j4status_nl_format_up_callback, self);
     }
 
     j4status_section_set_state(self->section, state);

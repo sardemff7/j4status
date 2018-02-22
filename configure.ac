@@ -78,7 +78,7 @@ AM_DOCBOOK_CONDITIONS="installation"
 
 
 GW_INIT
-NK_INIT([enum token/enum colour/alpha colour/string])
+NK_INIT([enum token colour])
 
 AC_CHECK_HEADERS([errno.h])
 

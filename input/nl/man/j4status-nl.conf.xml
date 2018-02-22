@@ -140,7 +140,7 @@
                 <varlistentry>
                     <term>
                         <varname>UpWiFi=</varname>
-                        (<type>format string</type>, defaults to <literal>"${addresses} (${strength}${strength:+% }${ssid/^.+/at \0, }${bitrate})"</literal>)
+                        (<type>format string</type>, defaults to <literal>"${addresses} ${strength:+${ssid}}(${strength}${strength:+% }${ssid/^.+/at \0, }${bitrate})"</literal>)
                     </term>
                     <listitem>
                         <para>This format is used for active WiFi interfaces.</para>

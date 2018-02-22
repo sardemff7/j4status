@@ -127,7 +127,7 @@ static const gchar * const _j4status_mpd_format_tokens[] = {
     [TOKEN_VOLUME]   = "volume",
 };
 
-#define J4STATUS_MPD_DEFAULT_FORMAT "${song}${database/^.+$/ (\\0)} [${options}]"
+#define J4STATUS_MPD_DEFAULT_FORMAT "${song:-No song}${database:+ ↻} [${options}]"
 
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command, ...)
@@ -229,50 +229,34 @@ _j4status_mpd_section_action_callback(J4statusSection *section_, const gchar *ev
     section->pending = GPOINTER_TO_UINT(g_hash_table_lookup(section->context->config.actions, event_id));
 }
 
-const gchar *
-_j4status_mpd_format_callback(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data)
+GVariant *
+_j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
     const J4statusMpdSection *section = user_data;
     static gchar options[5] = {0};
-    static gchar volume[4] = {0};
     switch ( value )
     {
     case TOKEN_SONG:
-        return ( section->current_song != NULL ) ? section->current_song : "No song";
-    break;
+        if ( section->current_song == NULL )
+            return NULL;
+        return g_variant_new_string(section->current_song);
     case TOKEN_STATE:
-    {
-        const gchar *status = NULL;
-        switch ( section->state )
-        {
-        case STATE_PLAY:
-        break;
-        case STATE_PAUSE:
-            status = "Paused";
-        break;
-        case STATE_STOP:
-            status = "Stopped";
-        break;
-        }
-        return status;
-    }
+        return g_variant_new_byte(section->state);
     break;
     case TOKEN_DATABASE:
-        return section->updating ? "Updating database" : NULL;
-    break;
+        return g_variant_new_boolean(section->updating);
     case TOKEN_OPTIONS:
         options[0] = section->repeat ? 'r' : ' ';
         options[1] = section->random ? 'z' : ' ';
         options[2] = section->single ? '1' : ' ';
         options[3] = section->consume ? '-' : ' ';
-        return options;
-    break;
+        return g_variant_new_string(options);
     case TOKEN_VOLUME:
-        g_sprintf(volume, "%hd", section->volume);
-        return volume;
-    break;
+        if ( section->volume < 0 )
+            return NULL;
+        return g_variant_new_int16(section->volume);
     default:
-        g_assert_not_reached();
+        g_return_val_if_reached(NULL);
     }
     return NULL;
 }

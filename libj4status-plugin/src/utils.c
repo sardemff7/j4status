@@ -42,10 +42,10 @@ j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64
     NkTokenList *token_list = NULL;
 
     if ( string != NULL )
-        token_list = nk_token_list_parse_enum(string, tokens, size, used_tokens);
+        token_list = nk_token_list_parse_enum(string, '$', tokens, size, used_tokens, NULL);
 
     if ( token_list == NULL )
-        token_list = nk_token_list_parse_enum(g_strdup(default_string), tokens, size, used_tokens);
+        token_list = nk_token_list_parse_enum(g_strdup(default_string), '$', tokens, size, used_tokens, NULL);
 
     return token_list;
 }
@@ -74,7 +74,7 @@ j4status_format_string_replace(const J4statusFormatString *format_string, J4stat
     if ( format_string == NULL )
         return NULL;
 
-    return nk_token_list_replace(format_string, callback, user_data);
+    return nk_token_list_replace(format_string, (NkTokenListReplaceCallback) callback, (gpointer) user_data);
 }
 
 void

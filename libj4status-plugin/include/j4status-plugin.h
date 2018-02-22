@@ -61,7 +61,7 @@ GHashTable *j4status_config_key_file_get_actions(GKeyFile *key_file, const gchar
 
 typedef struct _NkTokenList J4statusFormatString;
 
-typedef const gchar *(*J4statusFormatStringReplaceCallback)(const gchar *token, guint64 value, const gchar *key, gint64 index, gconstpointer user_data);
+typedef GVariant *(*J4statusFormatStringReplaceCallback)(const gchar *token, guint64 value, gconstpointer user_data);
 
 J4statusFormatString *j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64 size, const gchar *default_string, guint64 *used_tokens);
 J4statusFormatString *j4status_format_string_ref(J4statusFormatString *format_string);

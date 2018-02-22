@@ -134,7 +134,7 @@
                 <varlistentry>
                     <term>
                         <varname>Format=</varname>
-                        (A <type>format string</type>, defaults to <literal>"${song}${database/^.+$/ (\0)} [${options}]"</literal>)
+                        (A <type>format string</type>, defaults to <literal>"${song:-No song}${database:+ ↻} [${options}]"</literal>)
                     </term>
                     <listitem>
                         <para><replaceable>reference</replaceable> can be:</para>
@@ -145,9 +145,9 @@
                                     <para>
                                         The playing state of MPD. Can be
                                         <simplelist type="inline">
-                                            <member><literal>nothing</literal> (when playing)</member>
-                                            <member><literal>"Paused"</literal></member>
-                                            <member><literal>"Stopped"</literal></member>
+                                            <member><literal>0</literal> for playing</member>
+                                            <member><literal>1</literal> for paused</member>
+                                            <member><literal>2</literal> for stopped</member>
                                         </simplelist>.
                                         This state is also reflected using section colour if available.
                                     </para>
@@ -164,7 +164,7 @@
                             <varlistentry>
                                 <term><literal>database</literal></term>
                                 <listitem>
-                                    <para>A string indicating if the database is currently updating.</para>
+                                    <para>A boolean indicating if the database is currently updating.</para>
                                 </listitem>
                             </varlistentry>
 
@@ -185,15 +185,14 @@
                             <varlistentry>
                                 <term><literal>volume</literal></term>
                                 <listitem>
-                                    <para>The current volume (as a percentage).</para>
+                                    <para>The current volume (as a percentage), if available.</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
                         <para>Here are some examples:
                             <simplelist>
                                 <member><literal>"${song}"</literal></member>
-                                <member><literal>"${state/^.+$/[\0] }${song}"</literal></member>
-                                <member><literal>"${song} ${volume}%"</literal></member>
+                                <member><literal>"${state:[;0;2;⏵;⏸;⏹]} ${song}"</literal></member>
                                 <member><literal>"${song} ${volume}${volume:+%}"</literal></member>
                             </simplelist>
                         </para>
