@@ -668,7 +668,7 @@ _j4status_nl_section_add_address(J4statusNlSection *self, struct rtnl_addr *rtad
     if ( ! need )
         return ( ! had );
 
-    if ( ( ! add ) && ( g_list_find_custom(*list, addr,_j4status_nl_address_compare) != NULL ) )
+    if ( ( ! add ) || ( g_list_find_custom(*list, addr,_j4status_nl_address_compare) != NULL ) )
         /* Already got it */
         return FALSE;
 
