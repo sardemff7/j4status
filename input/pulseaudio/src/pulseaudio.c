@@ -41,7 +41,7 @@
  */
 #define J4STATUS_PULSEAUDIO_VOLUME_SPRINTF_MAX PA_CVOLUME_SNPRINT_MAX
 
-#define J4STATUS_PULSEAUDIO_VOLUME_PERCENT(v) ( ( (v) / 100.0 ) * PA_VOLUME_NORM )
+#define J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(v) ( ( (v) / 100.0 ) * PA_VOLUME_NORM )
 
 typedef struct {
     GHashTable *actions;
@@ -335,8 +335,8 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
 
     J4statusPulseaudioConfig config = {
         .actions = NULL,
-        .increment = J4STATUS_PULSEAUDIO_VOLUME_PERCENT(5),
-        .volume = J4STATUS_PULSEAUDIO_VOLUME_PERCENT(100),
+        .increment = J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(5),
+        .volume = J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(100),
         .unlimited_volume = FALSE,
     };
 
@@ -348,11 +348,11 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
 
         value = g_key_file_get_int64(key_file, "PulseAudio", "Increment", NULL);
         if ( ( value > 0 ) && ( value < 100 ) )
-            config.increment = J4STATUS_PULSEAUDIO_VOLUME_PERCENT(value);
+            config.increment = J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(value);
 
         value = g_key_file_get_int64(key_file, "PulseAudio", "Volume", NULL);
         if ( ( value > 0 ) && ( value <= 100 ) )
-            config.volume = J4STATUS_PULSEAUDIO_VOLUME_PERCENT(value);
+            config.volume = J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(value);
 
         config.unlimited_volume = g_key_file_get_boolean(key_file, "PulseAudio", "UnlimitedVolume", NULL);
 
