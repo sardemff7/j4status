@@ -107,6 +107,51 @@
 
                 <varlistentry>
                     <term>
+                        <varname>Format=</varname>
+                        (A <type>format string</type>, defaults to <literal>"${volume[@% ]}%"</literal>)
+                    </term>
+                    <listitem>
+                        <para><replaceable>reference</replaceable> can be:</para>
+                        <variablelist>
+                            <varlistentry>
+                                <term><literal>port</literal></term>
+                                <listitem>
+                                    <para>
+                                        An <type>enumeration</type> representing the active port of the sink. Can be
+                                        <simplelist type="inline">
+                                            <member><literal>0</literal> for speaker</member>
+                                            <member><literal>1</literal> for headphones</member>
+                                        </simplelist>.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>mute</literal></term>
+                                <listitem>
+                                    <para>A <type>boolean</type> representing the mute state of the sink.</para>
+                                    <para>This state is also reflected using section colour if available.</para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>volume</literal></term>
+                                <listitem>
+                                    <para>The current volume of all channels (as an array, in percentage). If all channels are the same, the array will contain a single value.</para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+
+                        <para>Here are some examples:
+                            <simplelist>
+                                <member><literal>"${port:[;0;1;🔈;🎧]} ${volume[@% ]}%"</literal></member>
+                            </simplelist>
+                        </para>
+                    </listitem>
+                </varlistentry>
+
+                <varlistentry>
+                    <term>
                         <varname>Actions=</varname>
                         (A <type>list of action bindings</type>)
                     </term>

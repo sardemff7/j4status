@@ -41,9 +41,31 @@
  */
 #define J4STATUS_PULSEAUDIO_VOLUME_SPRINTF_MAX PA_CVOLUME_SNPRINT_MAX
 
+#define J4STATUS_PULSEAUDIO_VOLUME_TO_PERCENT(v) ( ( (v) * 100.0 ) / PA_VOLUME_NORM )
 #define J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(v) ( ( (v) / 100.0 ) * PA_VOLUME_NORM )
 
+#define J4STATUS_PULSEAUDIO_DEFAULT_FORMAT "${volume[@% ]}%"
+
+typedef enum {
+    TOKEN_PORT,
+    TOKEN_MUTE,
+    TOKEN_VOLUME,
+} J4statusPulseaudioFormatToken;
+
+static const gchar * const _j4status_pulseaudio_tokens[] = {
+    [TOKEN_PORT]   = "port",
+    [TOKEN_MUTE]   = "mute",
+    [TOKEN_VOLUME] = "volume",
+};
+
+typedef enum {
+    TOKEN_FLAG_PORT   = (1 << TOKEN_PORT),
+    TOKEN_FLAG_MUTE   = (1 << TOKEN_MUTE),
+    TOKEN_FLAG_VOLUME = (1 << TOKEN_VOLUME),
+} J4statusPulseaudioFormatTokenFlag;
+
 typedef struct {
+    J4statusFormatString *format;
     GHashTable *actions;
     pa_volume_t increment;
     pa_volume_t volume;
@@ -75,6 +97,17 @@ static const gchar * const _j4status_pulseaudio_actions[] = {
     [ACTION_MUTE_SET]    = "mute set",
     [ACTION_MUTE_UNSET]  = "mute unset",
 };
+
+typedef enum {
+    PORT_SPEAKER = 0,
+    PORT_HEADPHONES,
+} J4statusPulseaudioPort;
+
+typedef struct {
+    gboolean mute;
+    J4statusPulseaudioPort port;
+    pa_cvolume volume;
+} J4statusPulseaudioFormatData;
 
 typedef struct {
     J4statusPluginContext *context;
@@ -130,6 +163,30 @@ _j4status_pulseaudio_section_free(gpointer data)
     g_free(section);
 }
 
+static GVariant *
+_j4status_pulseaudio_format_callback(const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusPulseaudioFormatData *data = user_data;
+
+    switch ( (J4statusPulseaudioFormatToken) value )
+    {
+    case TOKEN_MUTE:
+        return g_variant_new_boolean(data->mute);
+    case TOKEN_VOLUME:
+    {
+        GVariantBuilder builder;
+        g_variant_builder_init(&builder, G_VARIANT_TYPE("at"));
+        guint8 c;
+        for ( c = 0 ; c < data->volume.channels ; ++c )
+            g_variant_builder_add_value(&builder, g_variant_new_uint64(J4STATUS_PULSEAUDIO_VOLUME_TO_PERCENT(data->volume.values[c])));
+        return g_variant_builder_end(&builder);
+    }
+    case TOKEN_PORT:
+        return g_variant_new_byte(data->port);
+    }
+    return NULL;
+}
+
 static void
 _j4status_pulseaudio_sink_info_callback(pa_context *con, const pa_sink_info *i, int eol, void *user_data)
 {
@@ -156,27 +213,36 @@ _j4status_pulseaudio_sink_info_callback(pa_context *con, const pa_sink_info *i, 
     }
 
     J4statusState state = J4STATUS_STATE_NO_STATE;
+    gchar *value;
 
     if ( section->mute )
         state = J4STATUS_STATE_BAD;
     else
         state = J4STATUS_STATE_GOOD;
 
-    gchar volume[J4STATUS_PULSEAUDIO_VOLUME_SPRINTF_MAX];
+    J4statusPulseaudioFormatData data = {
+        .mute = section->mute,
+        .port = PORT_SPEAKER,
+        .volume = i->volume,
+    };
 
-    if ( c == i->volume.channels )
+    if ( i->active_port != NULL )
     {
-        /*
-         * We walked through the whole list and
-         * all channels are sharing the same volume
-         */
-        pa_volume_snprint(volume, sizeof(volume), vol);
+        if ( g_str_has_suffix(i->active_port->name, "-headphones") )
+            data.port = PORT_HEADPHONES;
     }
-    else
-        pa_cvolume_snprint(volume, sizeof(volume), &i->volume);
+
+    /*
+     * We walked through the whole list and
+     * all channels are sharing the same volume
+     */
+    if ( c == i->volume.channels )
+        data.volume.channels = 1;
+
+    value = j4status_format_string_replace(context->config.format, _j4status_pulseaudio_format_callback, &data);
 
     j4status_section_set_state(section->section, state);
-    j4status_section_set_value(section->section, g_strdup(volume));
+    j4status_section_set_value(section->section, value);
 }
 
 static void
@@ -339,6 +405,7 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
         .volume = J4STATUS_PULSEAUDIO_VOLUME_FROM_PERCENT(100),
         .unlimited_volume = FALSE,
     };
+    gchar *format = NULL;
 
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("PulseAudio");
@@ -356,10 +423,13 @@ _j4status_pulseaudio_init(J4statusCoreInterface *core)
 
         config.unlimited_volume = g_key_file_get_boolean(key_file, "PulseAudio", "UnlimitedVolume", NULL);
 
+        format = g_key_file_get_string(key_file, "PulseAudio", "Format", NULL);
         config.actions = j4status_config_key_file_get_actions(key_file, "PulseAudio", _j4status_pulseaudio_actions, G_N_ELEMENTS(_j4status_pulseaudio_actions));
 
         g_key_file_free(key_file);
     }
+
+    config.format = j4status_format_string_parse(format, _j4status_pulseaudio_tokens, G_N_ELEMENTS(_j4status_pulseaudio_tokens), J4STATUS_PULSEAUDIO_DEFAULT_FORMAT, NULL);
 
     context->config = config;
 
@@ -382,6 +452,8 @@ _j4status_pulseaudio_uninit(J4statusPluginContext *context)
 
     pa_context_unref(context->context);
     pa_glib_mainloop_free(context->pa_loop);
+
+    j4status_format_string_unref(context->config.format);
 
     g_free(context);
 }
