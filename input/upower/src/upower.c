@@ -33,9 +33,12 @@
 
 #include <j4status-plugin-input.h>
 
+#define J4STATUS_UPOWER_DEFAULT_FORMAT "${status:[;0;3;Empty;Full;Chr;Bat]}${charge:+ ${charge(f.2)}%}${time:+ (${time(d%{days:+%{days}d }%{hours:!00}%{hours(f02)}:%{minutes:!00}%{minutes(f02)}:%{seconds:!00}%{seconds(f02)})})}"
+
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     GList *sections;
+    J4statusFormatString *format;
     UpClient *up_client;
     gboolean started;
 };
@@ -45,6 +48,52 @@ typedef struct {
     GObject *device;
     J4statusSection *section;
 } J4statusUpowerSection;
+
+typedef enum {
+    TOKEN_STATUS,
+    TOKEN_CHARGE,
+    TOKEN_TIME,
+} J4statusUpowerFormatToken;
+
+static const gchar * const _j4status_upower_format_tokens[] = {
+    [TOKEN_STATUS] = "status",
+    [TOKEN_CHARGE] = "charge",
+    [TOKEN_TIME]   = "time",
+};
+
+typedef enum {
+    STATE_EMPTY,
+    STATE_FULL,
+    STATE_CHARGING,
+    STATE_DISCHARGING,
+} J4statusUpowerStatus;
+
+typedef struct {
+    J4statusUpowerStatus status;
+    gdouble percentage;
+    gint64 time;
+} J4statusUpowerFormatData;
+
+static GVariant *
+_j4status_upower_format_callback(G_GNUC_UNUSED const gchar *token, guint64 value, gconstpointer user_data)
+{
+    const J4statusUpowerFormatData *data = user_data;
+
+    switch ( (J4statusUpowerFormatToken) value )
+    {
+    case TOKEN_STATUS:
+        return g_variant_new_byte(data->status);
+    case TOKEN_CHARGE:
+        if ( data->percentage < 0 )
+            return NULL;
+        return g_variant_new_double(data->percentage);
+    case TOKEN_TIME:
+        if ( data->time < 0 )
+            return NULL;
+        return g_variant_new_int64(data->time);
+    }
+    return NULL;
+}
 
 static void
 #if UP_CHECK_VERSION(0,99,0)
@@ -56,12 +105,14 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
     J4statusUpowerSection *section = user_data;
 
     UpDeviceState device_state;
-    gdouble percentage = -1;
-    gint64 time = -1;
-    const gchar *status = "Bat";
     J4statusState state = J4STATUS_STATE_NO_STATE;
+    J4statusUpowerFormatData data = {
+        .status = STATE_EMPTY,
+        .percentage = -1,
+        .time = -1,
+    };
 
-    g_object_get(device, "percentage", &percentage, "state", &device_state, NULL);
+    g_object_get(device, "percentage", &data.percentage, "state", &device_state, NULL);
 
     switch ( device_state )
     {
@@ -71,59 +122,38 @@ _j4status_upower_device_changed(GObject *device, gpointer user_data)
         j4status_section_set_value(section->section, g_strdup("No battery"));
         return;
     case UP_DEVICE_STATE_EMPTY:
-        status = "Empty";
         state = J4STATUS_STATE_BAD | J4STATUS_STATE_URGENT;
     break;
     case UP_DEVICE_STATE_FULLY_CHARGED:
-        status = "Full";
+        data.status = STATE_FULL;
         state = J4STATUS_STATE_GOOD;
     break;
     case UP_DEVICE_STATE_CHARGING:
     case UP_DEVICE_STATE_PENDING_CHARGE:
-        status = "Chr";
+        data.status = STATE_CHARGING;
         state = J4STATUS_STATE_AVERAGE;
 
-        g_object_get(device, "time-to-full", &time, NULL);
+        g_object_get(device, "time-to-full", &data.time, NULL);
     break;
     case UP_DEVICE_STATE_DISCHARGING:
     case UP_DEVICE_STATE_PENDING_DISCHARGE:
-        status = "Bat";
-        if ( percentage < 15 )
+        data.status = STATE_DISCHARGING;
+        if ( data.percentage < 15 )
             state = J4STATUS_STATE_BAD;
         else
             state = J4STATUS_STATE_AVERAGE;
 
-        if ( percentage < 5 )
+        if ( data.percentage < 5 )
             state |= J4STATUS_STATE_URGENT;
 
-        g_object_get(device, "time-to-empty", &time, NULL);
+        g_object_get(device, "time-to-empty", &data.time, NULL);
     break;
     }
     j4status_section_set_state(section->section, state);
 
+
     gchar *value;
-    if ( percentage < 0 )
-        value = g_strdup_printf("%s", status);
-    else if ( time < 1 )
-        value = g_strdup_printf("%s %.02f%%", status, percentage);
-    else
-    {
-        guint64 h = 0;
-        guint64 m = 0;
-
-        if ( time > 3600 )
-        {
-            h = time / 3600;
-            time %= 3600;
-        }
-        if ( time > 60 )
-        {
-            m = time / 60;
-            time %= 60;
-        }
-
-        value = g_strdup_printf("%s %.02f%% (%02ju:%02ju:%02jd)", status, percentage, h, m, time);
-    }
+    value = j4status_format_string_replace(section->context->format, _j4status_upower_format_callback, &data);
     j4status_section_set_value(section->section, value);
 }
 
@@ -229,7 +259,6 @@ _j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gb
     j4status_section_set_instance(section->section, instance);
     if ( label != NULL )
         j4status_section_set_label(section->section, label);
-    j4status_section_set_max_width(section->section, -strlen("Chr 100.0% (00:00:00)"));
 
     if ( j4status_section_insert(section->section) )
     {
@@ -268,14 +297,17 @@ _j4status_upower_init(J4statusCoreInterface *core)
 #endif /* ! UP_CHECK_VERSION(0,99,0) */
 
     gboolean all_devices = FALSE;
+    gchar *format = NULL;
 
     GKeyFile *key_file;
     key_file = j4status_config_get_key_file("UPower");
     if ( key_file != NULL )
     {
         all_devices = g_key_file_get_boolean(key_file, "UPower", "AllDevices", NULL);
+        format = g_key_file_get_string(key_file, "UPower", "Format", NULL);
         g_key_file_free(key_file);
     }
+    context->format = j4status_format_string_parse(format, _j4status_upower_format_tokens, G_N_ELEMENTS(_j4status_upower_format_tokens), J4STATUS_UPOWER_DEFAULT_FORMAT, NULL);
 
     GPtrArray *devices;
     guint i;
@@ -299,12 +331,15 @@ _j4status_upower_init(J4statusCoreInterface *core)
         return NULL;
     }
 
+
     return context;
 }
 
 static void
 _j4status_upower_uninit(J4statusPluginContext *context)
 {
+    j4status_format_string_unref(context->format);
+
     g_list_free_full(context->sections, _j4status_upower_section_free);
 
     g_free(context);

@@ -1,0 +1,134 @@
+<?xml version='1.0' encoding='utf-8' ?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.5//EN" "http://www.oasis-open.org/docbook/xml/4.5/docbookx.dtd" [
+<!ENTITY % config SYSTEM "config.ent">
+%config;
+]>
+
+<!--
+  j4status - Status line generator
+
+  Copyright © 2012-2018 Quentin "Sardem FF7" Glidic
+
+  This file is part of j4status.
+
+  j4status is free software: you can redistribute it and/or modify
+  it under the terms of the GNU General Public License as published by
+  the Free Software Foundation, either version 3 of the License, or
+  (at your option) any later version.
+
+  j4status is distributed in the hope that it will be useful,
+  but WITHOUT ANY WARRANTY; without even the implied warranty of
+  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+  GNU General Public License for more details.
+
+  You should have received a copy of the GNU General Public License
+  along with j4status. If not, see <http://www.gnu.org/licenses/>.
+-->
+
+<refentry id="j4status-upower.conf">
+    <refentryinfo>
+        <title>&PACKAGE_NAME; Manual</title>
+        <productname>&PACKAGE_NAME;</productname>
+        <productnumber>&PACKAGE_VERSION;</productnumber>
+
+        <authorgroup>
+            <author>
+                <contrib>Developer</contrib>
+                <firstname>Quentin</firstname>
+                <surname>Glidic</surname>
+                <email>sardemff7@j4tools.org</email>
+            </author>
+        </authorgroup>
+    </refentryinfo>
+
+    <refmeta>
+        <refentrytitle>j4status-upower.conf</refentrytitle>
+        <manvolnum>5</manvolnum>
+    </refmeta>
+
+    <refnamediv>
+        <refname>j4status-upower.conf</refname>
+        <refpurpose>j4status UPower plugin configuration</refpurpose>
+    </refnamediv>
+
+    <refsynopsisdiv>
+        <para>
+            Configuration for the UPower plugin
+        </para>
+        <para>
+            The UPower plugin use the main j4status configuration file (see <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>).
+        </para>
+    </refsynopsisdiv>
+
+    <refsect1 id="description">
+        <title>Description</title>
+
+        <para>
+            It controls the UPower plugin behavior.
+        </para>
+    </refsect1>
+
+    <refsect1 id="sections">
+        <title>Sections</title>
+
+        <refsect2 id="section-upower">
+            <title>Section <varname>[UPower]</varname></title>
+
+            <variablelist>
+                <varlistentry>
+                    <term>
+                        <varname>Format=</varname>
+                        (A <type>format string</type>, defaults to <literal>"${status:[;0;3;Empty;Full;Chr;Bat]}${charge:+ ${charge(f.2)}%}${time:+ (${time(d%{days:+%{days}d }%{hours:!00}%{hours(f02)}:%{minutes:!00}%{minutes(f02)}:%{seconds:!00}%{seconds(f02)})})}"</literal>)
+                    </term>
+                    <listitem>
+                        <para><replaceable>reference</replaceable> can be:</para>
+                        <variablelist>
+                            <varlistentry>
+                                <term><literal>status</literal></term>
+                                <listitem>
+                                    <para>
+                                        An <type>enumeration</type> representing the status of the battery. Can be
+                                        <simplelist type="inline">
+                                            <member><literal>0</literal> for empty</member>
+                                            <member><literal>1</literal> for full</member>
+                                            <member><literal>2</literal> for charging</member>
+                                            <member><literal>3</literal> for discharging</member>
+                                        </simplelist>.
+                                    </para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>charge</literal></term>
+                                <listitem>
+                                    <para>A <type>percentage</type> representing the battery charge.</para>
+                                    <para>This state is also reflected using section colour if available.</para>
+                                </listitem>
+                            </varlistentry>
+
+                            <varlistentry>
+                                <term><literal>time</literal></term>
+                                <listitem>
+                                    <para>If charging, the time until full charge. If discharging, the time until empty.</para>
+                                </listitem>
+                            </varlistentry>
+                        </variablelist>
+
+                        <para>Here are some examples:
+                            <simplelist>
+                                <member><literal>"${port:[;0;1;🔈;🎧]} ${volume[@% ]}%"</literal></member>
+                            </simplelist>
+                        </para>
+                    </listitem>
+                </varlistentry>
+            </variablelist>
+        </refsect2>
+    </refsect1>
+
+    <refsect1 id="see-also">
+        <title>See Also</title>
+        <para>
+            <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+        </para>
+    </refsect1>
+</refentry>

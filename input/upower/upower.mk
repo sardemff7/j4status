@@ -2,6 +2,11 @@ plugins_LTLIBRARIES += \
 	upower.la \
 	$(null)
 
+man5_MANS += \
+	input/upower/man/j4status-upower.conf.5 \
+	$(null)
+
+
 upower_la_SOURCES = \
 	input/upower/src/upower.c \
 	$(null)
