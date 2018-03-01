@@ -119,7 +119,7 @@
                             <varlistentry>
                                 <term><literal>addresses</literal></term>
                                 <listitem>
-                                    <para>The addresses of the interface.</para>
+                                    <para>The addresses of the interface (as an array).</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
@@ -149,7 +149,7 @@
                             <varlistentry>
                                 <term><literal>addresses</literal></term>
                                 <listitem>
-                                    <para>The addresses of the interface.</para>
+                                    <para>The addresses of the interface (as an array).</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
@@ -158,7 +158,7 @@
                             <varlistentry>
                                 <term><literal>strength</literal></term>
                                 <listitem>
-                                    <para>The strength of the signal (percentage).</para>
+                                    <para>The strength of the signal (in percentage).</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
@@ -176,7 +176,7 @@
                             <varlistentry>
                                 <term><literal>bitrate</literal></term>
                                 <listitem>
-                                    <para>The bitrate of the connection (with full unit).</para>
+                                    <para>The bitrate of the connection in b/s.</para>
                                 </listitem>
                             </varlistentry>
                         </variablelist>
