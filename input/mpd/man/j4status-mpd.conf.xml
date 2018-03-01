@@ -143,7 +143,7 @@
                                 <term><literal>state</literal></term>
                                 <listitem>
                                     <para>
-                                        The playing state of MPD. Can be
+                                        An <type>enumeration</type> representing the playing state of MPD. Can be
                                         <simplelist type="inline">
                                             <member><literal>0</literal> for playing</member>
                                             <member><literal>1</literal> for paused</member>
