@@ -96,10 +96,10 @@ j4status_colour_parse(const gchar *string)
     if ( nk_colour_parse(string, &colour_) )
     {
         ret.set   = TRUE;
-        ret.red   = colour_.red;
-        ret.green = colour_.green;
-        ret.blue  = colour_.blue;
-        ret.alpha  = colour_.alpha;
+        ret.red   = colour_.red    * 255;
+        ret.green = colour_.green  * 255;
+        ret.blue  = colour_.blue   * 255;
+        ret.alpha  = colour_.alpha * 255;
     }
 
     return ret;
@@ -120,10 +120,10 @@ j4status_colour_to_hex(J4statusColour colour)
         return NULL;
 
     NkColour colour_ = {
-        .red   = colour.red,
-        .green = colour.green,
-        .blue  = colour.blue,
-        .alpha = colour.alpha,
+        .red   = colour.red   / 255.,
+        .green = colour.green / 255.,
+        .blue  = colour.blue  / 255.,
+        .alpha = colour.alpha / 255.,
     };
 
     return nk_colour_to_hex(&colour_);
@@ -136,10 +136,10 @@ j4status_colour_to_rgb(J4statusColour colour)
         return NULL;
 
     NkColour colour_ = {
-        .red   = colour.red,
-        .green = colour.green,
-        .blue  = colour.blue,
-        .alpha = colour.alpha,
+        .red   = colour.red   / 255.,
+        .green = colour.green / 255.,
+        .blue  = colour.blue  / 255.,
+        .alpha = colour.alpha / 255.,
     };
 
     return nk_colour_to_rgba(&colour_);
