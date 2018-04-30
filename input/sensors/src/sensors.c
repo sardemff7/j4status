@@ -51,24 +51,26 @@ typedef struct {
     J4statusSection *section;
     const sensors_chip_name *chip;
     const sensors_feature *feature;
-    const sensors_subfeature *input;
-    const sensors_subfeature *max;
-    const sensors_subfeature *crit;
+    struct {
+        const sensors_subfeature *input;
+        const sensors_subfeature *max;
+        const sensors_subfeature *crit;
+    } subfeatures;
 } J4statusSensorsFeature;
 
 static void
 _j4status_sensors_feature_temp_update(J4statusPluginContext *context, J4statusSensorsFeature *feature)
 {
     double curr;
-    sensors_get_value(feature->chip, feature->input->number, &curr);
+    sensors_get_value(feature->chip, feature->subfeatures.input->number, &curr);
 
     double high = -1;
-    if ( feature->max != NULL )
-        sensors_get_value(feature->chip, feature->max->number, &high);
+    if ( feature->subfeatures.max != NULL )
+        sensors_get_value(feature->chip, feature->subfeatures.max->number, &high);
 
     double crit = -1;
-    if ( feature->crit != NULL )
-        sensors_get_value(feature->chip, feature->crit->number, &crit);
+    if ( feature->subfeatures.crit != NULL )
+        sensors_get_value(feature->chip, feature->subfeatures.crit->number, &crit);
 
     J4statusState state;
 
@@ -145,9 +147,9 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     sensor_feature->section = j4status_section_new(context->core);
     sensor_feature->chip = chip;
     sensor_feature->feature = feature;
-    sensor_feature->input = input;
-    sensor_feature->max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_MAX);
-    sensor_feature->crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
+    sensor_feature->subfeatures.input = input;
+    sensor_feature->subfeatures.max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_MAX);
+    sensor_feature->subfeatures.crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
 
     char *label;
     label = sensors_get_label(chip, feature);
@@ -155,11 +157,11 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     gint64 max_width = strlen("+100.0*C");
     if ( context->config.show_details )
     {
-        if ( ( sensor_feature->crit != NULL ) && ( sensor_feature->max != NULL ) )
+        if ( ( sensor_feature->subfeatures.crit != NULL ) && ( sensor_feature->subfeatures.max != NULL ) )
             max_width += strlen(" (high = +100.0°C, crit = +100.0°C)");
-        else if ( sensor_feature->crit != NULL )
+        else if ( sensor_feature->subfeatures.crit != NULL )
             max_width += strlen(" (crit = +100.0°C)");
-        else if ( sensor_feature->max != NULL )
+        else if ( sensor_feature->subfeatures.max != NULL )
             max_width += strlen(" (high = +100.0°C)");
     }
 
