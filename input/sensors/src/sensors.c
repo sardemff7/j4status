@@ -56,6 +56,11 @@ typedef struct {
         const sensors_subfeature *max;
         const sensors_subfeature *crit;
     } subfeatures;
+    struct {
+        gdouble current;
+        gdouble high;
+        gdouble crit;
+    } values;
 } J4statusSensorsFeature;
 
 static void
@@ -85,10 +90,17 @@ _j4status_sensors_feature_temp_update(J4statusPluginContext *context, J4statusSe
     if ( ( ! context->started ) && ( ( state & J4STATUS_STATE_URGENT ) == 0 ) )
         return;
 
-    j4status_section_set_state(feature->section, state);
+    if ( ( feature->values.current == curr ) && ( feature->values.high == high ) && ( feature->values.crit == crit ) )
+        return;
+
+    feature->values.current = curr;
+    feature->values.high = high;
+    feature->values.crit = crit;
 
     if ( ! context->config.show_details )
         high = crit = -1;
+
+    j4status_section_set_state(feature->section, state);
 
     gchar *value;
     if ( ( high > 0 ) && ( crit > 0 ) )
@@ -150,6 +162,9 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     sensor_feature->subfeatures.input = input;
     sensor_feature->subfeatures.max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_MAX);
     sensor_feature->subfeatures.crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
+    sensor_feature->values.current = -1;
+    sensor_feature->values.high = -1;
+    sensor_feature->values.crit = -1;
 
     char *label;
     label = sensors_get_label(chip, feature);
