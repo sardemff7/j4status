@@ -43,9 +43,13 @@ typedef enum {
     KEY_NONE = 0,
     KEY_NAME,
     KEY_INSTANCE,
+    KEY_BUTTON,
     KEY_X,
     KEY_Y,
-    KEY_BUTTON,
+    KEY_RELATIVE_X,
+    KEY_RELATIVE_Y,
+    KEY_WIDTH,
+    KEY_HEIGHT,
 } J4statusI3barOutputClickEventsJsonKey;
 
 static gchar *_j4status_i3bar_output_json_key_names[] = {
@@ -53,9 +57,13 @@ static gchar *_j4status_i3bar_output_json_key_names[] = {
 
     [KEY_NAME] = "name",
     [KEY_INSTANCE] = "instance",
+    [KEY_BUTTON] = "button",
     [KEY_X] = "x",
     [KEY_Y] = "y",
-    [KEY_BUTTON] = "button",
+    [KEY_RELATIVE_X] = "relative_x",
+    [KEY_RELATIVE_Y] = "relative_y",
+    [KEY_WIDTH] = "width",
+    [KEY_HEIGHT] = "height",
 };
 
 typedef struct {
@@ -111,8 +119,15 @@ _j4status_i3bar_output_click_events_integer(void *user_data, long long value)
 
     switch ( context->parse_context.key )
     {
+    case KEY_NONE:
+        /* For forward compatibility, we ignore unknown keys */
+    break;
     case KEY_X:
     case KEY_Y:
+    case KEY_RELATIVE_X:
+    case KEY_RELATIVE_Y:
+    case KEY_WIDTH:
+    case KEY_HEIGHT:
         /* Ignoring */
     break;
     case KEY_BUTTON:
@@ -144,6 +159,9 @@ _j4status_i3bar_output_click_events_string(void *user_data, const unsigned char 
 
     switch ( context->parse_context.key )
     {
+    case KEY_NONE:
+        /* For forward compatibility, we ignore unknown keys */
+    break;
     case KEY_NAME:
         context->parse_context.name = g_strndup((const gchar *) value, length);
     break;
@@ -186,22 +204,17 @@ _j4status_i3bar_output_click_events_map_key(void *user_data, const unsigned char
         return 0;
     }
 
-    if ( yajl_strcmp(value, length, "name") )
-        context->parse_context.key = KEY_NAME;
-    else if ( yajl_strcmp(value, length, "instance") )
-        context->parse_context.key = KEY_INSTANCE;
-    else if ( yajl_strcmp(value, length, "x") )
-        context->parse_context.key = KEY_X;
-    else if ( yajl_strcmp(value, length, "y") )
-        context->parse_context.key = KEY_Y;
-    else if ( yajl_strcmp(value, length, "button") )
-        context->parse_context.key = KEY_BUTTON;
-    else
+    gsize key;
+    for ( key = KEY_NONE + 1 ; key < G_N_ELEMENTS(_j4status_i3bar_output_json_key_names) ; ++key )
     {
-        context->parse_context.error = g_strdup_printf("Wrong key '%.*s'", (gint) length, value);
-        return 0;
+        if ( yajl_strcmp(value, length, _j4status_i3bar_output_json_key_names[key]) )
+        {
+            context->parse_context.key = key;
+            break;
+        }
     }
 
+    /* For forward compatibility, we ignore unknown keys */
     return 1;
 }
 
