@@ -9,6 +9,7 @@ ACLOCAL_AMFLAGS = -I m4 -I src/libnkutils -I src/libgwater ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
 bin_PROGRAMS =
+noinst_PROGRAMS =
 noinst_LTLIBRARIES =
 lib_LTLIBRARIES =
 plugins_LTLIBRARIES =
