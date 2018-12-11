@@ -39,10 +39,24 @@
 static gboolean
 _j4status_section_get_override(J4statusSection *self)
 {
-    gchar group[strlen("Override ") + strlen(self->id) + 1];
+    gsize l;
+    gchar *group;
+
+    /* id is always at least as long as name */
+    l = strlen("Override ") + strlen(self->id) + 1;
+    group = g_newa(gchar, l);
+
     g_sprintf(group, "Override %s", self->id);
 
     GKeyFile *key_file;
+    key_file = j4status_config_get_key_file(group);
+    if ( key_file == NULL )
+    {
+        if ( self->instance == NULL )
+            return TRUE;
+        g_sprintf(group, "Override %s", self->name);
+    }
+
     key_file = j4status_config_get_key_file(group);
     if ( key_file == NULL )
         return TRUE;
