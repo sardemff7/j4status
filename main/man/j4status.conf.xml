@@ -211,6 +211,18 @@
                         <para>Alignment of this section.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>MaxWidth=</varname>
+                        (<type>integer</type>, defaults to <literal>0</literal>)
+                    </term>
+                    <listitem>
+                        <para>The maximum width this section is expected to be.</para>
+                        <para>A positive number will be used as a pixel width, for output plugin supporting it.</para>
+                        <para>A negative number (or rather its absolute value) will be used as a number of character width, for output plugin supporting it.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>
