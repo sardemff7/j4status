@@ -165,6 +165,7 @@
             <title>Section <varname>[Override <replaceable>section identifier</replaceable>]</varname></title>
 
             <para>You can define an <varname>Override</varname> section to modify some parts of a j4status section.</para>
+            <para>When a section is added, it is first checked against <varname>[Override]</varname> sections based on its full identifier (<varname><replaceable>section name</replaceable>:<replaceable>section instance</replaceable></varname>) then it is check for the section name alone. This allows to override all sections of a plugin or sections with unpredictable names. See the <command>debug</command> output plugin to know the section names and instances.</para>
 
             <variablelist>
                 <varlistentry>
