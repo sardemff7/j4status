@@ -54,9 +54,8 @@ sub-modules:
 
 ```
 # git clone https://github.com/sardemff7/j4status
-# cd j4status/src/
-# git clone https://github.com/sardemff7/libgwater
-# git clone https://github.com/sardemff7/libnkutils
+# cd j4status
+# git submodule update
 ```
 
 Once this is done, run `./autogen.sh` from the root of the `j4status/` 
