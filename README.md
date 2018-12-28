@@ -55,6 +55,7 @@ sub-modules:
 ```
 # git clone https://github.com/sardemff7/j4status
 # cd j4status
+# git submodule init
 # git submodule update
 ```
 
