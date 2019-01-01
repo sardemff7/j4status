@@ -48,3 +48,12 @@ To build j4status from Git, you will need some additional dependencies:
 - automake 1.11 (or newer)
 - libtool
 - pkg-config 0.25 (or newer) or pkgconf 0.2 (or newer)
+
+You will also need to check out the main j4status project plus a couple of
+submodules:
+
+`# git clone --recursive https://github.com/sardemff7/j4status`
+
+Once this is done, run `./autogen.sh` from the root of the `j4status/`
+directory, followed by the traditional `./configure ; make` steps.
+
