@@ -29,7 +29,6 @@ EXTRA_DIST =
 CLEANFILES =
 
 AM_CPPFLAGS += \
-	-D LOCALEDIR=\"$(localedir)\" \
 	-I $(srcdir)/src/ \
 	-I $(builddir)/src/
 

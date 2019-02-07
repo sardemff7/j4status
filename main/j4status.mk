@@ -21,9 +21,10 @@ j4status_SOURCES = \
 
 j4status_CFLAGS = \
 	$(AM_CFLAGS) \
-	-D SYSCONFDIR=\"$(sysconfdir)\" \
-	-D LIBDIR=\"$(libdir)\" \
-	-D DATADIR=\"$(datadir)\" \
+	-D J4STATUS_SYSCONFDIR=\"$(sysconfdir)\" \
+	-D J4STATUS_LIBDIR=\"$(libdir)\" \
+	-D J4STATUS_DATADIR=\"$(datadir)\" \
+	-D J4STATUS_LOCALEDIR=\"$(localedir)\" \
 	$(SYSTEMD_CFLAGS) \
 	$(GTHREAD_CFLAGS) \
 	$(GIO_CFLAGS) \

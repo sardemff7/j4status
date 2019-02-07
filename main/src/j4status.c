@@ -315,7 +315,7 @@ main(int argc, char *argv[])
 
     setlocale(LC_ALL, "");
 #ifdef ENABLE_NLS
-    bindtextdomain(GETTEXT_PACKAGE, LOCALEDIR);
+    bindtextdomain(GETTEXT_PACKAGE, J4STATUS_LOCALEDIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 #endif /* ENABLE_NLS */
 

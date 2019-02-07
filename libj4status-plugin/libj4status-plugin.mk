@@ -41,9 +41,9 @@ libj4status_plugin_la_SOURCES = \
 
 libj4status_plugin_la_CPPFLAGS = \
 	$(AM_CPPFLAGS) \
-	-D SYSCONFDIR=\"$(sysconfdir)\" \
-	-D LIBDIR=\"$(libdir)\" \
-	-D DATADIR=\"$(datadir)\" \
+	-D J4STATUS_SYSCONFDIR=\"$(sysconfdir)\" \
+	-D J4STATUS_LIBDIR=\"$(libdir)\" \
+	-D J4STATUS_DATADIR=\"$(datadir)\" \
 	$(null)
 
 libj4status_plugin_la_CFLAGS = \
