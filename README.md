@@ -44,7 +44,8 @@ Build from Git
 --------------
 
 To build j4status from Git, you will need some additional dependencies:
-- autoconf 2.65 (or newer)
-- automake 1.11 (or newer)
-- libtool
+- Meson 0.47.0 (or newer)
 - pkg-config 0.25 (or newer) or pkgconf 0.2 (or newer)
+
+Make sure to clone the repository with submodules: `git clone --recursive`
+Alternatively, you can clone them as a second step: `git submodule update --init`
