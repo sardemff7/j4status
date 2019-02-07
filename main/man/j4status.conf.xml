@@ -56,8 +56,8 @@
         <orderedlist>
             <listitem><para><filename><varname>$J4STATUS_CONFIG_FILE</varname></filename> (see <citerefentry><refentrytitle>j4status</refentrytitle><manvolnum>1</manvolnum></citerefentry>)</para></listitem>
             <listitem><para><filename><varname>$XDG_CONFIG_HOME</varname>/&PACKAGE_NAME;/config</filename> (fallback to <filename>~/.config/&PACKAGE_NAME;/config</filename>)</para></listitem>
-            <listitem><para><filename>&sysconfdir;/&PACKAGE_NAME;/config</filename></para></listitem>
-            <listitem><para><filename>&datadir;/&PACKAGE_NAME;/config</filename></para></listitem>
+            <listitem><para><filename>/etc/&PACKAGE_NAME;/config</filename></para></listitem>
+            <listitem><para><filename>/usr/share/&PACKAGE_NAME;/config</filename></para></listitem>
         </orderedlist>
     </refsynopsisdiv>
 
