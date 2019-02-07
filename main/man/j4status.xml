@@ -126,7 +126,7 @@
                     <term><command>sensors</command> (see <citerefentry><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a sensors watching plugin, to display temperatures from your motherboard sensors</para></listitem>
                 </varlistentry>
-                <varlistentry condition="website;enable_systemd_input">
+                <varlistentry>
                     <term><command>systemd</command> (see <citerefentry><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a systemd unit monitoring plugin, which displays the status of systemd units</para></listitem>
                 </varlistentry>
@@ -311,7 +311,7 @@
             <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_nl_input"><refentrytitle>j4status-nl.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_sensors_input"><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
-            <citerefentry condition="website;enable_systemd_input"><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
         </para>
     </refsect1>
 </refentry>
