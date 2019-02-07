@@ -25,7 +25,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <j4status-plugin-output.h>
+#include "j4status-plugin-output.h"
 
 #define BOOL_TO_S(bool) ((bool) ? "yes" : "no")
 

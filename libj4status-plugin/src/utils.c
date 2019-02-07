@@ -27,10 +27,10 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <nkutils-token.h>
-#include <nkutils-colour.h>
+#include "nkutils-token.h"
+#include "nkutils-colour.h"
 
-#include <j4status-plugin.h>
+#include "j4status-plugin.h"
 
 J4STATUS_EXPORT J4statusFormatString *
 j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64 size, const gchar *default_string, guint64 *used_tokens)

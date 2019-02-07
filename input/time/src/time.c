@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 #define TIME_SIZE 4095
 

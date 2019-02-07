@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <j4status-plugin-output.h>
+#include "j4status-plugin-output.h"
 
 typedef struct {
     gchar start[53]; /* strlen("<span foreground='#FFFFFFFF' background='#FFFFFFFF'>") */

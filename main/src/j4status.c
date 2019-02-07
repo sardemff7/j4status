@@ -36,9 +36,9 @@
 #endif /* G_OS_UNIX */
 #include <gio/gio.h>
 
-#include <j4status-plugin-output.h>
-#include <j4status-plugin-input.h>
-#include <j4status-plugin-private.h>
+#include "j4status-plugin-output.h"
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-private.h"
 
 #include "plugins.h"
 #include "io.h"

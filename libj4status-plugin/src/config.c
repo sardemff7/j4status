@@ -26,7 +26,7 @@
 
 #include <glib.h>
 
-#include <nkutils-enum.h>
+#include "nkutils-enum.h"
 
 #define CONFIG_SYSCONFFILE J4STATUS_SYSCONFDIR G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"
 #define CONFIG_DATAFILE    J4STATUS_DATADIR    G_DIR_SEPARATOR_S PACKAGE_NAME G_DIR_SEPARATOR_S "config"

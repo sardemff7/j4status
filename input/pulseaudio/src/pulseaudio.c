@@ -29,7 +29,7 @@
 #include <pulse/pulseaudio.h>
 #include <pulse/glib-mainloop.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 /*
  * We use either the PulseAudio format

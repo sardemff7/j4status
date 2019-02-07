@@ -31,7 +31,7 @@
 #include <yajl/yajl_gen.h>
 #include <yajl/yajl_parse.h>
 
-#include <j4status-plugin-output.h>
+#include "j4status-plugin-output.h"
 
 #define yajl_strcmp(str1, len1, str2) ( ( strlen(str2) == len1 ) && ( g_ascii_strncasecmp((const gchar *) str1, str2, len1) == 0 ) )
 

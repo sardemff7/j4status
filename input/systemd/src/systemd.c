@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <gio/gio.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 #define SYSTEMD_BUS_NAME "org.freedesktop.systemd1"
 #define SYSTEMD_OBJECT_PATH "/org/freedesktop/systemd1"

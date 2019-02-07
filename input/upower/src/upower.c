@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <upower.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 #define J4STATUS_UPOWER_DEFAULT_FORMAT "${status:[;0;3;Empty;Full;Chr;Bat]}${charge:+ ${charge(f.2)}%}${time:+ (${time(d%{days:+%{days}d }%{hours:!00}%{hours(f02)}:%{minutes:!00}%{minutes(f02)}:%{seconds:!00}%{seconds(f02)})})}"
 

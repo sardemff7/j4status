@@ -24,9 +24,9 @@
 
 #include <glib.h>
 
-#include <j4status-plugin-output.h>
-#include <j4status-plugin-input.h>
-#include <j4status-plugin-private.h>
+#include "j4status-plugin-output.h"
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-private.h"
 
 J4STATUS_EXPORT void
 j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *event_id)

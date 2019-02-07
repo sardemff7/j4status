@@ -27,10 +27,10 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include <j4status-plugin-output.h>
-#include <j4status-plugin-input.h>
-#include <j4status-plugin-private.h>
-#include <j4status-plugin.h>
+#include "j4status-plugin-output.h"
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-private.h"
+#include "j4status-plugin.h"
 
 static gboolean
 _j4status_section_get_override(J4statusSection *self)

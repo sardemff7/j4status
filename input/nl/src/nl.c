@@ -41,7 +41,7 @@
 #include <netlink/genl/ctrl.h>
 #include <libgwater-nl.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 #ifndef NUM_NL80211_ATTR
 #define NUM_NL80211_ATTR (NL80211_ATTR_MAX+1)

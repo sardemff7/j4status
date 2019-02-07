@@ -30,7 +30,7 @@
 #include <mpd/async.h>
 #include <libgwater-mpd.h>
 
-#include <j4status-plugin-input.h>
+#include "j4status-plugin-input.h"
 
 #define TIME_SIZE 4095
 

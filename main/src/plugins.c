@@ -26,9 +26,9 @@
 #include <glib/gstdio.h>
 #include <gmodule.h>
 
-#include <j4status-plugin-output.h>
-#include <j4status-plugin-input.h>
-#include <j4status-plugin-private.h>
+#include "j4status-plugin-output.h"
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-private.h"
 
 #include "plugins.h"
 

@@ -37,8 +37,8 @@
 #include <yajl/yajl_parse.h>
 #include <yajl/yajl_gen.h>
 
-#include <j4status-plugin-input.h>
-#include <j4status-plugin-output.h>
+#include "j4status-plugin-input.h"
+#include "j4status-plugin-output.h"
 
 #ifdef G_OS_UNIX
 #define stream_from_fd(type, fd) g_unix_ ## type ## put_stream_new(fd, TRUE)
