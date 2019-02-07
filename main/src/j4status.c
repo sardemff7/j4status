@@ -26,9 +26,7 @@
 #include <locale.h>
 
 #include <glib.h>
-#ifdef ENABLE_NLS
 #include <glib/gi18n.h>
-#endif /* ENABLE_NLS */
 #include <glib-object.h>
 #include <glib/gstdio.h>
 #ifdef G_OS_UNIX
@@ -39,6 +37,8 @@
 #include "j4status-plugin-output.h"
 #include "j4status-plugin-input.h"
 #include "j4status-plugin-private.h"
+
+#include "nkutils-git-version.h"
 
 #include "plugins.h"
 #include "io.h"
@@ -314,10 +314,8 @@ main(int argc, char *argv[])
 #endif /* ! J4STATUS_DEBUG_OUTPUT */
 
     setlocale(LC_ALL, "");
-#ifdef ENABLE_NLS
     bindtextdomain(GETTEXT_PACKAGE, J4STATUS_LOCALEDIR);
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
-#endif /* ENABLE_NLS */
 
 #ifdef J4STATUS_DEBUG_OUTPUT
     const gchar *debug_log_filename =  g_getenv("J4STATUS_DEBUG_LOG_FILENAME");
@@ -382,7 +380,7 @@ main(int argc, char *argv[])
 
     if ( print_version )
     {
-        g_fprintf(stdout, PACKAGE_NAME " " PACKAGE_VERSION "\n");
+        g_fprintf(stdout, PACKAGE_NAME " " NK_PACKAGE_VERSION "\n");
         goto end;
     }
 

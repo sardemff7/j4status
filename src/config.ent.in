@@ -21,3 +21,5 @@
 <!ENTITY PACKAGE_NAME "@PACKAGE_NAME@">
 <!ENTITY PACKAGE_VERSION "@PACKAGE_VERSION@">
 
+<!ENTITY % git_version SYSTEM "nkutils-git-version.ent">
+%git_version;
