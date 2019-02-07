@@ -134,7 +134,7 @@
                 <varlistentry>
                     <term>
                         <varname>Format=</varname>
-                        (A <type>format string</type>, defaults to <literal>"${song:-No song}${database:+ ↻} [${options}]"</literal>)
+                        (A <type>format string</type>, defaults to <literal>"${song:-No song}${database:+ ↻} [${options[repeat]:{;r; }}${options[random]:{;z; }}${options[single]:{;1; }}${options[consume]:{;-; }}]"</literal>)
                     </term>
                     <listitem>
                         <para><replaceable>reference</replaceable> can be:</para>
@@ -171,14 +171,13 @@
                             <varlistentry>
                                 <term><literal>options</literal></term>
                                 <listitem>
-                                    <para>The play options of the server. It is a string of 4 characters. Each character represents an option:</para>
+                                    <para>The play options of the server. It is a dictionnary of booleans. The following keys are available:</para>
                                     <simplelist>
-                                        <member><literal>r</literal> Repeat</member>
-                                        <member><literal>z</literal> Random/Shuffle</member>
-                                        <member><literal>1</literal> Single mode</member>
-                                        <member><literal>-</literal> Consume mode</member>
+                                        <member><literal>repeat</literal></member>
+                                        <member><literal>random</literal></member>
+                                        <member><literal>single</literal></member>
+                                        <member><literal>consume</literal></member>
                                     </simplelist>
-                                    <para>If the option is enabled, the character is shown, otherwise a space is shown.</para>
                                 </listitem>
                             </varlistentry>
 

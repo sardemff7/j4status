@@ -123,7 +123,7 @@ static const gchar * const _j4status_mpd_format_tokens[] = {
     [TOKEN_VOLUME]   = "volume",
 };
 
-#define J4STATUS_MPD_DEFAULT_FORMAT "${song:-No song}${database:+ ↻} [${options}]"
+#define J4STATUS_MPD_DEFAULT_FORMAT "${song:-No song}${database:+ ↻} [${options[repeat]:{;r; }}${options[random]:{;z; }}${options[single]:{;1; }}${options[consume]:{;-; }}]"
 
 static void
 _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand command, ...)
@@ -229,7 +229,6 @@ GVariant *
 _j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer user_data)
 {
     const J4statusMpdSection *section = user_data;
-    static gchar options[5] = {0};
     switch ( value )
     {
     case TOKEN_SONG:
@@ -242,11 +241,16 @@ _j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer u
     case TOKEN_DATABASE:
         return g_variant_new_boolean(section->updating);
     case TOKEN_OPTIONS:
-        options[0] = section->repeat ? 'r' : ' ';
-        options[1] = section->random ? 'z' : ' ';
-        options[2] = section->single ? '1' : ' ';
-        options[3] = section->consume ? '-' : ' ';
-        return g_variant_new_string(options);
+    {
+        GVariantDict options;
+        g_variant_dict_init(&options, NULL);
+        g_variant_dict_insert_value(&options, "repeat", g_variant_new_boolean(section->repeat));
+        g_variant_dict_insert_value(&options, "random", g_variant_new_boolean(section->random));
+        g_variant_dict_insert_value(&options, "single", g_variant_new_boolean(section->single));
+        g_variant_dict_insert_value(&options, "consume", g_variant_new_boolean(section->consume));
+        return g_variant_dict_end(&options);
+
+    }
     case TOKEN_VOLUME:
         if ( section->volume < 0 )
             return NULL;
