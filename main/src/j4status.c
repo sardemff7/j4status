@@ -59,7 +59,7 @@ struct _J4statusCoreContext {
     J4statusIOContext *io;
 };
 
-#if DEBUG
+#ifdef J4STATUS_DEBUG_OUTPUT
 static void
 _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_level, const gchar *message, gpointer user_data)
 {
@@ -119,7 +119,7 @@ _j4status_core_debug_log_handler(const gchar *log_domain, GLogLevelFlags log_lev
     g_data_output_stream_put_byte(stream, '\n', NULL, NULL);
 }
 
-#endif /* ! DEBUG */
+#endif /* ! J4STATUS_DEBUG_OUTPUT */
 
 static gint
 _j4status_core_compare_sections(gconstpointer a_, gconstpointer b_)
@@ -309,9 +309,9 @@ main(int argc, char *argv[])
     GOptionContext *option_context = NULL;
     GOptionGroup *option_group;
 
-#if DEBUG
+#ifdef J4STATUS_DEBUG_OUTPUT
     g_setenv("G_MESSAGES_DEBUG", "all", FALSE);
-#endif /* ! DEBUG */
+#endif /* ! J4STATUS_DEBUG_OUTPUT */
 
     setlocale(LC_ALL, "");
 #ifdef ENABLE_NLS
@@ -319,7 +319,7 @@ main(int argc, char *argv[])
     bind_textdomain_codeset(GETTEXT_PACKAGE, "UTF-8");
 #endif /* ENABLE_NLS */
 
-#if DEBUG
+#ifdef J4STATUS_DEBUG_OUTPUT
     const gchar *debug_log_filename =  g_getenv("J4STATUS_DEBUG_LOG_FILENAME");
     GDataOutputStream *debug_stream = NULL;
 
@@ -348,7 +348,7 @@ main(int argc, char *argv[])
         }
         g_object_unref(debug_log);
     }
-#endif /* DEBUG */
+#endif /* J4STATUS_DEBUG_OUTPUT */
 
     GOptionEntry entries[] =
     {
@@ -502,10 +502,10 @@ main(int argc, char *argv[])
     g_hash_table_unref(context->sections_hash);
 
 end:
-#if DEBUG
+#ifdef J4STATUS_DEBUG_OUTPUT
     if ( debug_stream != NULL )
         g_object_unref(debug_stream);
-#endif /* DEBUG */
+#endif /* J4STATUS_DEBUG_OUTPUT */
 
     return retval;
 }
