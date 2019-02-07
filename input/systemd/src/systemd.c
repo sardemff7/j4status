@@ -346,7 +346,7 @@ _j4status_systemd_stop(J4statusPluginContext *context)
     g_list_foreach(context->sections, _j4status_systemd_section_detach_unit, context);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_systemd_init);

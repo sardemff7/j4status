@@ -61,6 +61,8 @@ AC_SUBST([aclocaldir])
 pluginsdir='${pkglibdir}/plugins'
 AC_SUBST([pluginsdir])
 
+AC_DEFINE([J4STATUS_EXPORT], [__attribute__((visibility("default")))], [Export symbol])
+
 # Common dependencies
 glib_min_major="2"
 glib_min_minor="40"

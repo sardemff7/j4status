@@ -30,32 +30,32 @@
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
-void
+J4STATUS_EXPORT void
 j4status_core_trigger_action(J4statusCoreInterface *core, const gchar *section_id, const gchar *event_id)
 {
     return core->trigger_action(core->context, section_id, event_id);
 }
 
 
-GInputStream *
+J4STATUS_EXPORT GInputStream *
 j4status_core_stream_get_input_stream(J4statusCoreInterface *core, J4statusCoreStream *stream)
 {
     return core->stream_get_input_stream(stream);
 }
 
-GOutputStream *
+J4STATUS_EXPORT GOutputStream *
 j4status_core_stream_get_output_stream(J4statusCoreInterface *core, J4statusCoreStream *stream)
 {
     return core->stream_get_output_stream(stream);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_core_stream_reconnect(J4statusCoreInterface *core, J4statusCoreStream *stream)
 {
     return core->stream_reconnect(stream);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_core_stream_free(J4statusCoreInterface *core, J4statusCoreStream *stream)
 {
     return core->stream_free(stream);

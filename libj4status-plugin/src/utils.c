@@ -36,7 +36,7 @@
 
 #include <j4status-plugin.h>
 
-J4statusFormatString *
+J4STATUS_EXPORT J4statusFormatString *
 j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64 size, const gchar *default_string, guint64 *used_tokens)
 {
     NkTokenList *token_list = NULL;
@@ -50,7 +50,7 @@ j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64
     return token_list;
 }
 
-J4statusFormatString *
+J4STATUS_EXPORT J4statusFormatString *
 j4status_format_string_ref(J4statusFormatString *format_string)
 {
     if ( format_string == NULL )
@@ -59,7 +59,7 @@ j4status_format_string_ref(J4statusFormatString *format_string)
     return nk_token_list_ref(format_string);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_format_string_unref(J4statusFormatString *format_string)
 {
     if ( format_string == NULL )
@@ -68,7 +68,7 @@ j4status_format_string_unref(J4statusFormatString *format_string)
     nk_token_list_unref(format_string);
 }
 
-gchar *
+J4STATUS_EXPORT gchar *
 j4status_format_string_replace(const J4statusFormatString *format_string, J4statusFormatStringReplaceCallback callback, gconstpointer user_data)
 {
     if ( format_string == NULL )
@@ -77,7 +77,7 @@ j4status_format_string_replace(const J4statusFormatString *format_string, J4stat
     return nk_token_list_replace(format_string, (NkTokenListReplaceCallback) callback, (gpointer) user_data);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_colour_reset(J4statusColour *colour)
 {
     colour->set = FALSE;
@@ -87,7 +87,7 @@ j4status_colour_reset(J4statusColour *colour)
     colour->alpha = 0xff;
 }
 
-J4statusColour
+J4STATUS_EXPORT J4statusColour
 j4status_colour_parse(const gchar *string)
 {
     J4statusColour ret = { FALSE, 0, 0, 0, 0xff };
@@ -105,7 +105,7 @@ j4status_colour_parse(const gchar *string)
     return ret;
 }
 
-J4statusColour
+J4STATUS_EXPORT J4statusColour
 j4status_colour_parse_length(const gchar *colour, gint length)
 {
     gchar string[length + 1];
@@ -113,7 +113,7 @@ j4status_colour_parse_length(const gchar *colour, gint length)
     return j4status_colour_parse(string);
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_colour_to_hex(J4statusColour colour)
 {
     if ( ! colour.set )
@@ -129,7 +129,7 @@ j4status_colour_to_hex(J4statusColour colour)
     return nk_colour_to_hex(&colour_);
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_colour_to_rgb(J4statusColour colour)
 {
     if ( ! colour.set )

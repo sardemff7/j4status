@@ -295,7 +295,7 @@ _j4status_sensors_stop(J4statusPluginContext *context)
     context->started = FALSE;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_sensors_init);

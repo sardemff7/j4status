@@ -175,7 +175,7 @@ _j4status_file_monitor_uninit(J4statusPluginContext *context)
     g_free(context);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_file_monitor_init);

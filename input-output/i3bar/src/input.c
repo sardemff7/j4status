@@ -857,7 +857,7 @@ _j4status_i3bar_input_stop(J4statusPluginContext *context)
     g_list_foreach(context->clients, _j4status_i3bar_input_client_stop, context);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_i3bar_input_init);

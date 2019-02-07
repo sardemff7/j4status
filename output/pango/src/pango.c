@@ -304,7 +304,7 @@ _j4status_pango_uninit(J4statusPluginContext *context)
     g_free(context);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
     libj4status_output_plugin_interface_add_init_callback(interface, _j4status_pango_init);

@@ -63,7 +63,7 @@ _j4status_config_try_dir(const gchar *filename, const gchar *section)
 }
 
 
-GKeyFile *
+J4STATUS_EXPORT GKeyFile *
 j4status_config_get_key_file(const gchar *section)
 {
     GKeyFile *key_file;
@@ -100,7 +100,7 @@ j4status_config_get_key_file(const gchar *section)
     return NULL;
 }
 
-gboolean
+J4STATUS_EXPORT gboolean
 j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, const gchar *key, const gchar * const *values, guint64 size, guint64 *value)
 {
     gchar *string;
@@ -116,7 +116,7 @@ j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, c
     return r;
 }
 
-GHashTable *
+J4STATUS_EXPORT GHashTable *
 j4status_config_key_file_get_actions(GKeyFile *key_file, const gchar *group_name, const gchar * const *actions, guint64 size)
 {
     gchar **strings;

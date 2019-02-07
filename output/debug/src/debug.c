@@ -218,7 +218,7 @@ _j4status_debug_send_line(J4statusPluginContext *context, J4statusOutputPluginSt
     return g_data_output_stream_put_string(stream->out, context->line->str, NULL, error);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_output_plugin(J4statusOutputPluginInterface *interface)
 {
     libj4status_output_plugin_interface_add_init_callback(interface, _j4status_debug_init);

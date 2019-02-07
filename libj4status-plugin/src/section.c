@@ -119,7 +119,7 @@ end:
  * Input plugins API
  */
 
-J4statusSection *
+J4STATUS_EXPORT J4statusSection *
 j4status_section_new(J4statusCoreInterface *core)
 {
     g_return_val_if_fail(core != NULL, NULL);
@@ -132,7 +132,7 @@ j4status_section_new(J4statusCoreInterface *core)
     return self;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_free(J4statusSection *self)
 {
     g_return_if_fail(self != NULL);
@@ -155,7 +155,7 @@ j4status_section_free(J4statusSection *self)
 }
 
 /* API before inserting the section in the list */
-void
+J4STATUS_EXPORT void
 j4status_section_set_name(J4statusSection *self, const gchar *name)
 {
     g_return_if_fail(self != NULL);
@@ -165,7 +165,7 @@ j4status_section_set_name(J4statusSection *self, const gchar *name)
     self->name = g_strdup(name);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_instance(J4statusSection *self, const gchar *instance)
 {
     g_return_if_fail(self != NULL);
@@ -175,7 +175,7 @@ j4status_section_set_instance(J4statusSection *self, const gchar *instance)
     self->instance = g_strdup(instance);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_label(J4statusSection *self, const gchar *label)
 {
     g_return_if_fail(self != NULL);
@@ -185,7 +185,7 @@ j4status_section_set_label(J4statusSection *self, const gchar *label)
     self->label = g_strdup(label);
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_label_colour(J4statusSection *self, J4statusColour colour)
 {
     g_return_if_fail(self != NULL);
@@ -194,7 +194,7 @@ j4status_section_set_label_colour(J4statusSection *self, J4statusColour colour)
     self->label_colour = colour;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_align(J4statusSection *self, J4statusAlign align)
 {
     g_return_if_fail(self != NULL);
@@ -203,7 +203,7 @@ j4status_section_set_align(J4statusSection *self, J4statusAlign align)
     self->align = align;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_max_width(J4statusSection *self, gint64 max_width)
 {
     g_return_if_fail(self != NULL);
@@ -212,7 +212,7 @@ j4status_section_set_max_width(J4statusSection *self, gint64 max_width)
     self->max_width = max_width;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_action_callback(J4statusSection *self, J4statusSectionActionCallback callback, gpointer user_data)
 {
     g_return_if_fail(self != NULL);
@@ -222,7 +222,7 @@ j4status_section_set_action_callback(J4statusSection *self, J4statusSectionActio
     self->action.user_data = user_data;
 }
 
-gboolean
+J4STATUS_EXPORT gboolean
 j4status_section_insert(J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, FALSE);
@@ -242,7 +242,7 @@ j4status_section_insert(J4statusSection *self)
 }
 
 /* API once the section is inserted in the list */
-void
+J4STATUS_EXPORT void
 j4status_section_set_state(J4statusSection *self, J4statusState state)
 {
     g_return_if_fail(self != NULL);
@@ -258,7 +258,7 @@ j4status_section_set_state(J4statusSection *self, J4statusState state)
     self->state = state;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_colour(J4statusSection *self, J4statusColour colour)
 {
     g_return_if_fail(self != NULL);
@@ -272,7 +272,7 @@ j4status_section_set_colour(J4statusSection *self, J4statusColour colour)
     self->colour = colour;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_background_colour(J4statusSection *self, J4statusColour colour)
 {
     g_return_if_fail(self != NULL);
@@ -286,7 +286,7 @@ j4status_section_set_background_colour(J4statusSection *self, J4statusColour col
     self->background_colour = colour;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_value(J4statusSection *self, gchar *value)
 {
     g_return_if_fail(self != NULL);
@@ -304,7 +304,7 @@ j4status_section_set_value(J4statusSection *self, gchar *value)
     self->value = value;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_short_value(J4statusSection *self, gchar *short_value)
 {
     g_return_if_fail(self != NULL);
@@ -324,7 +324,7 @@ j4status_section_set_short_value(J4statusSection *self, gchar *short_value)
  * Output plugins API
  */
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_name(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
@@ -333,7 +333,7 @@ j4status_section_get_name(const J4statusSection *self)
     return self->name;
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_instance(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
@@ -342,7 +342,7 @@ j4status_section_get_instance(const J4statusSection *self)
     return self->instance;
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_label(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
@@ -351,7 +351,7 @@ j4status_section_get_label(const J4statusSection *self)
     return self->label;
 }
 
-J4statusColour
+J4STATUS_EXPORT J4statusColour
 j4status_section_get_label_colour(const J4statusSection *self)
 {
     J4statusColour def = { FALSE, 0, 0, 0, 0 };
@@ -361,7 +361,7 @@ j4status_section_get_label_colour(const J4statusSection *self)
     return self->label_colour;
 }
 
-J4statusAlign
+J4STATUS_EXPORT J4statusAlign
 j4status_section_get_align(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, J4STATUS_ALIGN_CENTER);
@@ -369,7 +369,7 @@ j4status_section_get_align(const J4statusSection *self)
     return self->align;
 }
 
-gint64
+J4STATUS_EXPORT gint64
 j4status_section_get_max_width(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, 0);
@@ -378,7 +378,7 @@ j4status_section_get_max_width(const J4statusSection *self)
     return self->max_width;
 }
 
-J4statusState
+J4STATUS_EXPORT J4statusState
 j4status_section_get_state(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, J4STATUS_STATE_NO_STATE);
@@ -387,7 +387,7 @@ j4status_section_get_state(const J4statusSection *self)
     return self->state;
 }
 
-J4statusColour
+J4STATUS_EXPORT J4statusColour
 j4status_section_get_colour(const J4statusSection *self)
 {
     J4statusColour def = { FALSE, 0, 0, 0, 0 };
@@ -397,7 +397,7 @@ j4status_section_get_colour(const J4statusSection *self)
     return self->colour;
 }
 
-J4statusColour
+J4STATUS_EXPORT J4statusColour
 j4status_section_get_background_colour(const J4statusSection *self)
 {
     J4statusColour def = { FALSE, 0, 0, 0, 0 };
@@ -407,7 +407,7 @@ j4status_section_get_background_colour(const J4statusSection *self)
     return self->background_colour;
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_value(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
@@ -416,7 +416,7 @@ j4status_section_get_value(const J4statusSection *self)
     return self->value;
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_short_value(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);
@@ -425,7 +425,7 @@ j4status_section_get_short_value(const J4statusSection *self)
     return self->short_value;
 }
 
-gboolean
+J4STATUS_EXPORT gboolean
 j4status_section_is_dirty(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, TRUE);
@@ -434,7 +434,7 @@ j4status_section_is_dirty(const J4statusSection *self)
     return self->dirty;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_section_set_cache(J4statusSection *self, gchar *cache)
 {
     g_return_if_fail(self != NULL);
@@ -445,7 +445,7 @@ j4status_section_set_cache(J4statusSection *self, gchar *cache)
     self->dirty = FALSE;
 }
 
-const gchar *
+J4STATUS_EXPORT const gchar *
 j4status_section_get_cache(const J4statusSection *self)
 {
     g_return_val_if_fail(self != NULL, NULL);

@@ -30,7 +30,7 @@
 #include <j4status-plugin-input.h>
 #include <j4status-plugin-private.h>
 
-#define LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(type, Type, action, Action) LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(type, Type, action, Action) { interface->action = callback; }
+#define LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(type, Type, action, Action) J4STATUS_EXPORT LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK(type, Type, action, Action) { interface->action = callback; }
 
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, init, Init)
 LIBJ4STATUS_PLUGIN_INTERFACE_ADD_CALLBACK_DEF(output, Output, uninit, Simple)

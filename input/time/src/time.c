@@ -211,7 +211,7 @@ _j4status_time_stop(J4statusPluginContext *context)
     context->timeout_id = 0;
 }
 
-void
+J4STATUS_EXPORT void
 j4status_input_plugin(J4statusInputPluginInterface *interface)
 {
     libj4status_input_plugin_interface_add_init_callback(interface, _j4status_time_init);
