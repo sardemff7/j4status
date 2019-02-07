@@ -256,7 +256,7 @@ Files=/run/my-notification-daemon/notification;
             </programlisting>
         </example>
 
-        <example condition="website;enable_default_features">
+        <example>
             <title>i3status-like configuration</title>
 
             <programlisting>
@@ -272,7 +272,7 @@ Interfaces=eth0;wlan0;
             </programlisting>
         </example>
 
-        <example condition="website">
+        <example>
             <title>Overriding labels to use symbols</title>
 
             <para>You will need a font with proper symbol support</para>
