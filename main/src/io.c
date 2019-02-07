@@ -20,13 +20,9 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#include "config.h"
 
-#ifdef HAVE_STRING_H
 #include <string.h>
-#endif /* HAVE_STRING_H */
 
 #include <glib.h>
 #include <glib-object.h>
@@ -39,9 +35,7 @@
 #endif /* G_OS_UNIX */
 
 #ifdef ENABLE_SYSTEMD
-#ifdef HAVE_SYS_SOCKET_H
 #include <sys/socket.h>
-#endif /* HAVE_SYS_SOCKET_H */
 #include <systemd/sd-daemon.h>
 #endif /* ENABLE_SYSTEMD */
 

@@ -20,13 +20,9 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#include "config.h"
 
-#ifdef HAVE_ERRNO_H
 #include <errno.h>
-#endif /* HAVE_ERRNO_H */
 
 #include <glib.h>
 #include <glib/gprintf.h>

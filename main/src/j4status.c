@@ -20,16 +20,10 @@
  *
  */
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif /* HAVE_CONFIG_H */
+#include "config.h"
 
-#ifdef HAVE_UNISTD_H
 #include <unistd.h>
-#endif /* HAVE_UNISTD_H */
-#ifdef HAVE_LOCALE_H
 #include <locale.h>
-#endif /* HAVE_LOCALE_H */
 
 #include <glib.h>
 #ifdef ENABLE_NLS
