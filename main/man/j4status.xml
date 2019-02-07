@@ -114,9 +114,9 @@
                     <term><command>file-monitor</command> (see <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem><para>a plugin to monitor files and display their content</para></listitem>
                 </varlistentry>
-                <varlistentry condition="website;enable_nm_input">
-                    <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
-                    <listitem><para>a NetworkManager client plugin, to display network status</para></listitem>
+                <varlistentry condition="website;enable_nl_input">
+                    <term><command>nm</command> (see <citerefentry><refentrytitle>j4status-nl.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem><para>a Netlink plugin, to display network status</para></listitem>
                 </varlistentry>
                 <varlistentry condition="website;enable_upower_input">
                     <term><command>upower</command></term>
@@ -309,7 +309,7 @@
             <citerefentry condition="website;enable_i3bar_input_output"><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
-            <citerefentry condition="website;enable_nm_input"><refentrytitle>j4status-nm.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_nl_input"><refentrytitle>j4status-nl.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_sensors_input"><refentrytitle>j4status-sensors.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_systemd_input"><refentrytitle>j4status-systemd.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
         </para>

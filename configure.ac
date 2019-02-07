@@ -163,7 +163,7 @@ J4SP_ADD_INPUT_PLUGIN(mpd, [MPD], [no], [
 
 # Features defaulting to enable
 # They more or less provide i3status features
-if test x$enable_i3bar_input_output = xyes -a x$enable_nm_input = xyes -a x$enable_upower_input = xyes -a x$enable_sensors_input = xyes; then
+if test x$enable_i3bar_input_output = xyes -a x$enable_nl_input = xyes -a x$enable_upower_input = xyes -a x$enable_sensors_input = xyes; then
     AM_DOCBOOK_CONDITIONS="${AM_DOCBOOK_CONDITIONS};enable_default_features"
 fi
 

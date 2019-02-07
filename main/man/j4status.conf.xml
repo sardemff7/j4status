@@ -262,12 +262,12 @@ Files=/run/my-notification-daemon/notification;
             <programlisting>
 [Plugins]
 Output=i3bar
-Input=nm;upower;sensors;time;
+Input=nl;upower;sensors;time;
 
 [Time]
 Zones=Europe/Paris;
 
-[NetworkManager]
+[Netlink]
 Interfaces=eth0;wlan0;
             </programlisting>
         </example>
