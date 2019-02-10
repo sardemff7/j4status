@@ -1,0 +1,10 @@
+option('systemd', type: 'boolean', value: false, description: 'systemd activation support')
+option('i3bar', type: 'feature', description: 'i3bar JSON protocol input-output plugin')
+option('nl', type: 'feature', description: 'Netlink input plugin')
+option('upower', type: 'feature', description: 'UPower input plugin')
+option('sensors', type: 'feature', description: 'libsensors input plugin')
+option('pulseaudio', type: 'feature', description: 'PulseAudio input plugin')
+option('mpd', type: 'feature', description: 'MPD input plugin')
+option('debug-output', type: 'boolean', value: true, description: 'debug output')
+
+option('systemduserunitdir', type: 'string', description: 'Directory for systemd user unit files')

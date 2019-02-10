@@ -50,17 +50,3 @@ pkgconfig.generate(libj4status_plugin_lib,
         'pluginsdir=@0@'.format(join_paths('${prefix}', plugins_install_dir)),
     ],
 )
-
-if get_option('gobject-introspection') and false
-    libeventd_plugin_gir = gnome.generate_gir(libj4status_plugin_lib,
-        dependencies: libj4status_plugin,
-        namespace: 'J4statusPlugin',
-        nsversion: '0',
-        sources: libj4status_plugin_sources + libj4status_plugin_headers,
-        includes: [ 'GLib-2.0' ],
-        extra_args: [
-            '--c-include=j4status-plugin.h',
-        ],
-        install: true,
-    )
-endif
