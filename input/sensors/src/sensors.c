@@ -117,7 +117,7 @@ _j4status_sensors_update(gpointer user_data)
     for ( feature = context->sections ; feature != NULL ; feature = g_list_next(feature) )
         _j4status_sensors_feature_temp_update(context, feature->data);
 
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 }
 
 static void

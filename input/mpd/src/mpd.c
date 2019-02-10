@@ -382,12 +382,12 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
     break;
     }
 
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 
 fail:
     context->sections = g_list_remove(context->sections, section);
     _j4status_mpd_section_free(section);
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static void

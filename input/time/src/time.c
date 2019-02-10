@@ -64,7 +64,7 @@ _j4status_time_update(gpointer user_data)
 
     g_date_time_unref(date_time);
 
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 }
 
 static void

@@ -174,7 +174,7 @@ _j4status_core_generate(gpointer user_data)
     context->output_plugin->interface.generate_line(context->output_plugin->context, context->sections);
     j4status_io_update_line(context->io);
 
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 static void
@@ -273,7 +273,7 @@ static gboolean
 _j4status_core_source_quit(gpointer user_data)
 {
     j4status_core_quit(user_data);
-    return FALSE;
+    return G_SOURCE_REMOVE;
 }
 
 #ifdef G_OS_UNIX
@@ -281,14 +281,14 @@ static gboolean
 _j4status_core_signal_usr1(gpointer user_data)
 {
     _j4status_core_start(user_data);
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 }
 
 static gboolean
 _j4status_core_signal_usr2(gpointer user_data)
 {
     _j4status_core_stop(user_data);
-    return TRUE;
+    return G_SOURCE_CONTINUE;
 }
 #endif /* G_OS_UNIX */
 
