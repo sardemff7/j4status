@@ -63,9 +63,12 @@ _j4status_plugins_get_module(const gchar *file)
 
     const gchar *env_dir;
     env_dir = g_getenv("J4STATUS_PLUGINS_DIR");
-    module = _j4status_plugins_try_dir(env_dir, file);
-    if ( module != NULL )
-        return module;
+    if ( env_dir != NULL )
+    {
+        module = _j4status_plugins_try_dir(env_dir, file);
+        if ( module != NULL )
+            return module;
+    }
 
     gchar *dir;
     dir = g_build_filename(g_get_user_data_dir(), PACKAGE_NAME G_DIR_SEPARATOR_S "plugins", NULL);
