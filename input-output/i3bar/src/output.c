@@ -37,6 +37,7 @@
 
 typedef enum {
     KEY_NONE = 0,
+    KEY_UNKNOWN,
     KEY_NAME,
     KEY_INSTANCE,
     KEY_BUTTON,
@@ -50,6 +51,7 @@ typedef enum {
 
 static gchar *_j4status_i3bar_output_json_key_names[] = {
     [KEY_NONE] = "none",
+    [KEY_UNKNOWN] = "unknown",
 
     [KEY_NAME] = "name",
     [KEY_INSTANCE] = "instance",
@@ -105,7 +107,7 @@ _j4status_i3bar_output_click_events_integer(void *user_data, long long value)
 
     if ( ! context->parse_context.in_event )
     {
-        if ( context->parse_context.key != KEY_NONE )
+        if ( context->parse_context.key > KEY_UNKNOWN )
             context->parse_context.error = g_strdup_printf("Key '%s' must be in a section",
                 _j4status_i3bar_output_json_key_names[context->parse_context.key]);
         else
@@ -116,6 +118,8 @@ _j4status_i3bar_output_click_events_integer(void *user_data, long long value)
     switch ( context->parse_context.key )
     {
     case KEY_NONE:
+        g_return_val_if_reached(0);
+    case KEY_UNKNOWN:
         /* For forward compatibility, we ignore unknown keys */
     break;
     case KEY_X:
@@ -156,6 +160,8 @@ _j4status_i3bar_output_click_events_string(void *user_data, const unsigned char 
     switch ( context->parse_context.key )
     {
     case KEY_NONE:
+        g_return_val_if_reached(0);
+    case KEY_UNKNOWN:
         /* For forward compatibility, we ignore unknown keys */
     break;
     case KEY_NAME:
@@ -200,8 +206,11 @@ _j4status_i3bar_output_click_events_map_key(void *user_data, const unsigned char
         return 0;
     }
 
+    /* For forward compatibility, we ignore unknown keys */
+    context->parse_context.key = KEY_UNKNOWN;
+
     gsize key;
-    for ( key = KEY_NONE + 1 ; key < G_N_ELEMENTS(_j4status_i3bar_output_json_key_names) ; ++key )
+    for ( key = KEY_UNKNOWN + 1 ; key < G_N_ELEMENTS(_j4status_i3bar_output_json_key_names) ; ++key )
     {
         if ( yajl_strcmp(value, length, _j4status_i3bar_output_json_key_names[key]) )
         {
@@ -210,7 +219,6 @@ _j4status_i3bar_output_click_events_map_key(void *user_data, const unsigned char
         }
     }
 
-    /* For forward compatibility, we ignore unknown keys */
     return 1;
 }
 
