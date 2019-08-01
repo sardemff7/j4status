@@ -67,6 +67,7 @@ static gchar *_j4status_i3bar_output_json_key_names[] = {
 typedef struct {
     gchar *error;
     guint array_nesting;
+    guint array_key;
     gboolean in_event;
     J4statusI3barOutputClickEventsJsonKey key;
     gchar *name;
@@ -276,9 +277,22 @@ _j4status_i3bar_output_click_events_start_array(void *user_data)
 {
     J4statusPluginContext *context = user_data;
 
-    if ( ++context->parse_context.array_nesting > 1 )
+    switch ( context->parse_context.key )
     {
-        context->parse_context.error = g_strdup_printf("Too much nested arrays: %u", context->parse_context.array_nesting);
+    case KEY_NONE:
+        if ( ++context->parse_context.array_nesting > 1 )
+        {
+            context->parse_context.error = g_strdup_printf("Too much nested arrays: %u", context->parse_context.array_nesting);
+            return 0;
+        }
+    break;
+    case KEY_UNKNOWN:
+        /* For forward compatibility, we ignore unknown keys */
+        ++context->parse_context.array_key;
+    break;
+    default:
+        context->parse_context.error = g_strdup_printf("Wrong array key '%s'",
+            _j4status_i3bar_output_json_key_names[context->parse_context.key]);
         return 0;
     }
 
@@ -290,7 +304,20 @@ _j4status_i3bar_output_click_events_end_array(void *user_data)
 {
     J4statusPluginContext *context = user_data;
 
-    --context->parse_context.array_nesting;
+    switch ( context->parse_context.key )
+    {
+    case KEY_NONE:
+        --context->parse_context.array_nesting;
+    break;
+    case KEY_UNKNOWN:
+        /* For forward compatibility, we ignore unknown keys */
+        --context->parse_context.array_key;
+    break;
+    default:
+        context->parse_context.error = g_strdup_printf("Wrong array key '%s'",
+            _j4status_i3bar_output_json_key_names[context->parse_context.key]);
+        return 0;
+    }
 
     return 1;
 }
