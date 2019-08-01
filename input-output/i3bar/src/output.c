@@ -238,9 +238,12 @@ _j4status_i3bar_output_click_events_end_map(void *user_data)
 
     const gchar *name = context->parse_context.name;
     const gchar *instance = context->parse_context.instance;
-    if ( ( name == NULL ) && ( instance != NULL ) )
+    if ( name == NULL )
     {
-        context->parse_context.error = g_strdup_printf("Section instance but without name: %s", instance);
+        if ( instance != NULL )
+            context->parse_context.error = g_strdup_printf("Section instance but without name: %s", instance);
+        else
+            context->parse_context.error = g_strdup_printf("No section name to match the section to send the action to");
         return 0;
     }
 
