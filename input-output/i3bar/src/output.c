@@ -184,6 +184,12 @@ _j4status_i3bar_output_click_events_start_map(void *user_data)
 {
     J4statusPluginContext *context = user_data;
 
+    if ( context->parse_context.array_nesting < 1 )
+    {
+        context->parse_context.error = g_strdup_printf("Unexpected map");
+        return 0;
+    }
+
     if ( context->parse_context.in_event )
     {
         context->parse_context.error = g_strdup_printf("Unexpected map in section");
@@ -267,7 +273,7 @@ _j4status_i3bar_output_click_events_start_array(void *user_data)
 {
     J4statusPluginContext *context = user_data;
 
-    if ( ++context->parse_context.array_nesting > 2 )
+    if ( ++context->parse_context.array_nesting > 1 )
     {
         context->parse_context.error = g_strdup_printf("Too much nested arrays: %u", context->parse_context.array_nesting);
         return 0;
