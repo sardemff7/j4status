@@ -91,6 +91,13 @@
                     <term><command>pango</command></term>
                     <listitem><para>which displays Pango markup</para></listitem>
                 </varlistentry>
+                <varlistentry condition="website;enable_evp_output">
+                    <term><command>evp</command> (see <citerefentry><refentrytitle>j4status-evp.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
+                    <listitem>
+                        <para>which implements the <ulink url="https://www.eventd.org/">EvP protocol from eventd</ulink></para>
+                        <para>This plugin will send each section as an event. Please refer to eventd’s documentation to know how to use them.</para>
+                    </listitem>
+                </varlistentry>
                 <varlistentry condition="website;enable_i3bar_input_output">
                     <term><command>i3bar</command> (see <citerefentry><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>)</term>
                     <listitem>
@@ -312,6 +319,7 @@
             <citerefentry><refentrytitle>j4status.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-flat.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-pango.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
+            <citerefentry condition="website;enable_evp_output"><refentrytitle>j4status-evp.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry condition="website;enable_i3bar_input_output"><refentrytitle>j4status-i3bar.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-file-monitor.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>
             <citerefentry><refentrytitle>j4status-time.conf</refentrytitle><manvolnum>5</manvolnum></citerefentry>

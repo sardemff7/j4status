@@ -131,6 +131,7 @@ subdir('main')
 subdir('output/debug')
 subdir('output/flat')
 subdir('output/pango')
+subdir('output/evp')
 
 subdir('input/time')
 subdir('input/file-monitor')
