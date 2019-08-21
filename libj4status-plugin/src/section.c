@@ -133,6 +133,9 @@ j4status_section_free(J4statusSection *self)
 {
     g_return_if_fail(self != NULL);
 
+    if ( ( self->output.user_data != NULL ) && ( self->output.notify != NULL ) )
+        self->output.notify(self->output.user_data);
+
     if ( self->freeze )
         self->core->remove_section(self->core->context, self);
 
@@ -448,4 +451,23 @@ j4status_section_get_cache(const J4statusSection *self)
     g_return_val_if_fail(self->freeze, NULL);
 
     return self->cache;
+}
+
+J4STATUS_EXPORT void
+j4status_section_set_output_user_data(J4statusSection *self, gpointer user_data, GDestroyNotify notify)
+{
+    g_return_if_fail(self != NULL);
+    g_return_if_fail(self->freeze);
+
+    self->output.user_data = user_data;
+    self->output.notify = notify;
+}
+
+J4STATUS_EXPORT gpointer
+j4status_section_get_output_user_data(J4statusSection *self)
+{
+    g_return_val_if_fail(self != NULL, NULL);
+    g_return_val_if_fail(self->freeze, NULL);
+
+    return self->output.user_data;
 }

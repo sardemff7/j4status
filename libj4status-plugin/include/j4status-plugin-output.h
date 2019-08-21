@@ -67,5 +67,7 @@ const gchar *j4status_section_get_short_value(const J4statusSection *section);
 gboolean j4status_section_is_dirty(const J4statusSection *section);
 void j4status_section_set_cache(J4statusSection *section, gchar *cache);
 const gchar *j4status_section_get_cache(const J4statusSection *section);
+void j4status_section_set_output_user_data(J4statusSection *section, gpointer user_data, GDestroyNotify notify);
+gpointer j4status_section_get_output_user_data(J4statusSection *section);
 
 #endif /* __J4STATUS_J4STATUS_PLUGIN_OUTPUT_H__ */
