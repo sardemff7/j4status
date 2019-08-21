@@ -94,7 +94,7 @@
 
                         <para>
                             j4status is using <literal>SIGINT</literal> and <literal>SIGHUP</literal>, which is known to cause issues with shells like dash which does not exec command passed using <literal><option>-c</option></literal>.
-                            In order to make it work, you will have to put <literal>"status_command exec j4status"</literal> (not the <literal>"exec"</literal>) in your i3 config.
+                            In order to make it work, you will have to put <literal>"status_command exec j4status"</literal> (note the <literal>"exec"</literal>) in your i3 config.
                         </para>
                     </listitem>
                 </varlistentry>
