@@ -115,6 +115,7 @@ _j4status_evp_generate_line(J4statusPluginContext *context, GList *sections)
         if ( colour.set )
             eventd_event_add_data_string(event, g_strdup("state-colour"), g_strdup(j4status_colour_to_hex(colour)));
 
+        eventd_event_add_data(event, g_strdup("state"), g_variant_new_uint32(state & ~J4STATUS_STATE_FLAGS));
         eventd_event_add_data(event, g_strdup("urgent"), g_variant_new_boolean(state & J4STATUS_STATE_URGENT));
 
         eventc_connection_send_event(context->eventc, event, NULL);
