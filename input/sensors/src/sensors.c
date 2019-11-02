@@ -265,8 +265,6 @@ _j4status_sensors_add_feature_temp(J4statusPluginContext *context, const sensors
     sensor_feature->subfeatures.input = input;
     sensor_feature->subfeatures.max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_MAX);
     sensor_feature->subfeatures.crit = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT);
-    if ( ( sensor_feature->subfeatures.max == NULL ) && ( sensor_feature->subfeatures.crit != NULL ) )
-        sensor_feature->subfeatures.max = sensors_get_subfeature(chip, feature, SENSORS_SUBFEATURE_TEMP_CRIT_HYST);
     sensor_feature->values.current = -1;
     sensor_feature->values.high = -1;
     sensor_feature->values.crit = -1;
