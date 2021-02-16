@@ -1,7 +1,7 @@
 libmpdclient = dependency('libmpdclient', required: get_option('mpd'))
 
 if libmpdclient.found()
-    libgwater_mpd = subproject('libgwater/mpd').get_variable('libgwater_mpd')
+    libgwater_mpd = subproject('libgwater').get_variable('libgwater_mpd')
 
     shared_library('mpd', [ config_h ] + files(
             'src/mpd.c',
