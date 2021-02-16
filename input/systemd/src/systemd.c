@@ -37,6 +37,7 @@
 struct _J4statusPluginContext {
     J4statusCoreInterface *core;
     GList *sections;
+    gchar **masked_states;
     GDBusConnection *connection;
     gboolean started;
     GDBusProxy *manager;
@@ -138,6 +139,9 @@ _j4status_systemd_unit_state_changed(GDBusProxy *gobject, GVariant *changed_prop
         state = J4STATUS_STATE_BAD;
     else
         state = J4STATUS_STATE_NO_STATE;
+
+    if ( ( section->context->masked_states != NULL ) && g_strv_contains((const gchar * const *) section->context->masked_states, status) )
+        status = (g_free(status), NULL);
 
     j4status_section_set_state(section->section, state);
     j4status_section_set_value(section->section, status);
@@ -255,6 +259,7 @@ _j4status_systemd_init(J4statusCoreInterface *core)
     }
 
     gchar **units;
+    gchar **masked_states = NULL;
     units = g_key_file_get_string_list(key_file, "systemd", "Units", NULL, NULL);
     if ( units == NULL )
     {
@@ -262,6 +267,7 @@ _j4status_systemd_init(J4statusCoreInterface *core)
         g_key_file_free(key_file);
         return NULL;
     }
+    masked_states = g_key_file_get_string_list(key_file, "systemd", "MaskedStates", NULL, NULL);
     g_key_file_free(key_file);
 
     GError *error = NULL;
@@ -296,6 +302,8 @@ _j4status_systemd_init(J4statusCoreInterface *core)
         _j4status_systemd_section_new(context, *unit);
     g_free(units);
 
+    context->masked_states = masked_states;
+
     if ( context->sections == NULL )
     {
         _j4status_systemd_uninit(context);
@@ -310,6 +318,7 @@ fail:
     g_clear_error(&error);
     if ( connection != NULL )
         g_object_unref(connection);
+    g_strfreev(masked_states);
     g_strfreev(units);
 
     return NULL;
@@ -319,6 +328,7 @@ static void
 _j4status_systemd_uninit(J4statusPluginContext *context)
 {
     g_list_free_full(context->sections, _j4status_systemd_section_free);
+    g_strfreev(context->masked_states);
 
     g_object_unref(context->manager);
     g_object_unref(context->connection);

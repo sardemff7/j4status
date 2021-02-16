@@ -84,6 +84,17 @@
                         <para>The list of units the plugin will monitor.</para>
                     </listitem>
                 </varlistentry>
+
+                <varlistentry>
+                    <term>
+                        <varname>MaskedStates=</varname>
+                        (<type>list of unit states</type>, defaults to <literal>empty</literal>)
+                    </term>
+                    <listitem>
+                        <para>The states from this list will be ignored.</para>
+                        <para>You can use it to e.g. only display units in a non-active state, so you can focus on failing units.</para>
+                    </listitem>
+                </varlistentry>
             </variablelist>
         </refsect2>
     </refsect1>
