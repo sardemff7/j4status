@@ -802,6 +802,8 @@ _j4status_nl_nl80211_event(struct nl_msg *msg, void *user_data)
         return NL_SKIP;
 
     section = g_hash_table_lookup(self->sections, GINT_TO_POINTER(nla_get_u32(answer[NL80211_ATTR_IFINDEX])));
+    if ( section == NULL )
+        return NL_SKIP;
 
 
     switch ( gnlh->cmd )
