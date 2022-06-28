@@ -90,6 +90,7 @@ typedef struct {
     J4statusMpdAction pending;
 
     gchar *current_song;
+    gchar *current_filename;
     J4statusMpdSectionState state;
     gboolean updating;
     gboolean repeat;
@@ -158,6 +159,8 @@ _j4status_mpd_section_command(J4statusMpdSection *section, J4statusMpdCommand co
     }
     break;
     case COMMAND_QUERY:
+        g_free(section->current_song);
+        section->current_song = NULL;
         mpd_async_send_command(section->mpd, "command_list_begin", NULL);
         mpd_async_send_command(section->mpd, "status", NULL);
         mpd_async_send_command(section->mpd, "currentsong", NULL);
@@ -232,9 +235,10 @@ _j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer u
     switch ( value )
     {
     case TOKEN_SONG:
-        if ( section->current_song == NULL )
-            return NULL;
-        return g_variant_new_string(section->current_song);
+        if ( section->current_song != NULL )
+            return g_variant_new_string(section->current_song);
+        if ( section->current_filename != NULL )
+            return g_variant_new_string(section->current_filename);
     case TOKEN_STATE:
         return g_variant_new_byte(section->state);
     break;
@@ -343,20 +347,18 @@ _j4status_mpd_section_line_callback(gchar *line, enum mpd_error error, gpointer 
             section->updating = TRUE;
         else if ( g_ascii_strncasecmp(line, "file: ", strlen("file: ")) == 0 )
         {
-            if ( section->current_song == NULL )
-            {
-                section->current_song = g_path_get_basename(line + strlen("file: "));
+            g_free(section->current_filename);
+            section->current_filename = g_path_get_basename(line + strlen("file: "));
 
-                gchar *ext;
-                ext = g_utf8_strchr(section->current_song, -1, '.');
-                if ( ext != NULL )
-                    *ext = '\0';
-            }
+            gchar *ext;
+            ext = g_utf8_strchr(section->current_filename, -1, '.');
+            if ( ext != NULL )
+                *ext = '\0';
         }
         else if ( g_ascii_strncasecmp(line, "Title: ", strlen("Title: ")) == 0 )
         {
-            g_free(section->current_song);
-            section->current_song = g_strdup(line + strlen("Title: "));
+            if ( section->current_song == NULL )
+                section->current_song = g_strdup(line + strlen("Title: "));
         }
         else if ( g_str_has_prefix(line, "repeat: ") )
             section->repeat = ( line[strlen("repeat: ")] == '1');
