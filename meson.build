@@ -6,7 +6,6 @@ project('j4status', 'c',
         'c_std=gnu11',
         'warning_level=2',
     ],
-    subproject_dir: 'src',
 )
 
 is_unix = host_machine.system() != 'windows'
