@@ -239,6 +239,7 @@ _j4status_mpd_format_callback(const gchar *token, guint64 value, gconstpointer u
             return g_variant_new_string(section->current_song);
         if ( section->current_filename != NULL )
             return g_variant_new_string(section->current_filename);
+        return NULL;
     case TOKEN_STATE:
         return g_variant_new_byte(section->state);
     break;
