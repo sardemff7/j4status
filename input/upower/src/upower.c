@@ -181,60 +181,42 @@ _j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gb
     case UP_DEVICE_KIND_BATTERY:
         name = "upower-battery";
     break;
-    case UP_DEVICE_KIND_UPS:
-        if ( ! all_devices )
-            return;
-        name = "upower-ups";
-        label = "UPS";
+#define EXTRA_KIND(e, n, l) \
+    case UP_DEVICE_KIND_##e: \
+        if ( ! all_devices ) \
+            return; \
+        name = "upower-" #n; \
+        label = #l; \
     break;
-    case UP_DEVICE_KIND_MONITOR:
-        if ( ! all_devices )
-            return;
-        name = "upower-monitor";
-        label = "Monitor";
-    break;
-    case UP_DEVICE_KIND_MOUSE:
-        if ( ! all_devices )
-            return;
-        name = "upower-mouse";
-        label = "Mouse";
-    break;
-    case UP_DEVICE_KIND_KEYBOARD:
-        if ( ! all_devices )
-            return;
-        name = "upower-keyboard";
-        label = "Keyboard";
-    break;
-    case UP_DEVICE_KIND_PDA:
-        if ( ! all_devices )
-            return;
-        name = "upower-pda";
-        label = "PDA";
-    break;
-    case UP_DEVICE_KIND_PHONE:
-        if ( ! all_devices )
-            return;
-        name = "upower-phone";
-        label = "Phone";
-    break;
-    case UP_DEVICE_KIND_MEDIA_PLAYER:
-        if ( ! all_devices )
-            return;
-        name = "upower-media-player";
-        label = "Media player";
-    break;
-    case UP_DEVICE_KIND_TABLET:
-        if ( ! all_devices )
-            return;
-        name = "upower-tablet";
-        label = "Tablet";
-    break;
-    case UP_DEVICE_KIND_COMPUTER:
-        if ( ! all_devices )
-            return;
-        name = "upower-computer";
-        label = "Computer";
-    break;
+    EXTRA_KIND(UPS, ups, UPS)
+    EXTRA_KIND(MONITOR, monitor, Monitor)
+    EXTRA_KIND(MOUSE, mouse, Mouse)
+    EXTRA_KIND(KEYBOARD, keyboard, Keyboard)
+    EXTRA_KIND(PDA, pda, PDA)
+    EXTRA_KIND(PHONE, phone, Phone)
+    EXTRA_KIND(MEDIA_PLAYER, media-player, Media player)
+    EXTRA_KIND(TABLET, tablet, Tablet)
+    EXTRA_KIND(COMPUTER, computer, Computer)
+    EXTRA_KIND(GAMING_INPUT, gaming-input, Gaming input)
+#if UP_CHECK_VERSION(0,99,12)
+    EXTRA_KIND(PEN, pen, Pen)
+    EXTRA_KIND(TOUCHPAD, touchpad, Touchpad)
+    EXTRA_KIND(MODEM, modem, Modem)
+    EXTRA_KIND(NETWORK, network, Network)
+    EXTRA_KIND(HEADSET, headset, Headset)
+    EXTRA_KIND(SPEAKERS, speakers, Speakers)
+    EXTRA_KIND(HEADPHONES, headphones, Headphones)
+    EXTRA_KIND(VIDEO, video, Video)
+    EXTRA_KIND(OTHER_AUDIO, other-audio, Other audio)
+    EXTRA_KIND(REMOTE_CONTROL, remote-control, Remote control)
+    EXTRA_KIND(PRINTER, printer, Printer)
+    EXTRA_KIND(SCANNER, scanner, Scanner)
+    EXTRA_KIND(CAMERA, camera, Camera)
+    EXTRA_KIND(WEARABLE, wearable, Wearable)
+    EXTRA_KIND(TOY, toy, Toy)
+    EXTRA_KIND(BLUETOOTH_GENERIC, bluetooth-generic, Bluetooth generic)
+#endif /* UP_CHECK_VERSION(0,99,12) */
+#undef EXTRA_KIND
     case UP_DEVICE_KIND_UNKNOWN:
     case UP_DEVICE_KIND_LINE_POWER:
     case UP_DEVICE_KIND_LAST: /* Size placeholder */
