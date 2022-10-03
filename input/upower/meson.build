@@ -1,4 +1,4 @@
-upower = dependency('upower-glib', required: get_option('upower'))
+upower = dependency('upower-glib', version: '>=0.99.8', required: get_option('upower'))
 
 if upower.found()
     shared_library('upower', [ config_h ] + files(

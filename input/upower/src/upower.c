@@ -92,11 +92,7 @@ _j4status_upower_format_callback(G_GNUC_UNUSED const gchar *token, guint64 value
 }
 
 static void
-#if UP_CHECK_VERSION(0,99,0)
 _j4status_upower_device_changed(GObject *device, GParamSpec *pspec, gpointer user_data)
-#else /* ! UP_CHECK_VERSION(0,99,0) */
-_j4status_upower_device_changed(GObject *device, gpointer user_data)
-#endif /* ! UP_CHECK_VERSION(0,99,0) */
 {
     J4statusUpowerSection *section = user_data;
 
@@ -260,13 +256,8 @@ _j4status_upower_section_new(J4statusPluginContext *context, GObject *device, gb
     {
         context->sections = g_list_prepend(context->sections, section);
 
-#if UP_CHECK_VERSION(0,99,0)
         g_signal_connect(device, "notify", G_CALLBACK(_j4status_upower_device_changed), section);
         _j4status_upower_device_changed(device, NULL, section);
-#else /* ! UP_CHECK_VERSION(0,99,0) */
-        g_signal_connect(device, "changed", G_CALLBACK(_j4status_upower_device_changed), section);
-        _j4status_upower_device_changed(device, section);
-#endif /* ! UP_CHECK_VERSION(0,99,0) */
     }
     else
         _j4status_upower_section_free(section);
@@ -282,15 +273,6 @@ _j4status_upower_init(J4statusCoreInterface *core)
     context->core = core;
 
     context->up_client = up_client_new();
-
-#if ! UP_CHECK_VERSION(0,99,0)
-    if ( ! up_client_enumerate_devices_sync(context->up_client, NULL, NULL) )
-    {
-        g_object_unref(context->up_client);
-        g_free(context);
-        return NULL;
-    }
-#endif /* ! UP_CHECK_VERSION(0,99,0) */
 
     gboolean all_devices = FALSE;
     gchar *format = NULL;
@@ -308,7 +290,7 @@ _j4status_upower_init(J4statusCoreInterface *core)
     GPtrArray *devices;
     guint i;
 
-    devices = up_client_get_devices(context->up_client);
+    devices = up_client_get_devices2(context->up_client);
     if ( devices == NULL )
     {
         g_warning("No devices to monitor, aborting");
