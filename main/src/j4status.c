@@ -310,6 +310,9 @@ main(int argc, char *argv[])
     GOptionGroup *option_group;
 
 #ifdef J4STATUS_DEBUG_OUTPUT
+#ifdef G_OS_UNIX
+    if ( isatty(1) )
+#endif /* G_OS_UNIX */
     g_setenv("G_MESSAGES_DEBUG", "all", FALSE);
 #endif /* ! J4STATUS_DEBUG_OUTPUT */
 
