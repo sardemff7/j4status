@@ -107,14 +107,16 @@ docbook_conditions = [ 'installation' ]
 
 nk_options = [
     'enum=true',
-    'token=true',
+    'format-string=true',
     'colour=true',
     'git-work-tree=@0@'.format(meson.source_root()),
 ]
 nk = subproject('libnkutils', default_options: nk_options)
 nk_subproject_options = nk.get_variable('nk_options')
 foreach o : nk_options + nk_subproject_options
-    if not nk_options.contains(o) or not nk_subproject_options.contains(o)
+    if ( o.startswith('git-work-tree=') )
+        continue
+    elif not nk_options.contains(o) or not nk_subproject_options.contains(o)
         error('You must not change libnkutils options @0@ != @1@'.format('|'.join(nk_options), '|'.join(nk_subproject_options)))
     endif
 endforeach

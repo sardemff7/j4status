@@ -27,7 +27,7 @@
 #include <glib.h>
 #include <glib/gprintf.h>
 
-#include "nkutils-token.h"
+#include "nkutils-format-string.h"
 #include "nkutils-colour.h"
 
 #include "j4status-plugin.h"
@@ -35,13 +35,13 @@
 J4STATUS_EXPORT J4statusFormatString *
 j4status_format_string_parse(gchar *string, const gchar * const *tokens, guint64 size, const gchar *default_string, guint64 *used_tokens)
 {
-    NkTokenList *token_list = NULL;
+    NkFormatString *token_list = NULL;
 
     if ( string != NULL )
-        token_list = nk_token_list_parse_enum(string, '$', tokens, size, used_tokens, NULL);
+        token_list = nk_format_string_parse_enum(string, '$', tokens, size, used_tokens, NULL);
 
     if ( token_list == NULL )
-        token_list = nk_token_list_parse_enum(g_strdup(default_string), '$', tokens, size, used_tokens, NULL);
+        token_list = nk_format_string_parse_enum(g_strdup(default_string), '$', tokens, size, used_tokens, NULL);
 
     return token_list;
 }
@@ -52,7 +52,7 @@ j4status_format_string_ref(J4statusFormatString *format_string)
     if ( format_string == NULL )
         return NULL;
 
-    return nk_token_list_ref(format_string);
+    return nk_format_string_ref(format_string);
 }
 
 J4STATUS_EXPORT void
@@ -61,7 +61,7 @@ j4status_format_string_unref(J4statusFormatString *format_string)
     if ( format_string == NULL )
         return;
 
-    nk_token_list_unref(format_string);
+    nk_format_string_unref(format_string);
 }
 
 J4STATUS_EXPORT gchar *
@@ -70,7 +70,7 @@ j4status_format_string_replace(const J4statusFormatString *format_string, J4stat
     if ( format_string == NULL )
         return NULL;
 
-    return nk_token_list_replace(format_string, (NkTokenListReplaceCallback) callback, (gpointer) user_data);
+    return nk_format_string_replace(format_string, (NkFormatStringReplaceReferenceCallback) callback, (gpointer) user_data);
 }
 
 J4STATUS_EXPORT void

@@ -106,7 +106,7 @@ j4status_config_key_file_get_enum(GKeyFile *key_file, const gchar *group_name, c
 
     gboolean r;
 
-    r = nk_enum_parse(string, values, size, TRUE, FALSE, value);
+    r = nk_enum_parse(string, values, size, NK_ENUM_MATCH_FLAGS_IGNORE_CASE, value);
     g_free(string);
 
     return r;
@@ -135,7 +135,7 @@ j4status_config_key_file_get_actions(GKeyFile *key_file, const gchar *group_name
             goto next;
         *action++ = '\0';
 
-        if ( nk_enum_parse(action, actions, size, TRUE, FALSE, &value) )
+        if ( nk_enum_parse(action, actions, size, NK_ENUM_MATCH_FLAGS_IGNORE_CASE, &value) )
             g_hash_table_insert(table, g_strdup(id), GUINT_TO_POINTER(value));
 
     next:

@@ -96,7 +96,7 @@
 
             <para>A <type>format string</type> can contain references to plugin-specific data.</para>
 
-            <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libnkutils-man.xml" xpointer="xpointer(id('nk-token-reference-description')/*)" />
+            <xi:include xmlns:xi="http://www.w3.org/2001/XInclude" href="libnkutils-man.xml" xpointer="xpointer(id('nk-format-string-reference-description')/*)" />
         </refsect2>
 
         <refsect2>
